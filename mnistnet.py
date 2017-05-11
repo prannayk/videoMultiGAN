@@ -77,7 +77,7 @@ for i in range(num_steps):
 		if max_accuracy > 0.92:
 			break
 		print("Step " + str(i) + " and accuracy : " + str(train_accuracy) + " and count : " + str(count) + "/50")
-	if i%500:
+	if i%500 == 0:
 		avg_accuracy /= 10
 		print("Average accuracy is : " + str(avg_accuracy))
 		avg_accuracy = 0
