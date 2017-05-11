@@ -43,20 +43,20 @@ weight4 = weight_variable([1024,10],1.0)
 bias4 = bias_variable([10])
 
 output = tf.nn.softmax(tf.matmul(hidden_drop,weight4)  + bias4)
-
+learning_rate = tf.placeholder(tf.float32)
 cross_entropy = -tf.reduce_sum(train_output*tf.log(output))
-train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(output,1),tf.argmax(train_output,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 saver = tf.train.Saver()
 init = tf.initialize_all_variables()
 
-num_steps = 20000
+num_steps = 50000
 max_accuracy = 0
 count = 0
 avg_accuracy = 0
 print("Running session:")
-
+rate = 1e-3
 session = tf.InteractiveSession()
 session.run(init)
 for i in range(num_steps):
@@ -64,7 +64,8 @@ for i in range(num_steps):
 	feed_dict = {
 		train_input : batch[0],
 		train_output : batch[1],
-		dropout : 0.75
+		dropout : 0.75,
+		learning_rate : rate
 	}
 	train_step.run(feed_dict=feed_dict)
 	if i%50 == 0 and i > 0:
@@ -81,6 +82,8 @@ for i in range(num_steps):
 		avg_accuracy /= 10
 		print("Average accuracy is : " + str(avg_accuracy))
 		avg_accuracy = 0
+	if i%1000 == 0 and i > 0:
+		rate *= 0.9
 feed_dict = {
 	train_input : mnist.test.images,
 	train_output : mnist.test.labels,
