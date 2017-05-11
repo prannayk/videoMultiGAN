@@ -51,9 +51,10 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 saver = tf.train.Saver()
 init = tf.initialize_all_variables()
 
-num_steps = 1000000
+num_steps = 20000
 max_accuracy = 0
 count = 0
+avg_accuracy = 0
 print("Running session:")
 
 session = tf.InteractiveSession()
@@ -66,17 +67,20 @@ for i in range(num_steps):
 		dropout : 0.75
 	}
 	train_step.run(feed_dict=feed_dict)
-	if i%10 == 0 and i > 0:
+	if i%50 == 0 and i > 0:
 		feed_dict[dropout] = 1
 		train_accuracy = accuracy.eval(feed_dict=feed_dict)
+		avg_accuracy += train_accuracy
 		if(train_accuracy > max_accuracy) :
 			max_accuracy = train_accuracy
-			count = 0
-		else:
-			count += 1
-		if count > 10000 or max_accuracy > 0.92:
+			saver.save(session, './mnist_best.ckpt')
+		if max_accuracy > 0.92:
 			break
 		print("Step " + str(i) + " and accuracy : " + str(train_accuracy) + " and count : " + str(count) + "/50")
+	if i%500:
+		avg_accuracy /= 10
+		print("Average accuracy is : " + str(avg_accuracy))
+		avg_accuracy = 0
 feed_dict = {
 	train_input : mnist.test.images,
 	train_output : mnist.test.labels,
