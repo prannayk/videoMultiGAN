@@ -56,9 +56,10 @@ max_accuracy = 0
 count = 0
 avg_accuracy = 0
 print("Running session:")
-rate = 1e-3
+rate = 5e-3
 session = tf.InteractiveSession()
 session.run(init)
+iterations = 20
 for i in range(num_steps):
 	batch = mnist.train.next_batch(50)
 	feed_dict = {
@@ -67,7 +68,8 @@ for i in range(num_steps):
 		dropout : 0.75,
 		learning_rate : rate
 	}
-	train_step.run(feed_dict=feed_dict)
+	for j in range(iterations):
+		train_step.run(feed_dict=feed_dict)
 	if i%50 == 0 and i > 0:
 		feed_dict[dropout] = 1
 		train_accuracy = accuracy.eval(feed_dict=feed_dict)
@@ -83,7 +85,7 @@ for i in range(num_steps):
 		print("Average accuracy is : " + str(avg_accuracy))
 		avg_accuracy = 0
 	if i%1000 == 0 and i > 0:
-		rate *= 0.9
+		rate *= 0.8
 feed_dict = {
 	train_input : mnist.test.images,
 	train_output : mnist.test.labels,
