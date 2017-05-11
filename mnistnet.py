@@ -51,7 +51,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 saver = tf.train.Saver()
 init = tf.initialize_all_variables()
 
-num_steps = 50000
+num_steps = 10000
 max_accuracy = 0
 count = 0
 avg_accuracy = 0
@@ -59,7 +59,7 @@ print("Running session:")
 rate = 5e-3
 session = tf.InteractiveSession()
 session.run(init)
-iterations = 20
+iterations = 10
 for i in range(num_steps):
 	batch = mnist.train.next_batch(50)
 	feed_dict = {
