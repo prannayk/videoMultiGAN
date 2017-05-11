@@ -74,7 +74,7 @@ for i in range(num_steps):
 			count = 0
 		else:
 			count += 1
-		if count > 50:
+		if count > 10000 or max_accuracy > 0.92:
 			break
 		print("Step " + str(i) + " and accuracy : " + str(train_accuracy) + " and count : " + str(count) + "/50")
 feed_dict = {
