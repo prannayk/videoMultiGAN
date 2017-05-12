@@ -75,7 +75,7 @@ for i in range(num_steps):
 	feed_dict = {
 		train_input : batch[0],
 		train_output : batch[1],
-		dropout : 0.9,
+		dropout : 0.8,
 		learning_rate : rate
 	}
 	for j in range(iterations):
