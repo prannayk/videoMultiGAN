@@ -117,7 +117,7 @@ with tf.Session(graph=graph) as session:
 			}
 			_,generator_loss = session.run([g_train,gen_loss],feed_dict=feed_dict)
 			_,disc_loss_val = session.run([d_train,disc_loss],feed_dict=feed_dict)
-			average_total_loss += (disc_loss.eval() + generator_loss.eval())
+			average_total_loss += (disc_loss_val.eval() + generator_loss.eval())
 		batch_x, _ = mnist.train.next_batch(batch_size)
 		random = np.random.uniform(-1.0,1.0,size=[batch_size,embedding_size])
 		t = mnist.train.next_batch(batch_size)
