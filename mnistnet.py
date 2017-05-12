@@ -18,7 +18,7 @@ train_output = tf.placeholder(tf.float32, shape=[None, 10])
 dropout = tf.placeholder(tf.float32)
 
 weight1 = weight_variable([5,5,1,8],1.0)
-bias1 = bias_variable([32])
+bias1 = bias_variable([8])
 
 train_image = tf.reshape(train_input, [-1,28,28,1])
 
@@ -31,10 +31,10 @@ bias2 = bias_variable([32])
 hidden2 = tf.nn.relu(tf.nn.conv2d(hiddenp1,weight2,strides=[1,1,1,1],padding='SAME') + bias2)
 hiddenp2 = tf.nn.max_pool(hidden2,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
 
-weight4 = weight_variable([2,2,32,64],0.5)
-bias4 = bias_variable([64])
+weight5 = weight_variable([2,2,32,64],0.5)
+bias5 = bias_variable([64])
 
-hiddenp3 = tf.nn.relu(tf.nn.conv2d(hiddenp2,weight4,strides=[1,1,1,1],padding='SAME') + bias4)
+hiddenp3 = tf.nn.relu(tf.nn.conv2d(hiddenp2,weight5,strides=[1,1,1,1],padding='SAME') + bias5)
 
 weight3 = weight_variable([7*7*64,1024],1.0)
 bias3 = bias_variable([1024])
@@ -55,27 +55,27 @@ hidden6 = tf.matmul(hidden5,weight6) + drop6
 output = tf.nn.softmax(hidden6)
 learning_rate = tf.placeholder(tf.float32)
 cross_entropy = -tf.reduce_sum(train_output*tf.log(output))
-train_step = tf.train.GradientDescent(learning_rate).minimize(cross_entropy)
+train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(output,1),tf.argmax(train_output,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 saver = tf.train.Saver()
 init = tf.initialize_all_variables()
 
-num_steps = 10000
+num_steps = 20000
 max_accuracy = 0
 count = 0
 avg_accuracy = 0
 print("Running session:")
-rate = 5e-3
+rate = 1e-4
 session = tf.InteractiveSession()
 session.run(init)
-iterations = 2 
+iterations = 5 
 for i in range(num_steps):
 	batch = mnist.train.next_batch(50)
 	feed_dict = {
 		train_input : batch[0],
 		train_output : batch[1],
-		dropout : 0.75,
+		dropout : 0.9,
 		learning_rate : rate
 	}
 	for j in range(iterations):
