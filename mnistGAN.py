@@ -130,7 +130,7 @@ with tf.Session(graph=graph) as session:
 		}
 		_,generator_loss = session.run([g_train,gen_loss],feed_dict=feed_dict)
 		_,disc_loss_val	 = session.run([d_train,disc_loss],feed_dict=feed_dict)
-		print("Losses: " + str(generator_loss.eval()) + " , " + str(disc_loss.eval()))
+		print("Losses: " + str(generator_loss.eval()) + " , " + str(disc_loss_val.eval()))
 		average_total_loss /= mnist.train.num_examples
 		print("Average Loss: " + str(average_total_loss))
 		average_total_loss = 0
