@@ -4,6 +4,14 @@ import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 
+def weight_variable(shape,stddev):
+	x = tf.truncated_normal(shape,stddev=stddev)
+	return tf.Variable(x)
+
+def bias_variable(shape):
+	x = tf.zeros(shape)
+	return tf.Variable(x)
+
 graph = tf.Graph()
 
 batch_size = 50
@@ -12,9 +20,9 @@ epochs = 10
 
 def generator(g_input):
 	global embedding_size
-	weight1 = tf.Variable(tf.random_uniform([embedding_size,128]))
+	weights1 = tf.Variable(tf.random_uniform([embedding_size,128]))
 	bias1 = tf.Variable(tf.zeros([128]))
-	hidden1 = tf.reshape((tf.matmul(g_input,weight1) + bias1),[-1,4,4,8])
+	hidden1 = tf.reshape((tf.matmul(g_input,weights1) + bias1),[-1,4,4,8])
 	# first deconvolution layer weights
 	weights2 = tf.Variable(tf.random_uniform([3,3,32,8]))
 	bias2 = tf.Variable(tf.zeros(shape=([32])))
@@ -25,11 +33,11 @@ def generator(g_input):
 	weights4 = tf.Variable(tf.random_uniform([3,3,1,8]))
 	bias4 = tf.Variable(tf.zeros(shape=([1])))
 	# layers
-	deconv1 = tf.nn.conv2d_transpose(hidden1,filter=weights2,padding='VALID',strides=[1,2,2,4],output_shape=[batch_size,7,7,32])
+	deconv1 = tf.nn.conv2d_transpose(hidden1,filter=weights2,padding='SAME',strides=[1,2,2,1],output_shape=[batch_size,7,7,32])
 	hidden2 = tf.nn.relu(deconv1 + bias2)
-	deconv2 = tf.nn.conv2d_transpose(hidden2,filter=weights3,padding='VALID',strides=[1,2,2,1],output_shape=[batch_size,14,14,8])
+	deconv2 = tf.nn.conv2d_transpose(hidden2,filter=weights3,padding='SAME',strides=[1,2,2,1],output_shape=[batch_size,14,14,8])
 	hidden3 = tf.nn.relu(deconv2 + bias3)
-	deconv3 = tf.nn.conv2d_transpose(hidden3,filter=weights4,padding='VALID',strides=[1,2,2,1],output_shape=[batch_size,28,28,1])
+	deconv3 = tf.nn.conv2d_transpose(hidden3,filter=weights4,padding='SAME',strides=[1,2,2,1],output_shape=[batch_size,28,28,1])
 	hidden4 = tf.nn.relu(deconv3 + bias4) # this layer is the image
 	generator_output = tf.reshape(hidden4, [batch_size,28,28])
 	return generator_output , [weights1,weights2,weights3,weights4,bias1,bias2,bias3,bias4]
@@ -83,29 +91,37 @@ with graph.as_default():
 
 	optimizer = tf.train.AdamOptimizer(learning_rate)
 	d_train = optimizer.minimize(disc_loss, var_list = d_weight)
-	g_train = optimizer.minimize(disc_loss, var_list = d_weight + g_weights)
-	g2_train = optimizer.minimize(disc_loss, var_list = g_weight)
+	# g_train = optimizer.minimize(disc_loss, var_list = d_weight + g_weights)
+	g_train = optimizer.minimize(gen_loss)
 	saver = tf.train.Saver()
-	init = tf.initialize_all_variables()
+	init = tf.global_variables_initializer()
 
 num_epochs = 100
 average_total_loss = 0
 with tf.Session(graph=graph) as session:
+	init.run()
+	print("Started training")
 	for epoch in range(num_epochs):
 		for batch in range(mnist.train.num_examples // batch_size):
+			if batch % 20 == 0:
+				print("Training in this Epoch: " + str(batch*batch_size))
 			batch_x, _ = mnist.train.next_batch(batch_size)
 			random = np.random.uniform(-1.0,1.0,size=[batch_size,embedding_size])
+			# t = mnist.train.next_batch(batch_size)
+			# print(len(t))
 			feed_dict = {
 				dropout : 0.8,
 				learning_rate : 1e-4,
 				g_input : random,
-				image_input : mnist.train.next_batch(batch_size)
+				image_input : mnist.train.next_batch(batch_size)[0]
 			}
 			_,generator_loss = session.run([g_train,gen_loss],feed_dict=feed_dict)
-			_,disc_loss = session.run([d_train,disc_loss],feed_dict=feed_dict)
+			_,disc_loss_val = session.run([d_train,disc_loss],feed_dict=feed_dict)
 			average_total_loss += (disc_loss + generator_loss)
 		batch_x, _ = mnist.train.next_batch(batch_size)
 		random = np.random.uniform(-1.0,1.0,size=[batch_size,embedding_size])
+		t = mnist.train.next_batch(batch_size)
+		print(t.shape)
 		feed_dict = {
 			dropout : 0.8,
 			learning_rate : 1e-4,
@@ -113,8 +129,11 @@ with tf.Session(graph=graph) as session:
 			image_input : mnist.train.next_batch(batch_size)
 		}
 		_,generator_loss = session.run([g_train,gen_loss],feed_dict=feed_dict)
-		_,disc_loss = session.run([d_train,disc_loss],feed_dict=feed_dict)
+		_,disc_loss_val	 = session.run([d_train,disc_loss],feed_dict=feed_dict)
 		print("Losses: " + str(generator_loss) + " , " + str(disc_loss))
+		average_total_loss /= mnist.train.num_examples
+		print("Average Loss: " + str(average_total_loss))
+		average_total_loss = 0
 	print("Ended training, saving state")
 	saver.save(session,"mnist_GAN.ckpt")
 	print("Saved session")
