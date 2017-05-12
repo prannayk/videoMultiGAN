@@ -49,8 +49,8 @@ weight6 = weight_variable([120,10],1.0)
 bias4 = bias_variable([120])
 bias6 = bias_variable([10])
 
-hidden5 = tf.matmul(hidden_drop,weight4) + drop4
-hidden6 = tf.matmul(hidden5,weight6) + drop6
+hidden5 = tf.matmul(hidden_drop,weight4) + bias4
+hidden6 = tf.matmul(hidden5,weight6) + bias6
 
 output = tf.nn.softmax(hidden6)
 learning_rate = tf.placeholder(tf.float32)
