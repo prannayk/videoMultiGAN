@@ -121,7 +121,7 @@ with tf.Session(graph=graph) as session:
 		batch_x, _ = mnist.train.next_batch(batch_size)
 		random = np.random.uniform(-1.0,1.0,size=[batch_size,embedding_size])
 		t = mnist.train.next_batch(batch_size)
-		print(t.shape)
+		# print(t.shape)
 		feed_dict = {
 			dropout : 0.8,
 			learning_rate : 1e-4,
