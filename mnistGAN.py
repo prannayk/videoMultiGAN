@@ -126,7 +126,7 @@ with tf.Session(graph=graph) as session:
 			dropout : 0.8,
 			learning_rate : 1e-4,
 			g_input : random,
-			image_input : mnist.train.next_batch(batch_size)
+			image_input : mnist.train.next_batch(batch_size)[0]
 		}
 		_,generator_loss = session.run([g_train,gen_loss],feed_dict=feed_dict)
 		_,disc_loss_val	 = session.run([d_train,disc_loss],feed_dict=feed_dict)
