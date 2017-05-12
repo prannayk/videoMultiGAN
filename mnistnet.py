@@ -64,7 +64,7 @@ print("Running session:")
 rate = 5e-3
 session = tf.InteractiveSession()
 session.run(init)
-iterations = 10
+iterations = 2 
 for i in range(num_steps):
 	batch = mnist.train.next_batch(50)
 	feed_dict = {
