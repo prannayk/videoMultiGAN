@@ -10,3 +10,4 @@ batch_size = 50
 
 with graph.as_default():
 	g_input = tf.placeholder(tf.float32,shape=(batch_size,embedding_size))
+	

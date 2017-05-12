@@ -44,10 +44,15 @@ hidden4 = tf.nn.relu(tf.matmul(hidden3,weight3) + bias3)
 
 hidden_drop = tf.nn.dropout(hidden4,dropout)
 
-weight4 = weight_variable([1024,10],1.0)
-bias4 = bias_variable([10])
+weight4 = weight_variable([1024,120],1.0)
+weight6 = weight_variable([120,10],1.0)
+bias4 = bias_variable([120])
+bias6 = bias_variable([10])
 
-output = tf.nn.softmax(tf.matmul(hidden_drop,weight4)  + bias4)
+hidden5 = tf.matmul(hidden_drop,weight4) + drop4
+hidden6 = tf.matmul(hidden5,weight6) + drop6
+
+output = tf.nn.softmax(hidden6)
 learning_rate = tf.placeholder(tf.float32)
 cross_entropy = -tf.reduce_sum(train_output*tf.log(output))
 train_step = tf.train.GradientDescent(learning_rate).minimize(cross_entropy)
