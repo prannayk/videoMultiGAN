@@ -156,6 +156,8 @@ for t in range(batch_size):
 
 image_sample = gan.samples_generator()
 
+print('mnistimages/sample_%d.jpg'%(ep))
+
 for ep in range(epoch):
 	for t in range(mnist.train.num_examples // batch_size):
 		# print(t+1)
@@ -177,6 +179,7 @@ for ep in range(epoch):
 		if t%10 == 0 and t>0:
 			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
 	print("Saving sample images and data for later testing")
-	gen_samples,p_fake = session.run([image_sample,prob_fake],save_path=('./mnistimages/sample_' + str(ep) +'.jpg'))
+	gen_samples,p_fake = session.run([image_sample,prob_fake])
+	save_visualization(gen_samples,(14,14),save_path=('mnistimages/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
