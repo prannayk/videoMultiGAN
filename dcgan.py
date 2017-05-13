@@ -154,7 +154,7 @@ rand = np.random.randint(0,num_class-1,batch_size)
 for t in range(batch_size):
 	vector_sample[t][rand[t]] = 1
 
-image_sample = gan.samples_generator()
+embedding_,vector_,image_sample = gan.samples_generator()
 
 print('mnistimages/sample_%d.jpg'%(batch_size))
 
@@ -179,7 +179,12 @@ for ep in range(epoch):
 		if t%10 == 0 and t>0:
 			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
 	print("Saving sample images and data for later testing")
-	gen_samples,p_fake = session.run([image_sample,prob_fake])
+	feed_dict = {
+		# real_image : batch[0],
+		embedding_ : embedding_sample,
+		vector_ : vector_sample
+	}
+	gen_samples,p_fake = session.run([image_sample,prob_fake],feed_dict=feed_dict)
 	save_visualization(gen_samples,(14,14),save_path=('mnistimages/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
