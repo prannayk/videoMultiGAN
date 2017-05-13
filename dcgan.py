@@ -176,6 +176,6 @@ for ep in range(epoch):
 		if t%10 == 0 and t>0:
 			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
 	print("Saving sample images and data for later testing")
-	gen_samples,p_fake = session.run([samples_generator,prob_fake],save_path='./mnistimages/sample_%d.jpg'%(ep))
+	gen_samples,p_fake = session.run([image_sample,prob_fake],save_path='./mnistimages/sample_%d.jpg'%(ep))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
