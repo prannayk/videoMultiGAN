@@ -1,2 +1,3 @@
-model_checkpoint_path: "mnist_best.ckpt"
+model_checkpoint_path: "mnist.ckpt"
 all_model_checkpoint_paths: "mnist_best.ckpt"
+all_model_checkpoint_paths: "mnist.ckpt"

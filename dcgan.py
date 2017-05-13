@@ -160,4 +160,6 @@ for ep in range(epoch):
 		# g_loss_val = 0
 		_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
 		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
-		print("Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val))
+		if t%10 == 0 and t>0:
+			print("Done with batches: " + str((t+1)*batch_size))
+			print("Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val))
