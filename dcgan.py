@@ -174,8 +174,7 @@ for ep in range(epoch):
 		_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
 		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
 		if t%10 == 0 and t>0:
-			print("Done with batches: " + str((t+1)*batch_size))
-			print("Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val))
+			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
 	print("Saving sample images and data for later testing")
 	gen_samples,p_fake = session.run([samples_generator,prob_fake],save_path='./mnistimages/sample_%d.jpg'%(ep))
 	saver.save(session,'./dcgan.ckpt')
