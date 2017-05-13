@@ -132,6 +132,17 @@ embedding_sample, vector_sample, image_sample = gan.samples_generator()
 
 tf.global_variables_initializer().run()
 
+def save_visualization(X, nh_nw, save_path='./mnistimages/sample.jpg'):
+    h,w = X.shape[1], X.shape[2]
+    img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
+
+    for n,x in enumerate(X):
+        j = n // nh_nw[1]
+        i = n % nh_nw[1]
+        img[j*h:j*h+h, i*w:i*w+w, :] = x
+
+    scipy.misc.imsave(save_path, img)
+
 batch_size = 50
 embedding_size = 128
 num_class = 10
@@ -141,6 +152,8 @@ vector_sample = np.zeros([batch_size,num_class])
 rand = np.random.randint(0,num_class-1,batch_size)
 for t in range(batch_size):
 	vector_sample[t][rand[t]] = 1
+
+image_sample = gan.samples_generator()
 
 for ep in range(epoch):
 	for t in range(mnist.train.num_examples // batch_size):
@@ -161,3 +174,7 @@ for ep in range(epoch):
 		_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
 		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
 		print("Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val))
+	print("Saving sample images and data for later testing")
+	gen_samples,p_fake = session.run([samples_generator,prob_fake],save_path='./mnistimages/sample_%d.jpg'%(ep))
+	saver.save(session,'./dcgan.ckpt')
+	print("Saved session")
