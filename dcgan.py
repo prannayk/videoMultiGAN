@@ -156,7 +156,7 @@ for t in range(batch_size):
 
 image_sample = gan.samples_generator()
 
-print('mnistimages/sample_%d.jpg'%(ep))
+print('mnistimages/sample_%d.jpg'%(batch_size))
 
 for ep in range(epoch):
 	for t in range(mnist.train.num_examples // batch_size):
