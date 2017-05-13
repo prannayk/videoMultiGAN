@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-import scipy
+import scipy.misc
 
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
@@ -184,7 +184,8 @@ for ep in range(epoch):
 		embedding_ : embedding_sample,
 		vector_ : vector_sample
 	}
-	gen_samples,p_fake = session.run(image_sample,feed_dict=feed_dict)
+	gen_samples = session.run(image_sample,feed_dict=feed_dict)
 	save_visualization(gen_samples,(14,14),save_path=('mnistimages/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
+
