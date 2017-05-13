@@ -184,7 +184,7 @@ for ep in range(epoch):
 		embedding_ : embedding_sample,
 		vector_ : vector_sample
 	}
-	gen_samples,p_fake = session.run([image_sample,prob_fake],feed_dict=feed_dict)
+	gen_samples,p_fake = session.run(image_sample,feed_dict=feed_dict)
 	save_visualization(gen_samples,(14,14),save_path=('mnistimages/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
