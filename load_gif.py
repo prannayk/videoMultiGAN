@@ -15,6 +15,6 @@ for line in f.readlines():
 f2 = open("data.list",mode="w")
 text = ""
 for t in fdata:
-	text += (t + "\n")
+	text += t
 f2.write(text)
 print("Written text/data")
