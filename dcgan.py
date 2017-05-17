@@ -38,78 +38,82 @@ class DCGAN():
 		self.dim2 = dim2
 		self.dim3 = dim3
 		self.dim_channel = dim_channel
+		with tf.device("/gpu:0"):
+			self.g_weight1 = tf.Variable(tf.random_normal([embedding_size + num_class, dim1], stddev = 0.2), name="generator_weight1")
+			self.g_weight2 = tf.Variable(tf.random_normal([dim1 + num_class, dim2*7*7], stddev = 0.2), name="generator_weight2")
+			self.g_weight3 = tf.Variable(tf.random_normal([5,5,dim3,dim2+num_class], stddev = 0.2), name="generator_weight3")
+			self.g_weight4 = tf.Variable(tf.random_normal([5,5,dim_channel,dim3+num_class], stddev = 0.2), name="generator_weight4")
 
-		self.g_weight1 = tf.Variable(tf.random_normal([embedding_size + num_class, dim1], stddev = 0.2), name="generator_weight1")
-		self.g_weight2 = tf.Variable(tf.random_normal([dim1 + num_class, dim2*7*7], stddev = 0.2), name="generator_weight2")
-		self.g_weight3 = tf.Variable(tf.random_normal([5,5,dim3,dim2+num_class], stddev = 0.2), name="generator_weight3")
-		self.g_weight4 = tf.Variable(tf.random_normal([5,5,dim_channel,dim3+num_class], stddev = 0.2), name="generator_weight4")
-
-		self.d_weight1 = tf.Variable(tf.random_normal([5,5,dim_channel+num_class, dim3],stddev = 0.2), name="disc_weight1")
-		self.d_weight2 = tf.Variable(tf.random_normal([5,5,dim3+num_class, dim2],stddev = 0.2), name="disc_weight2")
-		self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
-		self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
+			self.d_weight1 = tf.Variable(tf.random_normal([5,5,dim_channel+num_class, dim3],stddev = 0.2), name="disc_weight1")
+			self.d_weight2 = tf.Variable(tf.random_normal([5,5,dim3+num_class, dim2],stddev = 0.2), name="disc_weight2")
+			self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
+			self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
 
 	def build_model(self):
-		embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
-		classes = tf.placeholder(tf.float32, [self.batch_size,self.num_class])
-		r_image = tf.placeholder(tf.float32,[self.batch_size,784])
-		real_image = tf.reshape(r_image,[self.batch_size] + self.image_shape)
-		h4 = self.generate(embedding,classes)
-		g_image = tf.nn.sigmoid(h4)
-		real_value = self.discriminate(real_image,classes)
-		prob_real = tf.nn.sigmoid(real_value)
-		fake_value = self.discriminate(g_image,classes)
-		prob_fake = tf.nn.sigmoid(fake_value)
-		# d_cost = bce(real_value, tf.ones_like(real_value)) + bce(fake_value,tf.zeros_like(fake_value))
-		# g_cost = bce(fake_value, tf.ones_like(fake_value))
-		d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
-		g_cost = -tf.reduce_mean(tf.log(prob_fake))
-		return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
+		with tf.device("/gpu:0"):
+			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
+			classes = tf.placeholder(tf.float32, [self.batch_size,self.num_class])
+			r_image = tf.placeholder(tf.float32,[self.batch_size,784])
+			real_image = tf.reshape(r_image,[self.batch_size] + self.image_shape)
+			h4 = self.generate(embedding,classes)
+			g_image = tf.nn.sigmoid(h4)
+			real_value = self.discriminate(real_image,classes)
+			prob_real = tf.nn.sigmoid(real_value)
+			fake_value = self.discriminate(g_image,classes)
+			prob_fake = tf.nn.sigmoid(fake_value)
+			# d_cost = bce(real_value, tf.ones_like(real_value)) + bce(fake_value,tf.zeros_like(fake_value))
+			# g_cost = bce(fake_value, tf.ones_like(fake_value))
+			d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
+			g_cost = -tf.reduce_mean(tf.log(prob_fake))
+			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
 
 	def discriminate(self, image, classes):
-		ystack = tf.reshape(classes, tf.stack([self.batch_size, 1,1, self.num_class]))
-		yneed = ystack*tf.ones([self.batch_size,28,28,self.num_class])
-		yneed2 = ystack*tf.ones([self.batch_size,14,14,self.num_class])
-		# print(yneed.shape)
-		image_ = batch_normalize(image)
-		# print(image_.shape)
-		proc_image = tf.concat(axis=3, values=[image_, yneed])
-		# print(proc_image.shape)
-		h1 = lrelu(tf.nn.conv2d(proc_image, self.d_weight1, strides=[1,2,2,1],padding='SAME'))
-		h1 = batch_normalize(tf.concat(axis=3, values=[h1, yneed2]))
-		h2 = lrelu(tf.nn.conv2d(h1, self.d_weight2, strides=[1,2,2,1],padding='SAME'))
-		h3 = tf.reshape(h2,[self.batch_size,-1])
-		h4 = tf.concat(axis=1,values=[h3,classes])
-		h5 = lrelu(batch_normalize(tf.matmul(h4, self.d_weight3)))
-		h6 = tf.concat(axis=1,values=[h5,classes])
-		h7 = lrelu(batch_normalize(tf.matmul(h6, self.d_weight4)))
-		return h7
+		with tf.device("/gpu:0"):
+			ystack = tf.reshape(classes, tf.stack([self.batch_size, 1,1, self.num_class]))
+			yneed = ystack*tf.ones([self.batch_size,28,28,self.num_class])
+			yneed2 = ystack*tf.ones([self.batch_size,14,14,self.num_class])
+			# print(yneed.shape)
+			image_ = batch_normalize(image)
+			# print(image_.shape)
+			proc_image = tf.concat(axis=3, values=[image_, yneed])
+			# print(proc_image.shape)
+			h1 = lrelu(tf.nn.conv2d(proc_image, self.d_weight1, strides=[1,2,2,1],padding='SAME'))
+			h1 = batch_normalize(tf.concat(axis=3, values=[h1, yneed2]))
+			h2 = lrelu(tf.nn.conv2d(h1, self.d_weight2, strides=[1,2,2,1],padding='SAME'))
+			h3 = tf.reshape(h2,[self.batch_size,-1])
+			h4 = tf.concat(axis=1,values=[h3,classes])
+			h5 = lrelu(batch_normalize(tf.matmul(h4, self.d_weight3)))
+			h6 = tf.concat(axis=1,values=[h5,classes])
+			h7 = lrelu(batch_normalize(tf.matmul(h6, self.d_weight4)))
+			return h7
 
 	def generate(self, embedding, classes):
-		ystack = tf.reshape(classes, [self.batch_size, 1,1, self.num_class])
-		embedding = tf.concat(axis=1,values=[embedding,classes])
-		h1 = tf.nn.relu(batch_normalize(tf.matmul(embedding,self.g_weight1)))
-		h1 = tf.concat(axis=1,values=[h1,classes])
-		h2 = tf.nn.relu(batch_normalize(tf.matmul(h1,self.g_weight2)))
-		h2 = tf.reshape(h2, [self.batch_size,7,7,self.dim2])
-		h2 = tf.concat(axis=3,values=[h2,ystack*tf.ones([self.batch_size,7,7,self.num_class])])
+		with tf.device("/gpu:0"):
+			ystack = tf.reshape(classes, [self.batch_size, 1,1, self.num_class])
+			embedding = tf.concat(axis=1,values=[embedding,classes])
+			h1 = tf.nn.relu(batch_normalize(tf.matmul(embedding,self.g_weight1)))
+			h1 = tf.concat(axis=1,values=[h1,classes])
+			h2 = tf.nn.relu(batch_normalize(tf.matmul(h1,self.g_weight2)))
+			h2 = tf.reshape(h2, [self.batch_size,7,7,self.dim2])
+			h2 = tf.concat(axis=3,values=[h2,ystack*tf.ones([self.batch_size,7,7,self.num_class])])
 
-		output_shape1 = [self.batch_size,14,14,self.dim3]
-		h3 = tf.nn.conv2d_transpose(h2,self.g_weight3,output_shape=output_shape1,strides=[1,2,2,1])
-		h3 = tf.nn.relu(batch_normalize(h3))
-		h3 = tf.concat(axis=3,values=[h3,ystack*tf.ones([self.batch_size,14,14,self.num_class])])
+			output_shape1 = [self.batch_size,14,14,self.dim3]
+			h3 = tf.nn.conv2d_transpose(h2,self.g_weight3,output_shape=output_shape1,strides=[1,2,2,1])
+			h3 = tf.nn.relu(batch_normalize(h3))
+			h3 = tf.concat(axis=3,values=[h3,ystack*tf.ones([self.batch_size,14,14,self.num_class])])
 
-		output_shape2 = [self.batch_size,28,28,self.dim_channel]
-		h4 = tf.nn.conv2d_transpose(h3,self.g_weight4,output_shape=output_shape2,strides=[1,2,2,1])
-		return batch_normalize(h4)
+			output_shape2 = [self.batch_size,28,28,self.dim_channel]
+			h4 = tf.nn.conv2d_transpose(h3,self.g_weight4,output_shape=output_shape2,strides=[1,2,2,1])
+			return batch_normalize(h4)
 
 	def samples_generator(self):
-		batch_size = self.batch_size
-		embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
-		classes = tf.placeholder(tf.float32,[batch_size,self.num_class])
+		with tf.device("/gpu:0"):
+			batch_size = self.batch_size
+			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
+			classes = tf.placeholder(tf.float32,[batch_size,self.num_class])
 
-		t = tf.nn.sigmoid(self.generate(embedding,classes))
-		return embedding,classes,t
+			t = tf.nn.sigmoid(self.generate(embedding,classes))
+			return embedding,classes,t
 
 # training part
 epoch = 1000

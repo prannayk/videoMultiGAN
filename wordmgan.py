@@ -178,30 +178,31 @@ class multiGAN():
 
 	def build_tree(self):
 		if self.tree_style == 1:
-			self.frame_gan = DCGAN(batch_size=self.batch_size,image_shape=self.video_shape, embedding_size=self.embedding_size, text_embedding_size=self.text_embedding_size, dim1=2048,dim2=256,dim3=64,dim_channel=3,name="frame_gan",splices=self.splices)
 			video_shape = list(self.video_shape)
 			video_shape[2]*=2
 			self.crossover_gan = DCGAN(batch_size=self.batch_size,image_shape=video_shape, embedding_size=self.embedding_size, text_embedding_size=self.text_embedding_size, dim1=2048,dim2=256,dim3=64,dim_channel=6,name="cross_gan",splices=((self.splices-1)//2))
-			self.model_frame = self.frame_gan.build_model()
 			self.model_crossover = self.crossover_gan.build_model()
-			print("Setup model Variabless")
-			generator_frame = [i for i in (filter((lambda x: x.name.startswith("frame_gan_gen")),tf.trainable_variables()))]
-			discriminator_frame = [i for i in (filter(lambda x: x.name.startswith("frame_gan_disc"),tf.trainable_variables()))]
 			generator_cross = [i for i in (filter(lambda x: x.name.startswith("cross_gan_gen"),tf.trainable_variables()))]
 			discriminator_cross = [i for i in (filter(lambda x: x.name.startswith("cross_gan_disc"),tf.trainable_variables()))]
-
-			self.frame_optimizer_g = tf.train.AdamOptimizer(learning_rate, beta1=0.5).minimize(self.model_frame[4],var_list=generator_frame)
-			self.frame_optimizer_d = tf.train.AdamOptimizer(learning_rate, beta1=0.5).minimize(self.model_frame[5],var_list=discriminator_frame)
 			self.crossover_optimizer_g = tf.train.AdamOptimizer(learning_rate, beta1=0.5).minimize(self.model_crossover[4],var_list=generator_cross)
 			self.crossover_optimizer_d = tf.train.AdamOptimizer(learning_rate,beta1=0.5).minimize(self.model_crossover[5],var_list=discriminator_cross) 
-			print("Setting up Gradients")
-			self.sample_frame = self.frame_gan.samples_generator()
 			self.sample_cross = self.crossover_gan.samples_generator()
-			self.saver = tf.train.Saver()
-			print("Setting up testing criterion")
-			self.session = tf.InteractiveSession()
+	
+		self.frame_gan = DCGAN(batch_size=self.batch_size,image_shape=self.video_shape, embedding_size=self.embedding_size, text_embedding_size=self.text_embedding_size, dim1=2048,dim2=256,dim3=64,dim_channel=3,name="frame_gan",splices=self.splices)
+		self.model_frame = self.frame_gan.build_model()
+		print("Setup model Variabless")
+		generator_frame = [i for i in (filter((lambda x: x.name.startswith("frame_gan_gen")),tf.trainable_variables()))]
+		discriminator_frame = [i for i in (filter(lambda x: x.name.startswith("frame_gan_disc"),tf.trainable_variables()))]
 
-			return True
+		self.frame_optimizer_g = tf.train.AdamOptimizer(learning_rate, beta1=0.5).minimize(self.model_frame[4],var_list=generator_frame)
+		self.frame_optimizer_d = tf.train.AdamOptimizer(learning_rate, beta1=0.5).minimize(self.model_frame[5],var_list=discriminator_frame)
+		print("Setting up Gradients")
+		self.sample_frame = self.frame_gan.samples_generator()
+		self.saver = tf.train.Saver()
+		print("Setting up testing criterion")
+		self.session = tf.InteractiveSession()
+
+		return True
 
 	def save_session(self,path):
 		path = saver.save(self.session, path)
@@ -218,33 +219,35 @@ class multiGAN():
 		path = "./start_frames/sample_%d.jpg" %(ep+1)
 		gen_samples = self.session.run(self.sample_frame[2],feed_dict=feed_dict)
 		save_visualization(gen_samples,(32,32),path)
-		feed_dict = {
-			self.sample_cross[0] : c_inputs[0],
-			self.sample_cross[1] : c_inputs[1]
-		}
-		gen_samples = self.session.run(self.sample_cross[2],feed_dict=feed_dict)
-		save_visualization(gen_samples,(32,32),path,flag=True)
+		if self.tree_style == 1:
+			feed_dict = {
+				self.sample_cross[0] : c_inputs[0],
+				self.sample_cross[1] : c_inputs[1]
+			}
+			gen_samples = self.session.run(self.sample_cross[2],feed_dict=feed_dict)
+			save_visualization(gen_samples,(32,32),path,flag=True)
 
-	def train(self, inputs,c_inputs):
+	def train(self, inputs,c_inputs,tree_style=1):
 		feed_dict = {
 			self.model_frame[0] : inputs[0],
 			self.model_frame[1] : inputs[1],
 			self.model_frame[2] : inputs[2],
 			self.model_frame[3] : inputs[3]
 		}
-		feed_dict2 = {
-			self.model_frame[0] : c_inputs[0],
-			self.model_frame[1] : c_inputs[1],
-			self.model_frame[2] : c_inputs[2],
-			self.model_frame[3] : c_inputs[3]
-		}
 		_,f_g_loss_val = self.session.run([self.frame_optimizer_g,self.model_frame[4]],feed_dict=feed_dict)
 		_,f_d_loss_val = self.session.run([self.frame_optimizer_d,self.model_frame[5]],feed_dict=feed_dict)
-		_,c_g_loss_val = self.session.run([self.cross_optimizer_g,self.model_crossover[4]],feed_dict=feed_dict2)
-		_,c_d_loss_val = self.session.run([self.cross_optimizer_d,self.model_crossover[5]],feed_dict=feed_dict2)
-		
-		return f_g_loss_val,f_d_loss_val,c_g_loss_val,c_d_loss_val
-
+		if self.tree_style == 1:
+			feed_dict2 = {
+				self.model_frame[0] : c_inputs[0],
+				self.model_frame[1] : c_inputs[1],
+				self.model_frame[2] : c_inputs[2],
+				self.model_frame[3] : c_inputs[3]
+			}
+			_,c_g_loss_val = self.session.run([self.cross_optimizer_g,self.model_crossover[4]],feed_dict=feed_dict2)
+			_,c_d_loss_val = self.session.run([self.cross_optimizer_d,self.model_crossover[5]],feed_dict=feed_dict2)
+			return f_g_loss_val,f_d_loss_val,c_g_loss_val,c_d_loss_val
+		else:
+			return f_g_loss_val, f_d_loss_val
 
 # training part
 epoch = 100	
@@ -253,10 +256,10 @@ batch_size = 50
 embedding_size = 128
 text_embedding_size = 10
 
-gantree = multiGAN(splices=6,video_shape=[64,64,3],tree_style=1, batch_size=batch_size, embedding_size=embedding_size, text_embedding_size=text_embedding_size,name="gantree2")
+gantree = multiGAN(splices=6,video_shape=[64,64,3],tree_style=1, batch_size=batch_size, embedding_size=embedding_size, text_embedding_size=text_embedding_size,name="gantree")
 gantree.build_tree()
 
-print("Built graph, etc : ready to run")
+print("Built graph for GAN, etc : ready to run")
 total_parameters = 0
 for variable in tf.trainable_variables():
     shape = variable.get_shape()
