@@ -7,7 +7,7 @@ for line in f.readlines():
 	data = line.split("\t")
 	title = data[0].split("/")[-1]
 	name = "gif_data/" + title.split(".")[0]
-	clas = int(title.split(".")[0].split("_")[-1])
+	clas = title.split(".")[0].split("_")[-1]
 	name = "gif_data/" + clas + "/" + title.split(".")[0]
 	subprocess.call(["mkdir",name])
 	subprocess.call(["wget " + data[0]],shell=True)

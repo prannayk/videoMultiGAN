@@ -112,13 +112,13 @@ class DCGAN():
 		return embedding,classes,t
 
 # training part
-epoch = 100
+epoch = 1000
 learning_rate = 1e-2
 
 gan = DCGAN()
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
-session  = tf.InteractiveSession()
+session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 saver = tf.train.Saver()
 # relevant weight list
 g_weight_list = [i for i in (filter(lambda x: x.name.startswith("gen"),tf.trainable_variables()))]
@@ -156,7 +156,7 @@ for t in range(batch_size):
 
 embedding_,vector_,image_sample = gan.samples_generator()
 
-print('mnistimages/sample_%d.jpg'%(batch_size))
+print('mnistsamples/sample_%d.jpg'%(batch_size))
 
 for ep in range(epoch):
 	for t in range(mnist.train.num_examples // batch_size):
@@ -185,7 +185,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(14,14),save_path=('mnistimages/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(14,14),save_path=('mnistsamples/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
