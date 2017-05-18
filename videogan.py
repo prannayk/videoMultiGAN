@@ -1,6 +1,55 @@
 import tensorflow as tf
 import numpy as np
 import scipy.misc
+from gensim.models import word2vec
+
+model = word2vec.load_word2vec_format('../google.bin', binary=True)
+
+def load_data(filename):
+	f = open(filename, mode="r")
+	lines = f.readlines()
+	data = dict()
+	images = dict()
+	for line in lines:
+		image = line.split("\t")[0].split("/")[0].split(".")[0]
+		clas = image.split("_")[-1]
+		sentence = line.split('\t')[1]
+		data.update({sentence : ("%s/%s"%(clas,image))})
+		image.update({sentence : image})
+	return data, image
+
+data,image = load_data('tgif-v1.0.tsv')
+start = 0
+def generate_batch():
+	global data, image, start
+	sen_list = [i for i in np.random.permutation(list(image.keys()))]
+	start += 50
+	start = start%len(sen_list)
+	sen_list = sen_list[start:start+50]
+	video_tensor_list = list()
+	for sentence in sen_list:
+		gif = image[sentence]
+		file_list = [("./gif_data/%s/%s-%d.png"%(gif,gif,i)) for i in range(16)]
+		if file_list
+		tensor_list = list()
+		for file in file_list:
+			f = open(file)
+			read = f.read()
+			t = tf.image.decode_png(read)
+			l = tf.image.decode_png(tf.reshape(t, shape=([1] + t.shape)),size=[64,64])
+			tensor_list.append(tf.reshape(tf.reshape(l,shape=[l.shape[1],l.shape[2],l.shape[3]])),shape=[l.shape[1],l.shape[2],1,l.shape[3]])
+		# convert to HWFC
+		video_tensor = tensor_list[0]
+		for i in range(1,len(tensor_list)):
+			image_tensor = tf.concat(values=[image_tensor,tensor_list[i]],axis=2)
+		video_tensor_list.append(image_tensor)
+	video_batch = video_tensor_list[0]
+	for i in range(1,len(video_tensor_list)):
+		video_batch = tf.concat(axis=0,values=[video_batch,video_tensor_list[i]])
+	return video_batch
+
+## visualization saving
+## sentence embedding
 
 def batch_normalize(X, eps=1e-6):
 	if X.get_shape().ndims == 4 :
@@ -11,6 +60,10 @@ def batch_normalize(X, eps=1e-6):
 		mean = tf.reduce_mean(X,[0])
 		stddev = tf.reduce_mean(tf.square(X-mean),[0])
 		X = (X - mean)/tf.sqrt(stddev + eps)
+	elif X.get_shape().ndims == 5:
+		mean = tf.reduce_mean(X,[0,1,2,3])
+		stddev = tf.reduce_mean(tf.square(X-mean),[0,1,2,3])
+		X = (X-mean)/tf.sqrt(stddev + eps)
 	else:
 		raise NoImplementationForSuchDimensions
 	return X
@@ -36,6 +89,7 @@ class VideoGAN():
 		self.dim_channel = dim_channel
 		self.name = name
 		self.frames = frames
+		self.max_len = max_len
 
 		self.dim_4 = image_shape[0] // 4
 		self.dim_2 = image_shape[0] // 2
@@ -55,14 +109,16 @@ class VideoGAN():
 	def build_model(self):
 		with tf.device("/gpu:0"):
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
-			text_embedding = tf.placeholder(tf.float32, [self.batch_size, self.frames, self.embedding_size])
+			text_embedding_raw = tf.placeholder(tf.float32, [self.batch_size, self.otext_embedding_size, self.max_len])
+			# text_embedding = tf.placeholder(tf.float32, [self.batch_size, self.frames, self.embedding_size])
+			text_embedding = generate_embedding(text_embedding_raw)
 			video_input = list(image_shape)
 			video_input.append(video_input[2])
 			video_input[2] = self.frames
 			r_video = tf.placeholder(tf.float32, [self.batch_size] + video_input)
 			h4 = self.generate(embedding, text_embedding)
 			g_video = tf.nn.sigmoid(h4)
-			real_value = self.discriminate(r_image, text_embedding)
+			real_va lue = self.discriminate(r_image, text_embedding)
 			prob_real = tf.nn.sigmoid(real_value)
 			fake_value = self.discriminate(g_video, text_embedding)
 			prob_fake = tf.nn.sigmoid(fake_value)
@@ -70,6 +126,13 @@ class VideoGAN():
 			d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			return embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real
+
+	def generate_embedding_raw(self,text_embedding):
+		# naive attention
+		with tf.device("/gpu:0"):
+			attention = tf.Variable(tf.random_normal([self.max_len,self.self_frames]))
+			h = batch_normalize(tf.matmul(text_embedding,attention))
+			return h
 
 	def generate(self, embedding, text_embedding):
 		with tf.device("/gpu:0"):
@@ -135,9 +198,13 @@ class VideoGAN():
 			batch_size = self.batch_size
 			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
 			text_embedding_size = tf.placeholder(tf.float32,[batch_size,self.num_class])
-
-			t = tf.nn.sigmoid(self.generate(embedding,classes))
+			t = self.generate(embedding,classes)
 			return embedding,classes,t
+
+	def textembedding(self, sentence):
+		with tf.device("/gpu:0"):
+
+
 
 epoch = 1000
 learning_rate = 1e-2
@@ -182,4 +249,6 @@ for ep in range(epoch):
 		sentence : sample_text,
 		real_video : sample_video
 	}
+	gen_samples = session.run(image_sample,feed_dict=feed_dict)
+	save_visualization(gen_samples,(14,14),save_path=('videoresults/sample_%d/'))
 	print("Epoch: %d has been completed"%(ep + 1))
