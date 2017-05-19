@@ -18,7 +18,8 @@ def int_val(one_hot):
 		if one_hot[i] == 1:
 			return i
 
-def convert2embedding(sentence_list, model,batch_size,maxlen):
+def convert2embedding(sentence_list,batch_size,maxlen):
+	global model
 	text_embeddings = np.ndarray(batch_size, 300, maxlen)
 	for i in range(len(sentence_list)):
 		tokens = sentence_list[i].split()
