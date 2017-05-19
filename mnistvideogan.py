@@ -7,7 +7,7 @@ model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
 print("Loaded gensim")
 
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("../../videogan/MNIST_data/",one_hot=True)
+mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 print("Loaded MNIST")
 label_dict = dict({
 	1 : 'one',2 : 'two',3 : 'three',4 : 'four',5 : 'five',6 : 'six',7 : 'seven',8 : 'eight',9 : 'nine',0 : 'zero'
