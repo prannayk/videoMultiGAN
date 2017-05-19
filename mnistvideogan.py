@@ -4,6 +4,137 @@ import scipy.misc
 from gensim.models import word2vec
 
 model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("../../videoMultiGAN/MNIST_data/",one_hot=True)
+
+label_dict = dict({
+	1 : 'one',2 : 'two',3 : 'three',4 : 'four',5 : 'five',6 : 'six',7 : 'seven',8 : 'eight',9 : 'nine',0 : 'zero'
+	})
+
+def int_val(one_hot):
+	for i in range(len(one_hot)):
+		if one_hot[i] == 1:
+			return i
+
+def convert2embedding(sentence_list,batch_size,maxlen):
+	global model
+	text_embeddings = np.ndarray(batch_size, 300, maxlen)
+	for i in range(len(sentence_list)):
+		tokens = sentence_list[i].split()
+		for j in len(tokens):
+			text_embeddings[i,:,j] = model[tokens[j]]
+	return text_embeddings
+
+maxlen = 20
+digit_size = 28
+image_size = 64
+motions = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
+
+def overlap(a,b):
+	return np.maximum(a,b)
+
+def start():
+	return np.random.randint(0,image_size-digit_size,2)
+
+def motion(start):
+	# print(start)
+	if start[0] >= 20 and start[1] >= 20:
+		return motions[np.random.randint(4,7)]
+	elif start[0] >= 20 and (start[1] < 16 ):
+		return motions[np.random.randint(2,5)]
+	elif (start[0] < 16) and (start[1] < 16):
+		return motions[np.random.randint(0,3)]
+	elif (start[0] < 16) and (start[1] >= 20):
+		return motions[np.random.randint(-2,1)]
+
+def create_frame(background, overlay,start,motion, iteration):
+	start_step = list(start)
+	start_step[0] = start_step[0] + iteration*motion[1]
+	start_step[1] = start_step[1] + iteration*motion[0]
+	background[start_step[0]:start_step[0]+28,start_step[1]:start_step[1]+28,0] = (background[start_step[0]:start_step[0]+28,start_step[1]:start_step[1]+28,0] + overlay)
+	return background
+
+def motion_sentence(motionf,motions,label1, label2):
+	stringval = ""
+	global label_dict
+	if motionf[0] == 1 :
+		if motionf[1] == 1:
+			stringval += ("Digit %s is moving to the north west"%(label_dict[label1]))
+		elif motionf[1] == 0:
+			stringval += ("Digit %s is moving to the north"%(label_dict[label1]))
+		else:
+			stringval += ("Digit %s is moving to the north east"%(label_dict[label1]))
+	elif motionf[0] == 0:
+		if motionf[1] == 1:
+			stringval += ("Digit %s is moving to the west"%(label_dict[label1]))
+		else:
+			stringval += ("Digit %s is moving to the east"%(label_dict[label1]))
+	else:
+		if motionf[1] == 1:
+			stringval += ("Digit %s is moving to the south west"%(label_dict[label1]))
+		elif motionf[1] == 0:
+			stringval += ("Digit %s is moving to the south"%(label_dict[label1]))
+		else:
+			stringval += ("Digit %s is moving to the east"%(label_dict[label1]))
+	stringval += " while "
+	if motions[0] == 1 :
+		if motions[1] == 1:
+			stringval += ("digit %s is moving to the north west"%(label_dict[label2]))
+		elif motions[1] == 0:
+			stringval += ("digit %s is moving to the north"%(label_dict[label2]))
+		else:
+			stringval += ("digit %s is moving to the north east"%(label_dict[label2]))
+	elif motions[0] == 0:
+		if motions[1] == 1:
+			stringval += ("digit %s is moving to the west"%(label_dict[label2]))
+		else:
+			stringval += ("digit %s is moving to the east"%(label_dict[label2]))
+	else:
+		if motions[1] == 1:
+			stringval += ("digit %s is moving to the south west"%(label_dict[label2]))
+		elif motions[1] == 0:
+			stringval += ("digit %s is moving to the south"%(label_dict[label2]))
+		else:
+			stringval += ("digit %s is moving to the east"%(label_dict[label2]))
+	return stringval
+
+def generate_gif_data(imgs,labels,batch_size):
+	data = None
+	sentence_list = list()
+	count = 0
+	while count < batch_size:
+		# print(count+1)
+		f = np.random.randint(len(imgs))
+		s = np.random.randint(len(imgs))
+		startf = start()
+		starts = start()
+		motionf = motion(startf)
+		if motionf == None:
+			count -= 1
+			continue
+		motions = motion(starts)
+		if motions == None:
+			count -= 1
+			continue
+		count += 1
+		image = np.ndarray([1,20,64,64,1])
+		background = np.zeros([64,64,1])
+		for i in range(20):
+			image[0,i] = create_frame(create_frame(background,imgs[s],starts,motions,i),imgs[f],startf,motionf,i)
+			# print(tf.reduce_sum(image[0,i]))
+			# print(tf.reduce_sum(imgs[s]))
+		sentence_list.append(motion_sentence(motionf,motions,int_val(labels[f]),int_val(labels[s])))
+		if data == None:
+			data = image
+		else:
+			data = np.concatenate([data,image])
+	return data,convert2embedding(sentence_list)
+
+mnist_train_data = mnist.train.images.reshape(-1,28,28)
+mnist_train_labels = mnist.train.labels
+
+print(np.mean(generate_data(mnist_train_data, mnist_train_labels, 50)[0]))
+print(generate_data(mnist_train_data,mnist_train_labels,50)[1])
 
 # def load_data(filename):
 # 	f = open(filename, mode="r")
@@ -19,12 +150,13 @@ model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
 # 	return data, image
 
 # data,image = load_data('tgif-v1.0.tsv')
-start = 0
-data = np.load("../bouncing_mnist_test.npy")
-def generate_batch(data,batch_size):
-	global start
-	relevant = data[start:start+batch_size]
-	return relevant	
+# start = 0
+# data = np.load("../bouncing_mnist_test.npy")
+# def generate_batch(data,batch_size):
+# 	global start
+# 	relevant = data[start:start+batch_size]
+# 	start+=batch_size
+# 	return relevant	
 	# sen_list = [i for i in np.random.permutation(list(image.keys()))]
 	# start += 50
 	# start = start%len(sen_list)
@@ -201,9 +333,12 @@ class VideoGAN():
 			t = self.generate(embedding,classes)
 			return embedding,classes,t
 
-videogan = VideoGAN()
+batch_size = 50
+videogan = VideoGAN(batch_size=batch_size)
+embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real = videogan.build_model()
 
 print("Built graph, exiting")
+exit(0	)
 
 epoch = 1000
 learning_rate = 1e-2
@@ -231,7 +366,7 @@ epoch = 1000
 
 for ep in range(epoch):
 	for t in range(num_examples):
-		batch,batch_text = generate_batch()
+		batch,batch_text = generate_gif_data(mnist_train_data, mnist_train_labels)
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 		feed_dict1 = {
 			real_video : batch,
