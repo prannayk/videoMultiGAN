@@ -3,7 +3,7 @@ import numpy as np
 import scipy.misc
 from gensim.models import word2vec
 
-model = word2vec.load_word2vec_format('../google.bin', binary=True)
+model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
 
 # def load_data(filename):
 # 	f = open(filename, mode="r")
