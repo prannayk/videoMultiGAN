@@ -4,10 +4,11 @@ import scipy.misc
 from gensim.models import word2vec
 
 model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
+print("Loaded gensim")
 
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("../../videoMultiGAN/MNIST_data/",one_hot=True)
-
+mnist = input_data.read_data_sets("../../videogan/MNIST_data/",one_hot=True)
+print("Loaded MNIST")
 label_dict = dict({
 	1 : 'one',2 : 'two',3 : 'three',4 : 'four',5 : 'five',6 : 'six',7 : 'seven',8 : 'eight',9 : 'nine',0 : 'zero'
 	})
@@ -336,6 +337,7 @@ class VideoGAN():
 batch_size = 50
 videogan = VideoGAN(batch_size=batch_size)
 embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real = videogan.build_model()
+print("Built model")
 
 print("Built graph, exiting")
 exit(0	)
