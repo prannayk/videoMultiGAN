@@ -3,23 +3,23 @@ import numpy as np
 import scipy.misc
 from gensim.models import word2vec
 
-model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
-print("Loaded gensim")
+#model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
+#print("Loaded gensim")
 
-from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
-print("Loaded MNIST")
-label_dict = dict({
-	1 : 'one',2 : 'two',3 : 'three',4 : 'four',5 : 'five',6 : 'six',7 : 'seven',8 : 'eight',9 : 'nine',0 : 'zero'
-	})
+#from tensorflow.examples.tutorials.mnist import input_data
+#mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
+#print("Loaded MNIST")
+#label_dict = dict({
+#	1 : 'one',2 : 'two',3 : 'three',4 : 'four',5 : 'five',6 : 'six',7 : 'seven',8 : 'eight',9 : 'nine',0 : 'zero'
+#	})
 
 def int_val(one_hot):
 	for i in range(len(one_hot)):
 		if one_hot[i] == 1:
 			return i
 
-def convert2embedding(sentence_list):
-	global model,maxlen, batch_size
+def convert2embedding(sentence_list,maxlen=20,batch_size = 5):
+	global model
 	text_embeddings = np.ndarray([batch_size, 300, maxlen])
 	print(len(sentence_list))
 	for i in range(len(sentence_list)):
@@ -31,7 +31,7 @@ def convert2embedding(sentence_list):
 maxlen = 20
 digit_size = 28
 image_size = 64
-batch_size = 50
+batch_size = 5
 motions = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
 
 def overlap(a,b):
@@ -142,15 +142,16 @@ mnist_train_labels = mnist.train.labels
 # print(np.mean(generate_gif_data(mnist_train_data, mnist_train_labels, 50)[0]))
 # print(generate_gif_data(mnist_train_data,mnist_train_labels,50)[1])
 print("Building training data") 
-dataset = generate_gif_data(mnist_train_data, mnist_train_labels, 200000)
+# dataset = generate_gif_data(mnist_train_data, mnist_train_labels, 200000)
 print("Built dataset")
-start = 0
+#start = 0
 def generate_next_batch():
-	global dataset, start
-	start = (start+50)%200000
-	data = dataset[0][start-50:start]
-	sentences = dataset[1][start-50:start]
-	return data, sentences
+#	global dataset, start
+#	start = (start+50)%200000
+#	data = dataset[0][start-50:start]
+#	sentences = dataset[1][start-50:start]
+	global mnist_train_data, mnist_train_labels
+	return generate_gif_data(mnist_train_data, mnist_train_labels, 5)
 # def load_data(filename):
 # 	f = open(filename, mode="r")
 # 	lines = f.readlines()
@@ -232,7 +233,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 50,image_shape = [64,64,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 1024, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
+	def __init__ (self,batch_size = 5,image_shape = [64,64,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 1024, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -261,7 +262,7 @@ class VideoGAN():
 		self.d_weight5 = tf.Variable(tf.random_normal([dim1+text_embedding_size,1],stddev = 0.2), name=(self.name+"_disc_weight4"))
 
 	def build_model(self):
-		with tf.device("/gpu:0"):
+		with tf.device("/gpu:1"):
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
 			text_embedding_raw = tf.placeholder(tf.float32, [self.batch_size, self.otext_embedding_size, self.max_len])
 			# text_embedding = tf.placeholder(tf.float32, [self.batch_size, self.frames, self.embedding_size])
@@ -280,7 +281,7 @@ class VideoGAN():
 
 	def generate_embedding_raw(self,text_embedding):
 		# naive attention
-		with tf.device("/gpu:0"):
+		with tf.device("/gpu:1"):
 			attention = tf.Variable(tf.random_normal([self.max_len,self.frames]))
 			attention_mat = tf.reshape(attention,shape=[1,self.max_len,self.frames])
 			attention_matr = tf.reshape(attention,shape=[1,self.max_len,self.frames])
@@ -290,7 +291,7 @@ class VideoGAN():
 			return h
 
 	def generate(self, embedding, text_embedding):
-		with tf.device("/gpu:0"):
+		with tf.device("/gpu:1"):
 			ystack = tf.reshape(text_embedding, [self.batch_size, self.frames, 1, 1, self.text_embedding_size])
 			ystack2 = tf.reshape(text_embedding[:,:,0], [self.batch_size, 1,1, self.text_embedding_size])
 			embedding = tf.concat(axis=1, values=[embedding, text_embedding[:,:,0]])
@@ -319,7 +320,7 @@ class VideoGAN():
 			return tf.reshape(batch_normalize(h8),shape=([self.batch_size] + video_shape))
 
 	def discriminate(self, image, text_embedding):
-		with tf.device("/gpu:0"):
+		with tf.device("/gpu:1"):
 			text_embedding_size = self.text_embedding_size
 			height1 = self.dim_2
 			height2 = self.dim_4
@@ -347,7 +348,7 @@ class VideoGAN():
 			return h12
 
 	def samples_generator(self):
-		with tf.device("/gpu:0"):
+		with tf.device("/gpu:1"):
 			batch_size = self.batch_size
 			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
 			text_embedding = tf.placeholder(tf.float32,[batch_size,self.text_embedding_size, self.max_len])
@@ -365,7 +366,7 @@ def save_visualization(X,ep,nh_nw=(10,20),batch_size=10, frames=20):
 	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
 
-batch_size = 50
+batch_size = 5
 videogan = VideoGAN(batch_size=batch_size)
 embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real = videogan.build_model()
 print("Built model")
@@ -383,7 +384,7 @@ g_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_gen"),t
 d_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_disc"), tf.trainable_variables())] 
 
 # optimizers
-with tf.device("/gpu:0"):
+with tf.device("/gpu:1"):
 	g_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(g_loss, var_list=g_weight_list)
 	d_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(d_loss, var_list=d_weight_list)
 
@@ -391,15 +392,16 @@ embedding_sample, sentence_sample, image_sample = gan.samples_generator()
 sample_embedding, sample_text, = generate_gif_data(mnist_train_data, mnist_train_labels, 10)
 tf.global_variables_initializer().run()
 
-batch_size = 10
+#batch_size = 5
 embedding_size = 128
 text_embedding_size = 300
 num_examples = 2000
-epoch = 4000
+epoch = 10000
 print("Starting Training")
 for ep in range(epoch):
 	print("Running for Epoch Number: %d"%(ep+1))	
 	for t in range(num_examples):
+		print("Example running: %d"%(t+1))
 		batch,batch_text = generate_next_batch()
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 		feed_dict1 = {
