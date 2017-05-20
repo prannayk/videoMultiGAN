@@ -112,11 +112,11 @@ def generate_gif_data(imgs,labels,batch_size):
 		starts = start()
 		motionf = motion(startf)
 		if motionf == None:
-			count -= 1
+			# count -= 1
 			continue
 		motions = motion(starts)
 		if motions == None:
-			count -= 1
+			# count -= 1
 			continue
 		count += 1
 		image = np.ndarray([1,20,64,64,1])
