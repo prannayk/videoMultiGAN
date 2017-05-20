@@ -283,7 +283,7 @@ class VideoGAN():
 			# cost functions
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
-			d_cost = prob_real
+			d_cost = real_value
 			g_cost = g_video
 			return embedding, text_embedding, r_video, d_cost, g_cost, prob_real
 
@@ -308,23 +308,22 @@ class VideoGAN():
 			h2 = tf.nn.relu(batch_normalize(tf.matmul(h1,self.g_weight2)))
 			h2 = tf.reshape(h2, [self.batch_size,self.dim_4,self.dim_4,self.dim2])
 			h2 = tf.concat(axis=3,values=[h2,ystack2*tf.ones([self.batch_size,self.dim_4,self.dim_4,self.text_embedding_size])])
-			return h2
 			output_shape1 = [self.batch_size,self.dim_2,self.dim_2,self.dim3]
 			h3 = tf.nn.conv2d_transpose(h2,self.g_weight3,output_shape=output_shape1,strides=[1,2,2,1])
 			h3 = tf.nn.relu(batch_normalize(h3))
 			h3 = tf.concat(axis=3,values=[h3,ystack2*tf.ones([self.batch_size,self.dim_2,self.dim_2,self.text_embedding_size])])
-
+		
 			output_shape2 = [self.batch_size, self.dim_2, self.dim_2, self.dim3*self.frames]
 			h4 = tf.nn.conv2d_transpose(h3,self.g_weight4, output_shape=output_shape2, strides=[1,1,1,1])
 			h4 = tf.nn.relu(batch_normalize(h4))
 			h5 = tf.reshape(h4, shape=[self.batch_size,self.frames ,self.dim_2, self.dim_2, self.dim3])
 			h6 = tf.concat(axis=4, values=[h5,ystack*tf.ones([self.batch_size,self.frames,self.dim_2, self.dim_2, self.text_embedding_size])])
-
+			
 			video_shape = [self.frames] + list(self.image_shape)
 			# video_shape[2] *= self.frames
 			output_shape3 = [self.batch_size*self.frames] + list(self.image_shape)
 			h7 = tf.reshape(h6, shape=[self.batch_size*self.frames,self.dim_2,self.dim_2,self.dim3+self.text_embedding_size])
-			h8 = tf.nn.conv2d_transpose(h7, self.g_weight5, output_shape=output_shape3, strides=[1,2,2,1])
+			h8 = tf.nn.relu(batch_normalize(tf.nn.conv2d_transpose(h7, self.g_weight5, output_shape=output_shape3, strides=[1,2,2,1])))
 			return tf.reshape(batch_normalize(h8),shape=([self.batch_size] + video_shape))
 
 	def discriminate(self, image, text_embedding):
@@ -347,6 +346,7 @@ class VideoGAN():
 			h4 = tf.reshape(h3,shape=([self.batch_size, height1, height1, self.frames*(self.dim3+text_embedding_size)]))
 			h5 = lrelu(tf.nn.conv2d(h4,self.d_weight2, strides=[1,1,1,1],padding='SAME'))
 			h6 = batch_normalize(tf.concat(axis=3,values=[h5, ystack*tf.ones(shape=[self.batch_size,height1, height1,text_embedding_size])]))
+			return h6
 			h7 = tf.nn.conv2d(h6, self.d_weight3,padding='SAME', strides=[1,2,2,1])
 			h8 = tf.reshape(h7, [self.batch_size,-1])
 			h9 = tf.concat(axis=1,values=[h8,text_embedding[:,:,0]])
@@ -375,8 +375,8 @@ def save_visualization(X,ep,nh_nw=(10,20),batch_size = 1, frames=20):
 
 
 batch_size = 1
-videogan = VideoGAN(batch_size=batch_size)
-embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real = videogan.build_model()
+#videogan = VideoGAN(batch_size=batch_size)
+#embedding, text_embedding, r_video, d_cost, g_cost, prob_real = videogan.build_model()
 print("Built model")
 
 print("Built graph, exiting")
@@ -385,7 +385,7 @@ epoch = 1000
 learning_rate = 1e-2
 
 gan = VideoGAN()
-embedding, sentence, real_video, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
+embedding, sentence, real_video, d_loss, g_loss, prob_fake = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 
 g_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_gen"),tf.trainable_variables())] 
@@ -420,7 +420,7 @@ for ep in range(epoch):
 		_, g_loss_val = session.run([g_optimizer, g_loss],feed_dict=feed_dict1)
 		_, d_loss_val = session.run([d_optimizer, d_loss],feed_dict=feed_dict1)
 		if t%10 == 0 and t > 0:
-			print("Done with batches: " + str(t*batch_size) + " Loesses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
+			print("Done with batches: " + str(t*batch_size) + " Loesses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " ) #+ str(d_loss_val + g_loss_val))
 	print("Saving sample images and data for later testing: ")
 	feed_dict = {
 		embedding_sample : sample_embedding,
