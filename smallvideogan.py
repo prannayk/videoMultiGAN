@@ -18,7 +18,7 @@ def int_val(one_hot):
 		if one_hot[i] == 1:
 			return i
 
-# def convert2embedding(sentence_list,maxlen=20,batch_size = 100):
+# def convert2embedding(sentence_list,maxlen=20,batch_size = 1):
 # 	global model
 # 	text_embeddings = np.ndarray([batch_size, 300, maxlen])
 # 	print(len(sentence_list))
@@ -31,7 +31,7 @@ def int_val(one_hot):
 # maxlen = 20
 # digit_size = 28
 # image_size = 64
-# batch_size = 100
+# batch_size = 1
 # motions = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
 
 # def overlap(a,b):
@@ -144,13 +144,15 @@ def int_val(one_hot):
 # print("Building training data") 
 # dataset = generate_gif_data(mnist_train_data, mnist_train_labels, 200000)
 print("Built dataset")
-start = 0
+start = 1
 def generate_next_batch():
 	global start
 	image = "bouncing_data/image_%d.npy"%(start)
 	text = "bouncing_data/text_%d.npy"%(start)
-	start = (start+1)%500
-	return image, text
+	start = (start+1)%501
+	if start == 0:
+		start += 1
+	return np.load(image), np.load(text)
 #	start = (start+50)%200000
 #	data = dataset[0][start-50:start]
 #	sentences = dataset[1][start-50:start]
@@ -237,7 +239,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 100,image_shape = [64,64,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 1024, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
+	def __init__ (self,batch_size = 1,image_shape = [64,64,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 1024, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -359,7 +361,7 @@ class VideoGAN():
 			t = self.generate(embedding,self.generate_embedding_raw(text_embedding))
 			return embedding,text_embedding,t
 
-def save_visualization(X,ep,nh_nw=(10,20),batch_size=10, frames=20):
+def save_visualization(X,ep,nh_nw=(10,20),batch_size = 1, frames=20):
 	Y = X.reshape(batch_size*frames, 64,64,1)
 	image = np.zeros([64*nh_hw[0], w*nh_hw[1],3])
 	h,w  = 64,64
@@ -370,7 +372,7 @@ def save_visualization(X,ep,nh_nw=(10,20),batch_size=10, frames=20):
 	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
 
-batch_size = 100
+batch_size = 1
 videogan = VideoGAN(batch_size=batch_size)
 embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real = videogan.build_model()
 print("Built model")
@@ -393,10 +395,10 @@ with tf.device("/gpu:1"):
 	d_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(d_loss, var_list=d_weight_list)
 
 embedding_sample, sentence_sample, image_sample = gan.samples_generator()
-sample_embedding, sample_text, = generate_gif_data(mnist_train_data, mnist_train_labels, 10)
+sample_embedding, sample_text, = generate_next_batch()
 tf.global_variables_initializer().run()
 
-#batch_size = 100
+#batch_size = 1
 embedding_size = 128
 text_embedding_size = 300
 num_examples = 500
