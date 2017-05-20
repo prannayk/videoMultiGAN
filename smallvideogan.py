@@ -278,14 +278,14 @@ class VideoGAN():
 			g_video = tf.nn.sigmoid(h4)
 			real_value = self.discriminate(r_video, text_embedding)
 			prob_real = tf.nn.sigmoid(real_value)
-			fake_value = self.discriminate(g_video, text_embedding)
-			prob_fake = tf.nn.sigmoid(fake_value)
+			# fake_value = self.discriminate(g_video, text_embedding)
+			# prob_fake = tf.nn.sigmoid(fake_value)
 			# cost functions
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			d_cost = prob_real
-			g_cost = prob_fake
-			return embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real
+			g_cost = g_video
+			return embedding, text_embedding, r_video, d_cost, g_cost, prob_real
 
 	def generate_embedding_raw(self,text_embedding):
 		# naive attention
@@ -308,7 +308,7 @@ class VideoGAN():
 			h2 = tf.nn.relu(batch_normalize(tf.matmul(h1,self.g_weight2)))
 			h2 = tf.reshape(h2, [self.batch_size,self.dim_4,self.dim_4,self.dim2])
 			h2 = tf.concat(axis=3,values=[h2,ystack2*tf.ones([self.batch_size,self.dim_4,self.dim_4,self.text_embedding_size])])
-
+			return h2
 			output_shape1 = [self.batch_size,self.dim_2,self.dim_2,self.dim3]
 			h3 = tf.nn.conv2d_transpose(h2,self.g_weight3,output_shape=output_shape1,strides=[1,2,2,1])
 			h3 = tf.nn.relu(batch_normalize(h3))
