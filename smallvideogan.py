@@ -18,140 +18,144 @@ def int_val(one_hot):
 		if one_hot[i] == 1:
 			return i
 
-def convert2embedding(sentence_list,maxlen=20,batch_size = 5):
-	global model
-	text_embeddings = np.ndarray([batch_size, 300, maxlen])
-	print(len(sentence_list))
-	for i in range(len(sentence_list)):
-		tokens = sentence_list[i].split()
-		for j in range(len(tokens)):
-			text_embeddings[i,:,j] = model[tokens[j]]
-	return text_embeddings
+# def convert2embedding(sentence_list,maxlen=20,batch_size = 100):
+# 	global model
+# 	text_embeddings = np.ndarray([batch_size, 300, maxlen])
+# 	print(len(sentence_list))
+# 	for i in range(len(sentence_list)):
+# 		tokens = sentence_list[i].split()
+# 		for j in range(len(tokens)):
+# 			text_embeddings[i,:,j] = model[tokens[j]]
+# 	return text_embeddings
 
-maxlen = 20
-digit_size = 28
-image_size = 64
-batch_size = 5
-motions = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
+# maxlen = 20
+# digit_size = 28
+# image_size = 64
+# batch_size = 100
+# motions = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
 
-def overlap(a,b):
-	return np.maximum(a,b)
+# def overlap(a,b):
+# 	return np.maximum(a,b)
 
-def start():
-	return np.random.randint(0,image_size-digit_size,2)
+# def start():
+# 	return np.random.randint(0,image_size-digit_size,2)
 
-def motion(start):
-	# print(start)
-	if start[0] >= 20 and start[1] >= 20:
-		return motions[np.random.randint(4,7)]
-	elif start[0] >= 20 and (start[1] < 16 ):
-		return motions[np.random.randint(2,5)]
-	elif (start[0] < 16) and (start[1] < 16):
-		return motions[np.random.randint(0,3)]
-	elif (start[0] < 16) and (start[1] >= 20):
-		return motions[np.random.randint(-2,1)]
+# def motion(start):
+# 	# print(start)
+# 	if start[0] >= 20 and start[1] >= 20:
+# 		return motions[np.random.randint(4,7)]
+# 	elif start[0] >= 20 and (start[1] < 16 ):
+# 		return motions[np.random.randint(2,5)]
+# 	elif (start[0] < 16) and (start[1] < 16):
+# 		return motions[np.random.randint(0,3)]
+# 	elif (start[0] < 16) and (start[1] >= 20):
+# 		return motions[np.random.randint(-2,1)]
 
-def create_frame(background, overlay,start,motion, iteration):
-	start_step = list(start)
-	start_step[0] = start_step[0] + iteration*motion[1]
-	start_step[1] = start_step[1] + iteration*motion[0]
-	background[start_step[0]:start_step[0]+28,start_step[1]:start_step[1]+28,0] = (background[start_step[0]:start_step[0]+28,start_step[1]:start_step[1]+28,0] + overlay)
-	return background
+# def create_frame(background, overlay,start,motion, iteration):
+# 	start_step = list(start)
+# 	start_step[0] = start_step[0] + iteration*motion[1]
+# 	start_step[1] = start_step[1] + iteration*motion[0]
+# 	background[start_step[0]:start_step[0]+28,start_step[1]:start_step[1]+28,0] = (background[start_step[0]:start_step[0]+28,start_step[1]:start_step[1]+28,0] + overlay)
+# 	return background
 
-def motion_sentence(motionf,motions,label1, label2):
-	stringval = ""
-	global label_dict
-	if motionf[0] == 1 :
-		if motionf[1] == 1:
-			stringval += ("Digit %s is moving the north west"%(label_dict[label1]))
-		elif motionf[1] == 0:
-			stringval += ("Digit %s is moving the north"%(label_dict[label1]))
-		else:
-			stringval += ("Digit %s is moving the north east"%(label_dict[label1]))
-	elif motionf[0] == 0:
-		if motionf[1] == 1:
-			stringval += ("Digit %s is moving the west"%(label_dict[label1]))
-		else:
-			stringval += ("Digit %s is moving the east"%(label_dict[label1]))
-	else:
-		if motionf[1] == 1:
-			stringval += ("Digit %s is moving the south west"%(label_dict[label1]))
-		elif motionf[1] == 0:
-			stringval += ("Digit %s is moving the south"%(label_dict[label1]))
-		else:
-			stringval += ("Digit %s is moving the east"%(label_dict[label1]))
-	stringval += " while "
-	if motions[0] == 1 :
-		if motions[1] == 1:
-			stringval += ("digit %s is moving the north west"%(label_dict[label2]))
-		elif motions[1] == 0:
-			stringval += ("digit %s is moving the north"%(label_dict[label2]))
-		else:
-			stringval += ("digit %s is moving the north east"%(label_dict[label2]))
-	elif motions[0] == 0:
-		if motions[1] == 1:
-			stringval += ("digit %s is moving the west"%(label_dict[label2]))
-		else:
-			stringval += ("digit %s is moving the east"%(label_dict[label2]))
-	else:
-		if motions[1] == 1:
-			stringval += ("digit %s is moving the south west"%(label_dict[label2]))
-		elif motions[1] == 0:
-			stringval += ("digit %s is moving the south"%(label_dict[label2]))
-		else:
-			stringval += ("digit %s is moving the east"%(label_dict[label2]))
-	return stringval
+# def motion_sentence(motionf,motions,label1, label2):
+# 	stringval = ""
+# 	global label_dict
+# 	if motionf[0] == 1 :
+# 		if motionf[1] == 1:
+# 			stringval += ("Digit %s is moving the north west"%(label_dict[label1]))
+# 		elif motionf[1] == 0:
+# 			stringval += ("Digit %s is moving the north"%(label_dict[label1]))
+# 		else:
+# 			stringval += ("Digit %s is moving the north east"%(label_dict[label1]))
+# 	elif motionf[0] == 0:
+# 		if motionf[1] == 1:
+# 			stringval += ("Digit %s is moving the west"%(label_dict[label1]))
+# 		else:
+# 			stringval += ("Digit %s is moving the east"%(label_dict[label1]))
+# 	else:
+# 		if motionf[1] == 1:
+# 			stringval += ("Digit %s is moving the south west"%(label_dict[label1]))
+# 		elif motionf[1] == 0:
+# 			stringval += ("Digit %s is moving the south"%(label_dict[label1]))
+# 		else:
+# 			stringval += ("Digit %s is moving the east"%(label_dict[label1]))
+# 	stringval += " while "
+# 	if motions[0] == 1 :
+# 		if motions[1] == 1:
+# 			stringval += ("digit %s is moving the north west"%(label_dict[label2]))
+# 		elif motions[1] == 0:
+# 			stringval += ("digit %s is moving the north"%(label_dict[label2]))
+# 		else:
+# 			stringval += ("digit %s is moving the north east"%(label_dict[label2]))
+# 	elif motions[0] == 0:
+# 		if motions[1] == 1:
+# 			stringval += ("digit %s is moving the west"%(label_dict[label2]))
+# 		else:
+# 			stringval += ("digit %s is moving the east"%(label_dict[label2]))
+# 	else:
+# 		if motions[1] == 1:
+# 			stringval += ("digit %s is moving the south west"%(label_dict[label2]))
+# 		elif motions[1] == 0:
+# 			stringval += ("digit %s is moving the south"%(label_dict[label2]))
+# 		else:
+# 			stringval += ("digit %s is moving the east"%(label_dict[label2]))
+# 	return stringval
 
-def generate_gif_data(imgs,labels,batch_size):
-	data = None
-	sentence_list = list()
-	count = 0
-	while count < batch_size:
-		if count % 100 == 0:
-			print("Done with %d"%(count))
-		# print(count+1)
-		f = np.random.randint(len(imgs))
-		s = np.random.randint(len(imgs))
-		startf = start()
-		starts = start()
-		motionf = motion(startf)
-		if motionf == None:
-			# count -= 1
-			continue
-		motions = motion(starts)
-		if motions == None:
-			# count -= 1
-			continue
-		count += 1
-		image = np.ndarray([1,20,64,64,1])
-		background = np.zeros([64,64,1])
-		for i in range(20):
-			image[0,i] = create_frame(create_frame(background,imgs[s],starts,motions,i),imgs[f],startf,motionf,i)
-			# print(tf.reduce_sum(image[0,i]))
-			# print(tf.reduce_sum(imgs[s]))
-		sentence_list.append(motion_sentence(motionf,motions,int_val(labels[f]),int_val(labels[s])))
-		if data == None:
-			data = image
-		else:
-			data = np.concatenate([data,image])
-	return data,convert2embedding(sentence_list)
+# def generate_gif_data(imgs,labels,batch_size):
+# 	data = None
+# 	sentence_list = list()
+# 	count = 0
+# 	while count < batch_size:
+# 		if count % 100 == 0:
+# 			print("Done with %d"%(count))
+# 		# print(count+1)
+# 		f = np.random.randint(len(imgs))
+# 		s = np.random.randint(len(imgs))
+# 		startf = start()
+# 		starts = start()
+# 		motionf = motion(startf)
+# 		if motionf == None:
+# 			# count -= 1
+# 			continue
+# 		motions = motion(starts)
+# 		if motions == None:
+# 			# count -= 1
+# 			continue
+# 		count += 1
+# 		image = np.ndarray([1,20,64,64,1])
+# 		background = np.zeros([64,64,1])
+# 		for i in range(20):
+# 			image[0,i] = create_frame(create_frame(background,imgs[s],starts,motions,i),imgs[f],startf,motionf,i)
+# 			# print(tf.reduce_sum(image[0,i]))
+# 			# print(tf.reduce_sum(imgs[s]))
+# 		sentence_list.append(motion_sentence(motionf,motions,int_val(labels[f]),int_val(labels[s])))
+# 		if data == None:
+# 			data = image
+# 		else:
+# 			data = np.concatenate([data,image])
+# 	return data,convert2embedding(sentence_list)
 
-mnist_train_data = mnist.train.images.reshape(-1,28,28)
-mnist_train_labels = mnist.train.labels
+# mnist_train_data = mnist.train.images.reshape(-1,28,28)
+# mnist_train_labels = mnist.train.labels
 
-# print(np.mean(generate_gif_data(mnist_train_data, mnist_train_labels, 50)[0]))
-# print(generate_gif_data(mnist_train_data,mnist_train_labels,50)[1])
-print("Building training data") 
+# # print(np.mean(generate_gif_data(mnist_train_data, mnist_train_labels, 50)[0]))
+# # print(generate_gif_data(mnist_train_data,mnist_train_labels,50)[1])
+# print("Building training data") 
 # dataset = generate_gif_data(mnist_train_data, mnist_train_labels, 200000)
 print("Built dataset")
-#start = 0
+start = 0
 def generate_next_batch():
-#	global dataset, start
+	global start
+	image = "bouncing_data/image_%d.npy"%(start)
+	text = "bouncing_data/text_%d.npy"%(start)
+	start = (start+1)%500
+	return image, text
 #	start = (start+50)%200000
 #	data = dataset[0][start-50:start]
 #	sentences = dataset[1][start-50:start]
-	global mnist_train_data, mnist_train_labels
-	return generate_gif_data(mnist_train_data, mnist_train_labels, 5)
+	# global mnist_train_data, mnist_train_labels
+	# return generate_gif_data(mnist_train_data, mnist_train_labels, 5)
 # def load_data(filename):
 # 	f = open(filename, mode="r")
 # 	lines = f.readlines()
@@ -233,7 +237,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 5,image_shape = [64,64,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 1024, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
+	def __init__ (self,batch_size = 100,image_shape = [64,64,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 1024, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -366,7 +370,7 @@ def save_visualization(X,ep,nh_nw=(10,20),batch_size=10, frames=20):
 	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
 
-batch_size = 5
+batch_size = 100
 videogan = VideoGAN(batch_size=batch_size)
 embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real = videogan.build_model()
 print("Built model")
@@ -392,10 +396,10 @@ embedding_sample, sentence_sample, image_sample = gan.samples_generator()
 sample_embedding, sample_text, = generate_gif_data(mnist_train_data, mnist_train_labels, 10)
 tf.global_variables_initializer().run()
 
-#batch_size = 5
+#batch_size = 100
 embedding_size = 128
 text_embedding_size = 300
-num_examples = 2000
+num_examples = 500
 epoch = 10000
 print("Starting Training")
 for ep in range(epoch):
