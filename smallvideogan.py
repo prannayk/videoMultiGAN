@@ -281,8 +281,10 @@ class VideoGAN():
 			fake_value = self.discriminate(g_video, text_embedding)
 			prob_fake = tf.nn.sigmoid(fake_value)
 			# cost functions
-			d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
-			g_cost = -tf.reduce_mean(tf.log(prob_fake))
+			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
+			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
+			d_cost = prob_real
+			g_cost = prob_fake
 			return embedding, text_embedding, r_video, d_cost, g_cost, prob_real, prob_real
 
 	def generate_embedding_raw(self,text_embedding):
