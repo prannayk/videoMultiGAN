@@ -145,25 +145,33 @@ def int_val(one_hot):
 # dataset = generate_gif_data(mnist_train_data, mnist_train_labels, 200000)
 print("Built dataset")
 start = 1
+current = 1
+images_train, text_train
 def generate_next_batch(batch_size,frames):
+	global start, current, images_train, text_train
+	if current >= start:
+		current = 0
+		images_train, text_train = load_batches(100)
+	images = images_train[current*batch_size,current*batch_size + batch_size]
+	text = text_train[current*batch_size, current*batch_size + batch_size]
+	current += 0
+
+def load_batches(num):
 	global start
 	image = "bouncing_data/image_%d.npy"%(start)
-	image2 = "bouncing_data/image_%d.npy"%(start+1)
 	text_file = "bouncing_data/text_%d.npy"%(start)
-	text_file2 = "bouncing_data/text_%d.npy"%(start+1)
-	start = (start+2)%501
-	if start == 0:
-		start += 1
 	t = np.load(text_file)
-	t2 = np.load(text_file2)
-	t = np.concatenate([t,t2],axis=0)
-	im = np.load(image)
-	im2 = np.load(image)
-	img = np.ndarray(shape=[2*im.shape[0],im.shape[1],32,32,1])
-	for i in range(im.shape[0]):
-		for j in range(im.shape[1]):
+	img = np.load(image)
+	for i in range(num-1):
+		image = "bouncing_data/image_%d.npy"%(start+i+1)
+		text_file = "bouncing_data/text_%d.npy"%(start+i+1)
+		t2 = np.load(text_file)
+		im2 = np.load(image)
+		img = np.concatenate([img,im2],axis=0)
+		t = np.concatenate([t,t2],axis=0)
+	for i in range(img.shape[0]):
+		for j in range(img.shape[1]):
 			img[i,j] = scipy.misc.imresize(im[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
-			img[i+im.shape[0],j] = scipy.misc.imresize(im2[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
 	return img, t
 #	start = (start+50)%200000
 #	data = dataset[0][start-50:start]
