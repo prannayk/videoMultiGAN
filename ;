@@ -368,11 +368,11 @@ class VideoGAN():
 
 def save_visualization(X,ep,nh_nw=(10,20),batch_size = 5, frames=20):
 	Y = X.reshape(batch_size*frames, 64,64,1)
-	image = np.zeros([64*nh_nw[0], 64*nh_nw[1],3])
+	image = np.zeros([64*nh_hw[0], w*nh_hw[1],3])
 	h,w  = 64,64
 	for n,x in enumerate(Y):
-		j = n // nh_nw[1]
-		i = n % nh_nw[1]
+		j = n // nh_hw[1]
+		i = n % nh_hw[1]
 		image[j*h:j*h + h, i*w:i*w + w,:] = x
 	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
@@ -403,6 +403,7 @@ with tf.device("/gpu:0"):
 embedding_size = 128
 text_embedding_size = 300
 num_examples = 10000
+num_examples = 500
 epoch = 10000
 
 embedding_sample, sentence_sample, image_sample = gan.samples_generator()
@@ -415,13 +416,6 @@ save_visualization(sample_video,0)
 print("Starting Training")
 start_time = time.time()
 for ep in range(epoch):
-	print("Saving sample images and data for later testing: ")
-	feed_dict = {
-		embedding_sample : sample_embedding,
-		sentence_sample : sample_text
-	}
-	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples, ep)
 	start_epoch = time.time()
 	print("Running for Epoch Number: %d"%(ep+1))	
 	for t in range(num_examples):
@@ -447,7 +441,8 @@ for ep in range(epoch):
 	print("Saving sample images and data for later testing: ")
 	feed_dict = {
 		embedding_sample : sample_embedding,
-		sentence_sample : sample_text
+		sentence : sample_text,
+		real_video : sample_video
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
 	save_visualization(gen_samples, ep)

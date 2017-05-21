@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import scipy.misc
-from gensim.models import word2vec
+#from gensim.models import word2vec
 import time
 #model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
 #print("Loaded gensim")
@@ -145,7 +145,7 @@ def int_val(one_hot):
 # dataset = generate_gif_data(mnist_train_data, mnist_train_labels, 200000)
 print("Built dataset")
 start = 1
-def generate_next_batch():
+def generate_next_batch(batch_size,frames):
 	global start
 	image = "bouncing_data/image_%d.npy"%(start)
 	text_file = "bouncing_data/text_%d.npy"%(start)
@@ -153,7 +153,10 @@ def generate_next_batch():
 	if start == 0:
 		start += 1
 	t = np.load(text_file)
-	return np.load(image), t
+	im = np.load(image)
+	pet = im.shape
+	l = im.reshape(pet[0]*pet[1],pet[2],pet[3],pet[4])
+	return tf.reshape(tf.image.resize_images(l,size=[32,32]),shape=[pet[0],pet[1],32,32,pet[4]]), t
 #	start = (start+50)%200000
 #	data = dataset[0][start-50:start]
 #	sentences = dataset[1][start-50:start]
@@ -240,7 +243,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 5,image_shape = [64,64,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 1024, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
+	def __init__ (self,batch_size = 5,image_shape = [32,32,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -367,9 +370,9 @@ class VideoGAN():
 			return embedding,text_embedding,t
 
 def save_visualization(X,ep,nh_nw=(10,20),batch_size = 5, frames=20):
-	Y = X.reshape(batch_size*frames, 64,64,1)
-	image = np.zeros([64*nh_nw[0], 64*nh_nw[1],3])
-	h,w  = 64,64
+	h,w = 32,32
+	Y = X.reshape(batch_size*frames, h,w,1)
+	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
 	for n,x in enumerate(Y):
 		j = n // nh_nw[1]
 		i = n % nh_nw[1]
@@ -406,7 +409,7 @@ num_examples = 10000
 epoch = 10000
 
 embedding_sample, sentence_sample, image_sample = gan.samples_generator()
-sample_video, sample_text = generate_next_batch()
+sample_video, sample_text = generate_next_batch(batch_size,20)
 tf.global_variables_initializer().run()
 sample_embedding = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 save_visualization(sample_video,0)
@@ -426,7 +429,7 @@ for ep in range(epoch):
 	print("Running for Epoch Number: %d"%(ep+1))	
 	for t in range(num_examples):
 		print("Done with: %d"%((t+1)*5))
-		batch,batch_text = generate_next_batch()
+		batch,batch_text = generate_next_batch(batch_size,20)
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 		feed_dict1 = {
 			real_video : batch,
