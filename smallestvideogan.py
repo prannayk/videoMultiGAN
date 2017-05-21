@@ -18,7 +18,7 @@ def int_val(one_hot):
 		if one_hot[i] == 1:
 			return i
 
-# def convert2embedding(sentence_list,maxlen=20,batch_size = 5):
+# def convert2embedding(sentence_list,maxlen=20,batch_size = 10):
 # 	global model
 # 	text_embeddings = np.ndarray([batch_size, 300, maxlen])
 # 	print(len(sentence_list))
@@ -31,7 +31,7 @@ def int_val(one_hot):
 # maxlen = 20
 # digit_size = 28
 # image_size = 64
-# batch_size = 5
+# batch_size = 10
 # motions = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
 
 # def overlap(a,b):
@@ -148,15 +148,23 @@ start = 1
 def generate_next_batch(batch_size,frames):
 	global start
 	image = "bouncing_data/image_%d.npy"%(start)
+	image2 = "bouncing_data/image_%d.npy"%(start+1)
 	text_file = "bouncing_data/text_%d.npy"%(start)
-	start = (start+1)%501
+	text_file2 = "bouncing_data/text_%d.npy"%(start+1)
+	start = (start+2)%501
 	if start == 0:
 		start += 1
 	t = np.load(text_file)
+	t2 = np.load(text_file2)
+	t = np.concatenate([t,t2],axis=0)
 	im = np.load(image)
-	pet = im.shape
-	l = im.reshape(pet[0]*pet[1],pet[2],pet[3],pet[4])
-	return tf.reshape(tf.image.resize_images(l,size=[32,32]),shape=[pet[0],pet[1],32,32,pet[4]]), t
+	im2 = np.load(image)
+	img = np.ndarray(shape=[2*im.shape[0],im.shape[1],32,32,1])
+	for i in range(im.shape[0]):
+		for j in range(im.shape[1]):
+			img[i,j] = scipy.misc.imresize(im[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
+			img[i+im.shape[0],j] = scipy.misc.imresize(im2[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
+	return img, t
 #	start = (start+50)%200000
 #	data = dataset[0][start-50:start]
 #	sentences = dataset[1][start-50:start]
@@ -243,7 +251,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 5,image_shape = [32,32,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
+	def __init__ (self,batch_size = 10,image_shape = [32,32,1],embedding_size = 128,otext_embedding_size = 300,text_embedding_size=300,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -369,7 +377,7 @@ class VideoGAN():
 			t = self.generate(embedding,self.generate_embedding_raw(text_embedding))
 			return embedding,text_embedding,t
 
-def save_visualization(X,ep,nh_nw=(10,20),batch_size = 5, frames=20):
+def save_visualization(X,ep,nh_nw=(10,20),batch_size = 10, frames=20):
 	h,w = 32,32
 	Y = X.reshape(batch_size*frames, h,w,1)
 	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
@@ -380,7 +388,7 @@ def save_visualization(X,ep,nh_nw=(10,20),batch_size = 5, frames=20):
 	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
 
-batch_size = 5
+batch_size = 10
 #videogan = VideoGAN(batch_size=batch_size)
 #embedding, text_embedding, r_video, d_cost, g_cost, prob_real = videogan.build_model()
 print("Built model")
@@ -413,7 +421,7 @@ sample_video, sample_text = generate_next_batch(batch_size,20)
 tf.global_variables_initializer().run()
 sample_embedding = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 save_visualization(sample_video,0)
-#batch_size = 5
+#batch_size = 10
 
 print("Starting Training")
 start_time = time.time()
@@ -428,7 +436,6 @@ for ep in range(epoch):
 	start_epoch = time.time()
 	print("Running for Epoch Number: %d"%(ep+1))	
 	for t in range(num_examples):
-		print("Done with: %d"%((t+1)*5))
 		batch,batch_text = generate_next_batch(batch_size,20)
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 		feed_dict1 = {
