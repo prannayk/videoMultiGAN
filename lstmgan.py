@@ -11,8 +11,8 @@ def generate_next_batch(batch_size,frames):
 	if current >= start:
 		current = 0
 		images_train, text_train = load_batches(100)
-	images = images_train[current*batch_size,current*batch_size + batch_size]
-	text = text_train[current*batch_size, current*batch_size + batch_size]
+	images = images_train[current*batch_size:current*batch_size + batch_size]
+	text = text_train[current*batch_size:current*batch_size + batch_size]
 	current += 0
 	return images, text
 
@@ -66,7 +66,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 10,image_shape = [32,32,1],embedding_size = 256,otext_embedding_size = 300,text_embedding_size=150,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20):
+	def __init__ (self,batch_size = 25,image_shape = [32,32,1],embedding_size = 96,otext_embedding_size = 300,text_embedding_size=150,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20, actual_frames=12):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -77,11 +77,12 @@ class VideoGAN():
 		self.dim4 = dim4
 		self.dim_channel = dim_channel
 		self.name = name
+		self.actual_frames = actual_frames
 		self.frames = frames
 		self.max_len = max_len
 		self.otext_embedding_size = otext_embedding_size
 		self.dim_4 = image_shape[0] // 4
-		self.embedding_channel = (embedding_size // self.dim_4) // self.dim_4
+		self.embedding_channel = ((4*embedding_size) // self.dim_4) // self.dim_4
 		self.dim_2 = image_shape[0] // 2
 		self.image_input_size = image_shape[0]*image_shape[1]*image_shape[2]
 		with tf.device("/gpu:0"):
@@ -116,7 +117,7 @@ class VideoGAN():
 			text_embedding = self.generate_embedding_raw(text_embedding_raw)
 			h4_,hidden,next_embedding = self.generate(embedding, text_embedding[:,:,0])
 			
-			self.init = [(tf.random_normal(stddev=0.5,shape=([self.batch_size,self.embedding_size,1]))),tf.random_normal(stddev=0.5,shape=([self.batch_size,self.embedding_size,1])) ]
+			self.init = ((tf.random_normal(stddev=0.5,shape=([self.batch_size,self.embedding_size,1]))),tf.random_normal(stddev=0.5,shape=([self.batch_size,self.embedding_size,1])))
 			state = self.lstm(self.init, next_embedding)
 			iterate_embedding = tf.reshape(state[0],shape=[self.batch_size,self.embedding_size])		
 			h4 = tf.reshape(h4_,shape=[self.batch_size,1] + self.image_shape)
@@ -127,10 +128,10 @@ class VideoGAN():
 			prob_fake = tf.nn.sigmoid(fake_value)
 			real_text = self.discriminate(r_video[:,0], text_embedding_false[:,0])
 			prob_fake_text = tf.nn.sigmoid(real_text)
-			for i in range(1,self.frames):
+			for i in range(1,self.actual_frames):
 				h4_,hidden,next_embedding = self.generate(iterate_embedding, text_embedding[:,:,i])
 				state = self.lstm(state, next_embedding)
-				iterate_embedding = tf.reshape(state[0],shape=[self.batch_size,self.embedding_size])		
+				iterate_embedding = batch_normalize(tf.reshape(state[0],shape=[self.batch_size,self.embedding_size]))
 				g_image = tf.nn.sigmoid(h4_)
 				real_value = self.discriminate(r_video[:,i], text_embedding[:,:,i])
 				prob_real = tf.nn.sigmoid(real_value)*prob_real
@@ -204,7 +205,7 @@ class VideoGAN():
 			h1 = batch_normalize(lrelu(tf.nn.conv2d(proc_image, self.d_weight1, strides=[1,2,2,1],padding='SAME')))
 			h1_ = tf.concat(axis=3, values=[h1,ystack2*tf.ones([self.batch_size,height1,height1,text_embedding_size])])
 			h2 = batch_normalize(lrelu(tf.nn.conv2d(h1_,self.d_weight2,strides=[1,2,2,1],padding='SAME')))
-			h3 = tf.nn.conv2d(h2,self.g_weight6,strides=[1,1,1,1],padding='SAME')
+			h3 = tf.nn.conv2d(h2,self.g_weight6,strides=[1,2,2,1],padding='SAME')
 			return h6 , h2, tf.reshape(h3,shape=[self.batch_size, self.embedding_size])
 
 	def discriminate(self, image, text_embedding,flag=False,h2=None):
@@ -226,9 +227,7 @@ class VideoGAN():
 			h3 = batch_normalize(tf.concat(axis=3,values=[h2, ystack2*tf.ones(shape=[self.batch_size,height2, height2, text_embedding_size])]))
 			h4 = lrelu(tf.nn.conv2d(h3,self.d_weight3, strides=[1,1,1,1],padding='SAME'))
 			h8 = tf.reshape(h4, [self.batch_size,-1])
-			print(h8.shape)
 			h9 = tf.concat(axis=1,values=[h8,text_embedding])
-			print(h9.shape)
 			h10 = lrelu(batch_normalize(tf.matmul(h9, self.d_weight4)))
 			h11 = tf.concat(axis=1,values=[h10,text_embedding])
 			h12 = lrelu(batch_normalize(tf.matmul(h11, self.d_weight5)))
@@ -252,7 +251,7 @@ class VideoGAN():
 				t = tf.concat([t,r],axis=1)	
 			return embedding,text_embedding,t
 
-def save_visualization(X,ep,nh_nw=(10,20),batch_size = 10, frames=20):
+def save_visualization(X,ep,nh_nw=(10,20),batch_size = 25, frames=20):
 	h,w = 32,32
 	Y = X.reshape(batch_size*frames, h,w,1)
 	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
@@ -263,10 +262,8 @@ def save_visualization(X,ep,nh_nw=(10,20),batch_size = 10, frames=20):
 	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
 
-batch_size = 10
+batch_size = 25
 print("Built model")
-
-print("Built graph, exiting")
 
 epoch = 1000
 learning_rate = 1e-3
@@ -278,30 +275,34 @@ session = tf.InteractiveSession()
 g_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_gen"),tf.trainable_variables())] 
 d_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_disc"), tf.trainable_variables())] 
 lstm_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_lstm"), tf.trainable_variables())] 
-print(g_weight_list)
-print(d_weight_list)
 # optimizers
 with tf.device("/gpu:0"):
 	g_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(g_loss, var_list=g_weight_list+lstm_weight_list)
 	d_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(d_loss, var_list=d_weight_list)
 
-embedding_size = 128
+embedding_size = 96
 text_embedding_size = 150
-num_examples = 10000
-epoch = 100
+num_examples = 2000
+epoch = 50
 frames = 20
 
 embedding_sample, sentence_sample, image_sample = gan.samples_generator()
-sample_video, sample_text = generate_next_batch(10,20)
-print(sample_video.shape)
+sample_video, sample_text = generate_next_batch(batch_size,20)
 tf.global_variables_initializer().run()
 sample_embedding = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 save_visualization(sample_video,0)
-#batch_size = 10
+
+saver = tf.train.Saver()
+#batch_size = 25
 
 print("Starting Training")
 start_time = time.time()
 for ep in range(epoch):
+	start = 1
+	current = 1
+	avg_g_loss_val = 0
+	avg_d_loss_val = 0
+	start_epoch = time.time()
 	for t in range(num_examples):
 		print("Running: %d"%(t+1))
 		batch,batch_text = generate_next_batch(batch_size,20)
@@ -310,7 +311,7 @@ for ep in range(epoch):
 			real_video : batch,
 			embedding : random, 
 			sentence : batch_text,
-			sentence_false : np.random.uniform(size=(batch_size, text_embedding_size, frames))
+			sentence_false : np.random.uniform(size=(batch_size, frames ,text_embedding_size))
 		}
 		feed_dict2 = {
 		#	real_video : batch,
@@ -319,10 +320,16 @@ for ep in range(epoch):
 		}
 		_, g_loss_val = session.run([g_optimizer, g_loss],feed_dict=feed_dict2)
 		_, d_loss_val = session.run([d_optimizer, d_loss],feed_dict=feed_dict1)
-		if t%10 == 0 and t > 0:
+		avg_g_loss_val += g_loss_val
+		print(avg_g_loss_val)
+		avg_d_loss_val += d_loss_val
+		print(avg_d_loss_val)
+		if t%5 == 0 and t > 0:
 			print("Total time: " + str(time.time()-start_time))
 			print("Epoch time: " + str(time.time() - start_epoch))
-			print("Done with batches: " + str(t*batch_size) + " Loesses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
+			print("Done with batches: " + str(t*batch_size) + " Loesses :: Generator: " + str(g_loss_val / 10) + " and Discriminator: " + str(d_loss_val / 10) + " = " + str(d_loss_val/10 + g_loss_val/10))
+			avg_g_loss_val = 0
+			avg_d_loss_val = 0
 	print("Saving sample images and data for later testing: ")
 	feed_dict = {
 		embedding_sample : sample_embedding,
@@ -332,3 +339,5 @@ for ep in range(epoch):
 	save_visualization(gen_samples, ep)
 	print("Epoch: %d has been completed"%(ep + 1))
 	print("Total time in this epoch: "  + str(time.time() - start_epoch))
+	saver.save(session=session)
+	print("Saved session")
