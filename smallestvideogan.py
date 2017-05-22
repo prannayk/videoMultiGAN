@@ -146,15 +146,16 @@ def int_val(one_hot):
 print("Built dataset")
 start = 1
 current = 1
-images_train, text_train
+# images_train, text_train
 def generate_next_batch(batch_size,frames):
 	global start, current, images_train, text_train
 	if current >= start:
 		current = 0
 		images_train, text_train = load_batches(100)
-	images = images_train[current*batch_size,current*batch_size + batch_size]
-	text = text_train[current*batch_size, current*batch_size + batch_size]
+	images = images_train[current*batch_size:current*batch_size + batch_size]
+	text = text_train[current*batch_size:current*batch_size + batch_size]
 	current += 0
+	return images, text
 
 def load_batches(num):
 	global start
@@ -162,6 +163,7 @@ def load_batches(num):
 	text_file = "bouncing_data/text_%d.npy"%(start)
 	t = np.load(text_file)
 	img = np.load(image)
+	im = np.ndarray(shape=[num*img.shape[0],img.shape[1],32,32,1])
 	for i in range(num-1):
 		image = "bouncing_data/image_%d.npy"%(start+i+1)
 		text_file = "bouncing_data/text_%d.npy"%(start+i+1)
@@ -171,8 +173,8 @@ def load_batches(num):
 		t = np.concatenate([t,t2],axis=0)
 	for i in range(img.shape[0]):
 		for j in range(img.shape[1]):
-			img[i,j] = scipy.misc.imresize(im[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
-	return img, t
+			im[i,j] = scipy.misc.imresize(img[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
+	return im, t
 #	start = (start+50)%200000
 #	data = dataset[0][start-50:start]
 #	sentences = dataset[1][start-50:start]
