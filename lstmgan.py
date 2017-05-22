@@ -95,8 +95,8 @@ class VideoGAN():
 			self.d_weight4 = tf.Variable(tf.random_normal([dim2*self.dim_4*self.dim_4+text_embedding_size, dim1],stddev = 0.2), name=(self.name+"_disc_weight4"))
 			self.d_weight5 = tf.Variable(tf.random_normal([dim1+text_embedding_size,1],stddev = 0.2), name=(self.name+"_disc_weight5"))
 
-			self.lstm_weightW = tf.Variable(name='%s_lstm_W'%(self.name), tf.random_normal([4,self.embedding_size,self.embedding_size],stddev=0.2))
-			self.lstm_weightU = tf.Variable(name='%s_lstm_U'%(self.name), tf.random_normal([4,self.embedding_size,self.embedding_size],stddev=0.2))
+			self.lstm_weightW = tf.Variable(tf.random_normal([4,self.embedding_size,self.embedding_size],stddev=0.2),name='%s_lstm_U'%(self.name))
+			self.lstm_weightU = tf.Variable(tf.random_normal([4,self.embedding_size,self.embedding_size],stddev=0.2),name='%s_lstm_U'%(self.name))
 	def build_model(self):
 		with tf.device("/gpu:0"):
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
