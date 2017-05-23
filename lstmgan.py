@@ -3,37 +3,43 @@ import numpy as np
 import scipy.misc
 import time
 
-start = 1
-current = 1
+start = 0
+current = 0
+num = 200
 #images_train, text_train
-def generate_next_batch(batch_size,frames):
-	global start, current, images_train, text_train
-	if current >= start:
+def generate_next_batch(frames,batch_size,start, current):
+	global images_train, text_train,num
+	t = (5*num) // batch_size
+	if current >= t or start == 0:
+		images_train, text_train, start, current = load_batches(num, batch_size, start, current)
 		current = 0
-		images_train, text_train = load_batches(100)
 	images = images_train[current*batch_size:current*batch_size + batch_size]
 	text = text_train[current*batch_size:current*batch_size + batch_size]
-	current += 0
-	return images, text
+	current += 1
+	return images, text, start, current
 
-def load_batches(num):
-	global start
-	image = "bouncing_data/image_%d.npy"%(start)
-	text_file = "bouncing_data/text_%d.npy"%(start)
+def load_batches(num,batch_size,start, current):
+	image = "bouncing_data/image_%d.npy"%(start+1)
+	text_file = "bouncing_data/text_%d.npy"%(start+1)
 	t = np.load(text_file)
 	img = np.load(image)
 	for i in range(num-1):
-		image = "bouncing_data/image_%d.npy"%(start+i+1)
-		text_file = "bouncing_data/text_%d.npy"%(start+i+1)
+		image = "bouncing_data/image_%d.npy"%(start+i+2)
+		# print(image)
+		text_file = "bouncing_data/text_%d.npy"%(start+i+2)
 		t2 = np.load(text_file)
 		im2 = np.load(image)
 		img = np.concatenate([img,im2],axis=0)
 		t = np.concatenate([t,t2],axis=0)
-	im = np.ndarray(shape=[num*img.shape[0],img.shape[1],32,32,1])
+	im = np.ndarray(shape=[num*5,img.shape[1],32,32,1])
 	for i in range(img.shape[0]):
 		for j in range(img.shape[1]):
 			im[i,j] = scipy.misc.imresize(img[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
-	return im, t
+	start += num
+	if start > 50000:
+		start = 0
+		current = 0
+	return im, t, start,current
 
 def batch_normalize(X, eps=1e-6):
 	if X.get_shape().ndims == 4 :
@@ -66,7 +72,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 25,image_shape = [32,32,1],embedding_size = 96,otext_embedding_size = 300,text_embedding_size=150,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20, actual_frames=12):
+	def __init__ (self,batch_size = 100,image_shape = [32,32,1],embedding_size = 96,otext_embedding_size = 300,text_embedding_size=150,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20, actual_frames=10):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -243,7 +249,7 @@ class VideoGAN():
 			state = self.lstm(self.init, trill[2])
 			iterate_embedding = tf.reshape(state[0],shape=([self.batch_size,self.embedding_size]))
 			t = tf.reshape(trill[0],shape=[self.batch_size, 1] + self.image_shape)
-			for i in range(self.batch_size - 1):
+			for i in range(1,self.frames):
 				trill = self.generate(iterate_embedding, raw[:,:,i])
 				state = self.lstm(self.init, trill[2])
 				iterate_embedding = tf.reshape(state[0],shape=([self.batch_size,self.embedding_size]))
@@ -251,7 +257,7 @@ class VideoGAN():
 				t = tf.concat([t,r],axis=1)	
 			return embedding,text_embedding,t
 
-def save_visualization(X,ep,nh_nw=(10,20),batch_size = 25, frames=20):
+def save_visualization(X,ep,nh_nw=(20,100),batch_size = 100, frames=20):
 	h,w = 32,32
 	Y = X.reshape(batch_size*frames, h,w,1)
 	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
@@ -262,7 +268,7 @@ def save_visualization(X,ep,nh_nw=(10,20),batch_size = 25, frames=20):
 	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
 
-batch_size = 25
+batch_size = 100
 print("Built model")
 
 epoch = 1000
@@ -282,30 +288,34 @@ with tf.device("/gpu:0"):
 
 embedding_size = 96
 text_embedding_size = 150
-num_examples = 2000
-epoch = 50
+num_examples = 500
+epoch = 200
 frames = 20
 
 embedding_sample, sentence_sample, image_sample = gan.samples_generator()
-sample_video, sample_text = generate_next_batch(batch_size,20)
+sample_video, sample_text,start, current = generate_next_batch(20,batch_size,start,current)
 tf.global_variables_initializer().run()
 sample_embedding = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 save_visualization(sample_video,0)
 
 saver = tf.train.Saver()
-#batch_size = 25
+#batch_size = 100
 
 print("Starting Training")
 start_time = time.time()
 for ep in range(epoch):
-	start = 1
-	current = 1
+	print("Saving sample images and data for later testing: ")
+	feed_dict = {
+		embedding_sample : sample_embedding,
+		sentence_sample : sample_text
+	}
+	gen_samples = session.run(image_sample,feed_dict=feed_dict)
+	save_visualization(gen_samples, ep)
 	avg_g_loss_val = 0
 	avg_d_loss_val = 0
 	start_epoch = time.time()
 	for t in range(num_examples):
-		print("Running: %d"%(t+1))
-		batch,batch_text = generate_next_batch(batch_size,20)
+		batch,batch_text,start,current = generate_next_batch(20, batch_size,start, current)
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 		feed_dict1 = {
 			real_video : batch,
@@ -321,13 +331,11 @@ for ep in range(epoch):
 		_, g_loss_val = session.run([g_optimizer, g_loss],feed_dict=feed_dict2)
 		_, d_loss_val = session.run([d_optimizer, d_loss],feed_dict=feed_dict1)
 		avg_g_loss_val += g_loss_val
-		print(avg_g_loss_val)
 		avg_d_loss_val += d_loss_val
-		print(avg_d_loss_val)
-		if t%5 == 0 and t > 0:
+		if (t+1)%10 == 0:
 			print("Total time: " + str(time.time()-start_time))
 			print("Epoch time: " + str(time.time() - start_epoch))
-			print("Done with batches: " + str(t*batch_size) + " Loesses :: Generator: " + str(g_loss_val / 10) + " and Discriminator: " + str(d_loss_val / 10) + " = " + str(d_loss_val/10 + g_loss_val/10))
+			print("Done with batches: " + str((t+1)*batch_size) + " Loesses :: Generator: " + str(g_loss_val / 10) + " and Discriminator: " + str(d_loss_val / 10) + " = " + str(d_loss_val/10 + g_loss_val/10))
 			avg_g_loss_val = 0
 			avg_d_loss_val = 0
 	print("Saving sample images and data for later testing: ")
@@ -340,4 +348,6 @@ for ep in range(epoch):
 	print("Epoch: %d has been completed"%(ep + 1))
 	print("Total time in this epoch: "  + str(time.time() - start_epoch))
 	saver.save(session=session)
+	start = 0
+	current = 0
 	print("Saved session")
