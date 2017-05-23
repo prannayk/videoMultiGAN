@@ -265,7 +265,7 @@ def save_visualization(X,ep,nh_nw=(20,25),batch_size = 25, frames=20):
 		j = n // nh_nw[1]
 		i = n % nh_nw[1]
 		image[j*h:j*h + h, i*w:i*w + w,:] = x
-	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
+	scipy.misc.imsave(("bouncingalternate/sample_%d.jpg"%(ep+1)),image)
 
 
 batch_size = 25
@@ -288,7 +288,7 @@ with tf.device("/gpu:1"):
 
 embedding_size = 96
 text_embedding_size = 150
-num_examples = 500
+num_examples = 2000
 epoch = 50
 frames = 20
 

@@ -5,7 +5,7 @@ import time
 
 start = 0
 current = 0
-num = 200
+num = 100
 
 def generate_next_batch(frames,batch_size,start, current):
 	global images_train, text_train,num
@@ -25,24 +25,20 @@ def load_batches(num,batch_size,start, current):
 	img = np.load(image)
 	for i in range(num-1):
 		image = "bouncing_data/image_%d.npy"%(start+i+2)
-		# print(image)
+		print(image)
 		text_file = "bouncing_data/text_%d.npy"%(start+i+2)
 		t2 = np.load(text_file)
 		im2 = np.load(image)
 		img = np.concatenate([img,im2],axis=0)
 		t = np.concatenate([t,t2],axis=0)
-	im = np.ndarray(shape=[num*5,img.shape[1],32,32,1])
-	for i in range(img.shape[0]):
-		for j in range(img.shape[1]):
-			im[i,j] = scipy.misc.imresize(img[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
 	start += num
 	if start > 50000:
 		start = 0
 		current = 0
-	return im, t, start,current
+	return img, t, start,current
 
 def save_visualization(X,ep,nh_nw=(20,100),batch_size = 100, frames=20):
-	h,w = 32,32
+	h,w = 64,64
 	Y = X.reshape(batch_size*frames, h,w,1)
 	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
 	for n,x in enumerate(Y):
@@ -65,4 +61,5 @@ epoch = 200
 frames = 20
 
 sample_video, sample_text,start, current = generate_next_batch(20,batch_size,start,current)
+print("Saving")
 save_visualization(sample_video,-1)
