@@ -347,7 +347,6 @@ for ep in range(epoch):
 	save_visualization(gen_samples, ep)
 	print("Epoch: %d has been completed"%(ep + 1))
 	print("Total time in this epoch: "  + str(time.time() - start_epoch))
-	saver.save(session=session)
 	start = 0
 	current = 0
 	print("Saved session")
