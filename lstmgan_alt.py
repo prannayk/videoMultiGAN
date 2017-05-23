@@ -109,7 +109,7 @@ class VideoGAN():
 		self.embedding_channel = ((4*embedding_size) // self.dim_4) // self.dim_4
 		self.dim_2 = image_shape[0] // 2
 		self.image_input_size = image_shape[0]*image_shape[1]*image_shape[2]
-		with tf.device("/gpu:1"):
+		with tf.device("/gpu:0"):
 			self.g_weight1 = tf.Variable(tf.random_normal([embedding_size + text_embedding_size, dim1], stddev = 0.2), name=(self.name+"_generator_weight1"))
 			self.g_weight2 = tf.Variable(tf.random_normal([dim1 + text_embedding_size, dim2*self.dim_4*self.dim_4], stddev = 0.2), name=(self.name+"_generator_weight2"))
 			self.g_weight3 = tf.Variable(tf.random_normal([5,5,dim3,dim2+text_embedding_size], stddev = 0.2), name=(self.name+"_generator_weight3"))
@@ -131,7 +131,7 @@ class VideoGAN():
 				self.lstm_weightW = tf.concat(axis=1,values=[self.lstm_weightW,W])
 				self.lstm_weightU = tf.concat(axis=1,values=[self.lstm_weightU,U])
 	def build_model(self):
-		with tf.device("/gpu:1"):
+		with tf.device("/gpu:0"):
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
 			text_embedding_raw = tf.placeholder(tf.float32, [self.batch_size, self.otext_embedding_size, self.max_len])
 			r_video = tf.placeholder(tf.float32, [self.batch_size,self.frames] + self.image_shape)
@@ -170,7 +170,7 @@ class VideoGAN():
 			return embedding, text_embedding_raw, text_embedding_false, r_video, d_cost, g_cost
 
 	def lstm(self,prev,x):
-		with tf.device("/gpu:1"):
+		with tf.device("/gpu:0"):
 			st_1, ct_1 = prev
 			x = tf.reshape(x,shape=([self.batch_size,self.embedding_size,1]))
 			i = tf.sigmoid(tf.matmul(self.lstm_weightU[0],x) + tf.matmul(self.lstm_weightW[0],st_1))
@@ -183,7 +183,7 @@ class VideoGAN():
 
 	def generate_embedding_raw(self,text_embedding):
 		# naive attention
-		with tf.device("/gpu:1"):
+		with tf.device("/gpu:0"):
 			conversion = tf.nn.max_pool(tf.reshape(text_embedding,shape=([self.batch_size,self.otext_embedding_size,self.max_len,1])),ksize=[1,2,2,1],strides=[1,2,1,1],padding='SAME')
 			conv = tf.reshape(conversion,shape=[self.batch_size,self.text_embedding_size, self.max_len])
 			self.attention = tf.Variable(tf.random_normal([self.max_len,self.frames],stddev=1.0),name="%s_disc_attention"%(self.name))
@@ -196,7 +196,7 @@ class VideoGAN():
 			return h
 
 	def generate(self, embedding, text_embedding):
-		with tf.device("/gpu:1"):
+		with tf.device("/gpu:0"):
 			ystack2 = tf.reshape(text_embedding, [self.batch_size, 1,1, self.text_embedding_size])
 			embedding = tf.concat(axis=1, values=[embedding, text_embedding])
 			h1 = tf.nn.relu(batch_normalize(tf.matmul(embedding, self.g_weight1)))
@@ -233,7 +233,7 @@ class VideoGAN():
 			return h6 , h2, tf.reshape(h3,shape=[self.batch_size, self.embedding_size])
 
 	def discriminate(self, image, text_embedding,flag=False,h2=None):
-		with tf.device("/gpu:1"):
+		with tf.device("/gpu:0"):
 			text_embedding_size = self.text_embedding_size
 			height1 = self.dim_2
 			height2 = self.dim_4
@@ -258,7 +258,7 @@ class VideoGAN():
 			return h12
 
 	def samples_generator(self):
-		with tf.device("/gpu:1"):
+		with tf.device("/gpu:0"):
 			batch_size = self.batch_size
 			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
 			text_embedding = tf.placeholder(tf.float32,[batch_size,self.otext_embedding_size, self.max_len])
@@ -300,7 +300,7 @@ g_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_gen"),t
 d_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_disc"), tf.trainable_variables())] 
 lstm_weight_list = [i for i in filter(lambda x: x.name.startswith("videogan_lstm"), tf.trainable_variables())] 
 # optimizers
-with tf.device("/gpu:1"):
+with tf.device("/gpu:0"):
 	g_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(g_loss, var_list=g_weight_list+lstm_weight_list)
 	d_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(d_loss, var_list=d_weight_list)
 
