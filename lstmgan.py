@@ -296,7 +296,7 @@ embedding_sample, sentence_sample, image_sample = gan.samples_generator()
 sample_video, sample_text,start, current = generate_next_batch(20,batch_size,start,current)
 tf.global_variables_initializer().run()
 sample_embedding = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
-save_visualization(sample_video,0)
+save_visualization(sample_video,-1)
 
 saver = tf.train.Saver()
 #batch_size = 100
