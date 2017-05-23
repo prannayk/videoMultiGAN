@@ -5,41 +5,59 @@ import time
 
 start = 0
 current = 0
-num = 1000
-#images_train, text_train
+num = 500
+
+def concat(vector_list, list1):
+	size = len(vector_list)
+	y = np.ndarray(shape=([25*size] + list1))
+	for i in range(len(vector_list)):
+		for j in range(25):
+			y[25*i + j] = vector_list[i][j]
+	return y
+
 def generate_next_batch(frames,batch_size,start, current):
 	global images_train, text_train,num
-	t = (5*num) // batch_size
+	print("Start: " + str(start))
+	t = (25*num) // batch_size
 	if current >= t or start == 0:
+		start_time = time.time()
 		images_train, text_train, start, current = load_batches(num, batch_size, start, current)
+		print("Batch loading time:" + str(time.time() - start_time))
 		current = 0
+	batch_size = batch_size // 25
 	images = images_train[current*batch_size:current*batch_size + batch_size]
 	text = text_train[current*batch_size:current*batch_size + batch_size]
 	current += 1
-	return images, text, start, current
+	return concat(images, [20,64,64,1]), concat(text,[300,20]), start, current
 
 def load_batches(num,batch_size,start, current):
-	image = "bouncing_data/image_%d.npy"%(start+1)
-	text_file = "bouncing_data/text_%d.npy"%(start+1)
-	t = np.load(text_file)
-	img = np.load(image)
-	for i in range(num-1):
-		image = "bouncing_data/image_%d.npy"%(start+i+2)
-		# print(image)
-		text_file = "bouncing_data/text_%d.npy"%(start+i+2)
+	image = "bouncing_data2/image_%d.npy"%(start+1)
+	text_file = "bouncing_data2/text_%d.npy"%(start+1)
+	t = [i for i in range(num)]
+	img = [i for i in range(num)]
+	for i in range(num):
+		image = "bouncing_data2/image_%d.npy"%(start+i+1)
+		print(image)
+		text_file = "bouncing_data2/text_%d.npy"%(start+i+1)
 		t2 = np.load(text_file)
 		im2 = np.load(image)
-		img = np.concatenate([img,im2],axis=0)
-		t = np.concatenate([t,t2],axis=0)
-	im = np.ndarray(shape=[num*5,img.shape[1],32,32,1])
-	for i in range(img.shape[0]):
-		for j in range(img.shape[1]):
-			im[i,j] = scipy.misc.imresize(img[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
+		img[i] = im2
+		t[i] = t2
 	start += num
 	if start > 50000:
 		start = 0
 		current = 0
-	return im, t, start,current
+	return img, t, start,current
+
+def save_visualization(X,ep,nh_nw=(20,100),batch_size = 100, frames=20):
+	h,w = 32,32
+	Y = X.reshape(batch_size*frames, h,w,1)
+	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
+	for n,x in enumerate(Y):
+		j = n // nh_nw[1]
+		i = n % nh_nw[1]
+		image[j*h:j*h + h, i*w:i*w + w,:] = x
+	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
 def batch_normalize(X, eps=1e-6):
 	if X.get_shape().ndims == 4 :
@@ -257,8 +275,8 @@ class VideoGAN():
 				t = tf.concat([t,r],axis=1)	
 			return embedding,text_embedding,t
 
-def save_visualization(X,ep,nh_nw=(20,25),batch_size = 25, frames=20):
-	h,w = 32,32
+def save_visualization(X,ep,nh_nw=(25,20),batch_size = 25, frames=20):
+	h,w = 64,64
 	Y = X.reshape(batch_size*frames, h,w,1)
 	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
 	for n,x in enumerate(Y):
@@ -286,7 +304,7 @@ with tf.device("/gpu:1"):
 	g_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(g_loss, var_list=g_weight_list+lstm_weight_list)
 	d_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.4).minimize(d_loss, var_list=d_weight_list)
 
-embedding_size = 96
+embedding_size = 192
 text_embedding_size = 150
 num_examples = 2000
 epoch = 50

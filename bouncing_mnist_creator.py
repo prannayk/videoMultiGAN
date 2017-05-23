@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.misc
 from gensim.models import word2vec
+import time
 
 model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
 print("Loaded gensim")
@@ -108,16 +109,21 @@ def generate_gif_data(imgs,labels,batch_size):
 	sentence_list = list()
 	count = 0
 	flag = False
+	start_time = time.time()
 	while count < batch_size:
-		if count % 5 == 0 and count > 0:
+		if count % 25 == 0 and count > 0:
 			if not flag:
+				print("Time taken: " + str(time.time() - start_time))
 				flag = True
 				print("Done with %d"%(count))
-				np.save("./bouncing_data/image_%d.npy"%(count/25), arr=data)
+				save_time = time.time()
+				np.save("./bouncing_data2/image_%d.npy"%(count/25), arr=data)
 #			print(data)
-				np.save("./bouncing_data/text_%d.npy"%(count/25), arr=convert2embedding(sentence_list))
+				np.save("./bouncing_data2/text_%d.npy"%(count/25), arr=convert2embedding(sentence_list))
+				print("Saving time: " + str(time.time() - save_time))
 				sentence_list = []
 				data = None
+				start_time = time.time()
 		# print(count+1)
 		f = np.random.randint(len(imgs))
 		s = np.random.randint(len(imgs))
