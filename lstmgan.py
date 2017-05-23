@@ -6,7 +6,7 @@ import time
 start = 0
 current = 0
 num = 2000
-#images_train, text_train
+
 def concat(vector_list):
 	size = len(vector_list)
 	y = np.ndarray(shape=([5*size] +  vector_list[0].shape[1:]))
@@ -30,16 +30,16 @@ def generate_next_batch(frames,batch_size,start, current):
 def load_batches(num,batch_size,start, current):
 	image = "bouncing_data/image_%d.npy"%(start+1)
 	text_file = "bouncing_data/text_%d.npy"%(start+1)
-	t = [np.load(text_file)]
-	img = [np.load(image)]
-	for i in range(num-1):
-		image = "bouncing_data/image_%d.npy"%(start+i+2)
+	t = [i for i in range(num)]
+	img = [i for i in range(num)]
+	for i in range(num):
+		image = "bouncing_data/image_%d.npy"%(start+i+1)
 		print(image)
-		text_file = "bouncing_data/text_%d.npy"%(start+i+2)
+		text_file = "bouncing_data/text_%d.npy"%(start+i+1)
 		t2 = np.load(text_file)
 		im2 = np.load(image)
-		img.append(im2)
-		t.append(t2)
+		img[i] = im2
+		t[i] = t2
 	start += num
 	if start > 50000:
 		start = 0

@@ -5,7 +5,7 @@ import time
 
 start = 0
 current = 0
-num = 100
+num = 1000
 #images_train, text_train
 def generate_next_batch(frames,batch_size,start, current):
 	global images_train, text_train,num
@@ -72,7 +72,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 25,image_shape = [32,32,1],embedding_size = 96,otext_embedding_size = 300,text_embedding_size=150,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20, actual_frames=10):
+	def __init__ (self,batch_size = 25,image_shape = [64,64,1],embedding_size = 192,otext_embedding_size = 300,text_embedding_size=150,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20, actual_frames=10):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size

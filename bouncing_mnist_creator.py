@@ -17,7 +17,7 @@ def int_val(one_hot):
 		if one_hot[i] == 1:
 			return i
 
-def convert2embedding(sentence_list,maxlen=20,batch_size = 5):
+def convert2embedding(sentence_list,maxlen=20,batch_size = 25):
 	global model
 	text_embeddings = np.ndarray([batch_size, 300, maxlen])
 	print(len(sentence_list))
@@ -32,7 +32,7 @@ def convert2embedding(sentence_list,maxlen=20,batch_size = 5):
 maxlen = 20
 digit_size = 28
 image_size = 64
-batch_size = 5
+batch_size = 25
 motions = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
 
 def overlap(a,b):
@@ -113,9 +113,9 @@ def generate_gif_data(imgs,labels,batch_size):
 			if not flag:
 				flag = True
 				print("Done with %d"%(count))
-				np.save("./bouncing_data/image_%d.npy"%(count/5), arr=data)
+				np.save("./bouncing_data/image_%d.npy"%(count/25), arr=data)
 #			print(data)
-				np.save("./bouncing_data/text_%d.npy"%(count/5), arr=convert2embedding(sentence_list))
+				np.save("./bouncing_data/text_%d.npy"%(count/25), arr=convert2embedding(sentence_list))
 				sentence_list = []
 				data = None
 		# print(count+1)
@@ -137,8 +137,6 @@ def generate_gif_data(imgs,labels,batch_size):
 		background = np.zeros([64,64,1])
 		for i in range(20):
 			image[0,i] = create_frame(create_frame(background,imgs[s],starts,motions,i),imgs[f],startf,motionf,i)
-			# print(tf.reduce_sum(image[0,i]))
-			# print(tf.reduce_sum(imgs[s]))
 		sentence_list.append(motion_sentence(motionf,motions,int_val(labels[f]),int_val(labels[s])))
 		if data == None:
 			data = image
@@ -152,9 +150,9 @@ mnist_train_labels = mnist.train.labels
 # print(np.mean(generate_gif_data(mnist_train_data, mnist_train_labels, 50)[0]))
 # print(generate_gif_data(mnist_train_data,mnist_train_labels,50)[1])
 print("Building training data") 
-dataset = generate_gif_data(mnist_train_data, mnist_train_labels,  100000)
-print(np.mean(dataset[0]))
-print(np.mean(dataset[1]))
+dataset = generate_gif_data(mnist_train_data, mnist_train_labels,  50000)
+# print(np.mean(dataset[0]))
+# print(np.mean(dataset[1]))
 print("Built dataset, saving in files")
 np.save("./bouncing_images.npy",arr=dataset[0])
 np.save("./bouncing_sentence_embedding.npy",arr=dataset[1])
