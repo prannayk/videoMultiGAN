@@ -5,36 +5,41 @@ import time
 
 start = 0
 current = 0
-num = 200
+num = 2000
 #images_train, text_train
+def concat(vector_list):
+	size = len(vector_list)
+	y = np.ndarray(shape=([5*size] +  vector_list[0].shape[1:]))
+	for i in range(vector_list):
+		for j in range(5):
+			y[5*i + j] = vector_list[i][j]
+	return y
+
 def generate_next_batch(frames,batch_size,start, current):
 	global images_train, text_train,num
 	t = (5*num) // batch_size
 	if current >= t or start == 0:
 		images_train, text_train, start, current = load_batches(num, batch_size, start, current)
 		current = 0
+	batch_size = batch_size // 5
 	images = images_train[current*batch_size:current*batch_size + batch_size]
 	text = text_train[current*batch_size:current*batch_size + batch_size]
 	current += 1
-	return images, text, start, current
+	return concat(images), concat(text), start, current
 
 def load_batches(num,batch_size,start, current):
 	image = "bouncing_data/image_%d.npy"%(start+1)
 	text_file = "bouncing_data/text_%d.npy"%(start+1)
-	t = np.load(text_file)
-	img = np.load(image)
+	t = [np.load(text_file)]
+	img = [np.load(image)]
 	for i in range(num-1):
 		image = "bouncing_data/image_%d.npy"%(start+i+2)
-		# print(image)
+		print(image)
 		text_file = "bouncing_data/text_%d.npy"%(start+i+2)
 		t2 = np.load(text_file)
 		im2 = np.load(image)
-		img = np.concatenate([img,im2],axis=0)
-		t = np.concatenate([t,t2],axis=0)
-	im = np.ndarray(shape=[num*5,img.shape[1],32,32,1])
-	for i in range(img.shape[0]):
-		for j in range(img.shape[1]):
-			im[i,j] = scipy.misc.imresize(img[i,j].reshape([64,64]),(32,32)).reshape([32,32,1])
+		img.append(im2)
+		t.append(t2)
 	start += num
 	if start > 50000:
 		start = 0
