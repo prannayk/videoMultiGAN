@@ -28,14 +28,14 @@ def generate_next_batch(frames,batch_size,start, current):
 	return concat(images), concat(text), start, current
 
 def load_batches(num,batch_size,start, current):
-	image = "bouncing_data/image_%d.npy"%(start+1)
-	text_file = "bouncing_data/text_%d.npy"%(start+1)
+	image = "bouncing_data3/image_%d.npy"%(start+1)
+	text_file = "bouncing_data3/text_%d.npy"%(start+1)
 	t = [i for i in range(num)]
 	img = [i for i in range(num)]
 	for i in range(num):
-		image = "bouncing_data/image_%d.npy"%(start+i+1)
+		image = "bouncing_data3/image_%d.npy"%(start+i+1)
 		print(image)
-		text_file = "bouncing_data/text_%d.npy"%(start+i+1)
+		text_file = "bouncing_data3/text_%d.npy"%(start+i+1)
 		t2 = np.load(text_file)
 		im2 = np.load(image)
 		img[i] = im2
