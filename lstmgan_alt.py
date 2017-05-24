@@ -5,26 +5,25 @@ import time
 
 start = 0
 current = 0
-num = 500
-
+num = 1000
+startest_time = time.time()
 def concat(vector_list, list1):
 	size = len(vector_list)
-	y = np.ndarray(shape=([25*size] + list1))
+	y = np.ndarray(shape=([10*size] + list1))
 	for i in range(len(vector_list)):
-		for j in range(25):
-			y[25*i + j] = vector_list[i][j]
+		for j in range(10):
+			y[10*i + j] = vector_list[i][j]
 	return y
 
 def generate_next_batch(frames,batch_size,start, current):
 	global images_train, text_train,num
-	print("Start: " + str(start))
-	t = (25*num) // batch_size
+	t = (10*num) // batch_size
 	if current >= t or start == 0:
 		start_time = time.time()
 		images_train, text_train, start, current = load_batches(num, batch_size, start, current)
 		print("Batch loading time:" + str(time.time() - start_time))
 		current = 0
-	batch_size = batch_size // 25
+	batch_size = batch_size // 10
 	images = images_train[current*batch_size:current*batch_size + batch_size]
 	text = text_train[current*batch_size:current*batch_size + batch_size]
 	current += 1
@@ -44,20 +43,10 @@ def load_batches(num,batch_size,start, current):
 		img[i] = im2
 		t[i] = t2
 	start += num
-	if start > 50000:
+	if start >= 5000:
 		start = 0
 		current = 0
 	return img, t, start,current
-
-def save_visualization(X,ep,nh_nw=(20,100),batch_size = 100, frames=20):
-	h,w = 32,32
-	Y = X.reshape(batch_size*frames, h,w,1)
-	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
-	for n,x in enumerate(Y):
-		j = n // nh_nw[1]
-		i = n % nh_nw[1]
-		image[j*h:j*h + h, i*w:i*w + w,:] = x
-	scipy.misc.imsave(("bouncingmnist/sample_%d.jpg"%(ep+1)),image)
 
 def batch_normalize(X, eps=1e-6):
 	if X.get_shape().ndims == 4 :
@@ -90,7 +79,7 @@ def bce(o,t):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class VideoGAN():
-	def __init__ (self,batch_size = 25,image_shape = [64,64,1],embedding_size = 192,otext_embedding_size = 300,text_embedding_size=150,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20, actual_frames=10):
+	def __init__ (self,batch_size = 10,image_shape = [64,64,1],embedding_size = 192,otext_embedding_size = 300,text_embedding_size=150,dim1 = 720, dim2 = 128, dim3 = 64,dim4 = 16, dim_channel = 1,frames = 20,name="videogan", max_len=20, actual_frames=10):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -275,7 +264,7 @@ class VideoGAN():
 				t = tf.concat([t,r],axis=1)	
 			return embedding,text_embedding,t
 
-def save_visualization(X,ep,nh_nw=(25,20),batch_size = 25, frames=20):
+def save_visualization(X,ep,nh_nw=(10,20),batch_size = 10, frames=20):
 	h,w = 64,64
 	Y = X.reshape(batch_size*frames, h,w,1)
 	image = np.zeros([h*nh_nw[0], w*nh_nw[1],3])
@@ -283,10 +272,10 @@ def save_visualization(X,ep,nh_nw=(25,20),batch_size = 25, frames=20):
 		j = n // nh_nw[1]
 		i = n % nh_nw[1]
 		image[j*h:j*h + h, i*w:i*w + w,:] = x
-	scipy.misc.imsave(("bouncingalternate/sample_%d.jpg"%(ep+1)),image)
+	scipy.misc.imsave(("bouncingalt/sample_%d.jpg"%(ep+1)),image)
 
 
-batch_size = 25
+batch_size = 10
 print("Built model")
 
 epoch = 1000
@@ -306,7 +295,7 @@ with tf.device("/gpu:0"):
 
 embedding_size = 192
 text_embedding_size = 150
-num_examples = 2000
+num_examples = 5000
 epoch = 50
 frames = 20
 
@@ -314,10 +303,11 @@ embedding_sample, sentence_sample, image_sample = gan.samples_generator()
 sample_video, sample_text,start, current = generate_next_batch(20,batch_size,start,current)
 tf.global_variables_initializer().run()
 sample_embedding = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
+print(sample_video.shape)
 save_visualization(sample_video,-1)
 
 #saver = tf.train.Saver()
-#batch_size = 25
+#batch_size = 10
 
 print("Starting Training")
 start_time = time.time()
@@ -351,6 +341,7 @@ for ep in range(epoch):
 		avg_g_loss_val += g_loss_val
 		avg_d_loss_val += d_loss_val
 		if (t+1)%10 == 0:
+			print("Complete run time: " + str(time.time() - startest_time))
 			print("Total time: " + str(time.time()-start_time))
 			print("Epoch time: " + str(time.time() - start_epoch))
 			print("Done with batches: " + str((t+1)*batch_size) + " Loesses :: Generator: " + str(g_loss_val / 10) + " and Discriminator: " + str(d_loss_val / 10) + " = " + str(d_loss_val/10 + g_loss_val/10))
