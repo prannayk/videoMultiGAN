@@ -1,7 +1,7 @@
 import sys
 import subprocess
 
-f = open("../dataset/tgif-v1.0.tsv")
+f = open("tgif-v1.0.tsv")
 fdata = list()
 for line in f.readlines():
 	data = line.split("\t")
