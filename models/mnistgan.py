@@ -31,7 +31,7 @@ def loader(path):
 		# print(train_caption)
 		train_caption = map(lambda x: map(lambda y: en_model[y], x), train_caption)
 		shape = train_set.shape
-		train_images = train_set[:,0].resize([shape[0], shape[2], shape[3], shape[1]])
+		train_images = train_set[:,0].reshape([shape[0], shape[2], shape[3], shape[1]])
 		training_data[count*10000:count*10000 + 10000] = train_images
 		train_caption_data += train_caption
 	return training_data, np.array(train_caption_data)
