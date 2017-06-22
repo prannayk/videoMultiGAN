@@ -27,8 +27,9 @@ def loader(path):
 		f = h5py.File(filename)
 		train_set = f['mnist_gif_train'].value
 		train_caption = f['mnist_captions_train']
-		train_caption = map(lambda x: map(lambda y : en_model[rev_dict[y]],x),train_caption)
+		train_caption = map(lambda x: map(lambda y : rev_dict[y],x),train_caption)
 		print(train_caption)
+		train_caption = map(lambda x: map(lambda y: en_model[y], x), train_caption)
 		shape = train_set.shape
 		train_images = train_set[:,0].resize([shape[0], shape[2], shape[3], shape[1]])
 		training_data[count*10000:count*10000 + 10000] = train_images
