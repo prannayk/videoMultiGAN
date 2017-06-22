@@ -18,7 +18,7 @@ path = sys.argv[1]
 count = int(sys.argv[2])
 
 dictionary =  {'zero':0, 'one':1, 'two':2, 'three':3, 'four':4, 'five':5, 'six':6, 'seven':7, 'eight':8, 'nine':9, 'the': 10, 'digit': 11, 'and': 12, 'are':13, 'bouncing': 14, 'moving':15, 'here':16, 'there':17, 'around':18, 'jumping':19, 'up':20, 'down':21, '.':22, 'is':23, 'left':24, 'right': 25}
-rev_dict = zip(dictionary.values(), dictionary.keys())
+rev_dict = dict(zip(dictionary.values(), dictionary.keys()))
 def loader(path):
 	training_data = numpy.ndarray(shape=[50000,64,64,1], dtype=np.int32)
 	train_caption_data = list()
@@ -28,7 +28,7 @@ def loader(path):
 		train_set = f['mnist_gif_train'].value
 		train_caption = f['mnist_captions_train']
 		train_caption = map(lambda x: map(lambda y : rev_dict[y],x),train_caption)
-		print(train_caption)
+		# print(train_caption)
 		train_caption = map(lambda x: map(lambda y: en_model[y], x), train_caption)
 		shape = train_set.shape
 		train_images = train_set[:,0].resize([shape[0], shape[2], shape[3], shape[1]])
