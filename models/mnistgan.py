@@ -29,7 +29,7 @@ def loader(path):
 		train_caption_data += train_caption
 	return training_data, np.array(train_caption_data)
 
-training_datam train_caption_data = loader(path)
+training_data, train_caption_data = loader(path)
 batch_size = 10
 embedding_size = 180
 def generator():
@@ -228,15 +228,15 @@ class DCGAN():
 	def train(self, generator, epoch, num_examples, sample_input):
 		assert num_examples % self.batch_size == 0
 		for _ in xrange(epoch):
-			for t in range(num_examples // self.batch_size)
-			inputs = generator(self.batch_size, self.embedding_size, self.num_classs)
-			feed_dict = zip(self.placeholders.values(),inputs)
-			_, g_loss_val = session.run([self.optimizers['gen'], self.losses['gen']],feed_dict=feed_dict)
-			_, d_loss_val = session.run([self.optimizers['disc'], self.losses['disc']], feed_dict=feed_dict)
-			if t%10 == 0 and t > 0:
-				print("Done with batches: %d with lossses : %f and %f"%(t*self.batch_size, g_loss_val, d_loss_val))
-			print("Saving sample images for reference")
-			feed_dict = zip(self.placeholders.values()[:2], sample_input)
+			for t in range(num_examples // self.batch_size):
+   			inputs = generator(self.batch_size, self.embedding_size, self.num_classs)
+   			feed_dict = zip(self.placeholders.values(),inputs)
+   			_, g_loss_val = session.run([self.optimizers['gen'], self.losses['gen']],feed_dict=feed_dict)
+   			_, d_loss_val = session.run([self.optimizers['disc'], self.losses['disc']], feed_dict=feed_dict)
+   			if t%10 == 0 and t > 0:
+   				print("Done with batches: %d with lossses : %f and %f"%(t*self.batch_size, g_loss_val, d_loss_val))
+   			print("Saving sample images for reference")
+   			feed_dict = zip(self.placeholders.values()[:2], sample_input)
 			gen_samples = session.run(self.image_sample, feed_dict)
 			save_visualization(gen_samples, (32,32),save_path="mnistsamples/sample_%d.jpg"%(ep+1))
 			self.saver.save(self.session,name)
