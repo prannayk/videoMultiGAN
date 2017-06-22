@@ -4,10 +4,15 @@ from tensorflow.examples.tutorials.mnist import input_data
 import sys
 import h5py
 import numpy
+from gensim.models import KeyedVectors
+
+en_model = KeyedVectors.load_word2vec_format('/media/hdd/hdd/prannayk/temp.vec')
+print("Loaded all keyed vectors required")
 # mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
 # sys.path.append( '../util/')
 # from loader import *
+
 
 path = sys.argv[1]
 count = int(sys.argv[2])
