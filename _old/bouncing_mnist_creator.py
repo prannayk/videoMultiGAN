@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.misc
 from gensim.models import word2vec
+import time
 
 model = word2vec.Word2Vec.load_word2vec_format('../google.bin', binary=True)
 print("Loaded gensim")
@@ -17,7 +18,7 @@ def int_val(one_hot):
 		if one_hot[i] == 1:
 			return i
 
-def convert2embedding(sentence_list,maxlen=20,batch_size = 25):
+def convert2embedding(sentence_list,maxlen=20,batch_size = 10):
 	global model
 	text_embeddings = np.ndarray([batch_size, 300, maxlen])
 	print(len(sentence_list))
@@ -32,7 +33,7 @@ def convert2embedding(sentence_list,maxlen=20,batch_size = 25):
 maxlen = 20
 digit_size = 28
 image_size = 64
-batch_size = 25
+batch_size = 10
 motions = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
 
 def overlap(a,b):
@@ -108,16 +109,21 @@ def generate_gif_data(imgs,labels,batch_size):
 	sentence_list = list()
 	count = 0
 	flag = False
+	start_time = time.time()
 	while count < batch_size:
-		if count % 5 == 0 and count > 0:
+		if count % 10 == 0 and count > 0:
 			if not flag:
+				print("Time taken: " + str(time.time() - start_time))
 				flag = True
 				print("Done with %d"%(count))
-				np.save("./bouncing_data/image_%d.npy"%(count/25), arr=data)
+				save_time = time.time()
+				np.save("./bouncing_data3/image_%d.npy"%(count/10), arr=data)
 #			print(data)
-				np.save("./bouncing_data/text_%d.npy"%(count/25), arr=convert2embedding(sentence_list))
+				np.save("./bouncing_data3/text_%d.npy"%(count/10), arr=convert2embedding(sentence_list))
+				print("Saving time: " + str(time.time() - save_time))
 				sentence_list = []
 				data = None
+				start_time = time.time()
 		# print(count+1)
 		f = np.random.randint(len(imgs))
 		s = np.random.randint(len(imgs))
@@ -134,14 +140,16 @@ def generate_gif_data(imgs,labels,batch_size):
 		count += 1
 		flag = False
 		image = np.ndarray([1,20,64,64,1])
+		img = np.ndarray([1,20,32,32,1])
 		background = np.zeros([64,64,1])
 		for i in range(20):
 			image[0,i] = create_frame(create_frame(background,imgs[s],starts,motions,i),imgs[f],startf,motionf,i)
+			img[0,i] = scipy.misc.imresize(image[0,i].reshape([64,64]),[32,32]).reshape(32,32,1)
 		sentence_list.append(motion_sentence(motionf,motions,int_val(labels[f]),int_val(labels[s])))
 		if data == None:
-			data = image
+			data = img
 		else:
-			data = np.concatenate([data,image])
+			data = np.concatenate([data,img])
 	return data,convert2embedding(sentence_list)
 
 mnist_train_data = mnist.train.images.reshape(-1,28,28)
