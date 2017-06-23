@@ -29,4 +29,4 @@ Video Generation from Text using Tree like decision using GANs. The text annotat
 3. We use multiple GPU training (or a single K80)
 4. Cluster traning is impossible
 
-## Results will not be updated here since there might be related publications.
+### Results will not be updated here since there might be related publications.
