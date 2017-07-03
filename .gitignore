@@ -3,3 +3,5 @@ gif_*
 *.npy
 *.swp
 *.png
+*.ckpt.*
+checkpoint
