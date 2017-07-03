@@ -261,7 +261,7 @@ class DCGAN():
 			feed_dict = dict(zip(self.placeholders.values(), sample_input))
 			gen_samples = self.session.run(self.image_samples, feed_dict)
 			save_visualization(gen_samples, (32,32), 'mnistimages/sample_output_%d.jpg'%(ep+1))
-			np.save("model1.samples.npy",gen_samples)
+			np.save("model1.samples.npy",gen_samples.reshape([self.batch_size*self.image_shape[0]] + self.image_shape[1:]))
 			self.saver.save(self.session, 'model1.ckpt')
 			print('Saved session and here we go')
 
@@ -269,7 +269,7 @@ class DCGAN():
 gan = DCGAN(batch_size, [64, 64,1 ], embedding_size, num_class=300)
 gan.build_model()
 gan.start()
-samples = generator(batch_s=10)
+samples = generator()
 gan.train(generator, 100, 50000, samples)
 
 pritn("Complete GAN code in under 250 lines, done!!")
