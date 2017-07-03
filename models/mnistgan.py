@@ -228,7 +228,7 @@ class DCGAN():
 			with tf.variable_scope('generator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="generator")
 				print(variables)
-				optimizer_gen = tf.train.AdamOptimizer(2e-4,beta1=0.5).minimize(self.losses['gen'], 
+				optimizer_gen = tf.train.AdamOptimizer(5e-4,beta1=0.5).minimize(self.losses['gen'], 
 					var_list=variables)
 			with tf.variable_scope('discriminator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator")
@@ -265,6 +265,7 @@ class DCGAN():
 			sample_save = gen_samples.reshape([self.batch_size*self.image_shape[0]] + self.image_shape[1:])
 			sample_save = np.concatenate([sample_save, sample_save, sample_save],axis=2)
 			scipy.misc.imsave("mnistimages/samepl_%d.png"%(ep+1),sample_save)
+			np.save("last_sample.npy", sample_save)
 			self.saver.save(self.session, 'model1.ckpt')
 			print('Saved session and here we go')
 			print("Complete time:" + str(time.time() - start_cycle))
