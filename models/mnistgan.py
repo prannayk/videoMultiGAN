@@ -201,14 +201,14 @@ class DCGAN():
 			g_image = tf.nn.sigmoid(fake_image)
 			with tf.variable_scope('discriminator') as scope:
 				real_value = self.discriminate(real_image, classes, scope)
-			prob_real = tf.nn.sigmoid(tf.layers.batch_normalization(real_value))
+			prob_real = tf.nn.sigmoid(real_value)
 			with tf.variable_scope('discriminator') as scope:
 				scope.reuse_variables()
 				fake_value = self.discriminate(g_image, classes, scope)
 			with tf.variable_scope('generator') as scope:
 				scope.reuse_variables()
 				self.image_samples = self.generate(embedding, classes, scope)
-			prob_fake = tf.nn.sigmoid(tf.layers.batch_normalization(fake_value))
+			prob_fake = tf.nn.sigmoid(fake_value)
 
 			d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			g_cost = -tf.reduce_mean(tf.log(prob_fake))
@@ -228,12 +228,12 @@ class DCGAN():
 			with tf.variable_scope('generator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="generator")
 				print(variables)
-				optimizer_gen = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['gen'], 
+				optimizer_gen = tf.train.AdamOptimizer(2e-3,beta1=0.5).minimize(self.losses['gen'], 
 					var_list=variables)
 			with tf.variable_scope('discriminator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator")
 				print(variables)
-				optimizer_disc = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['disc'],
+				optimizer_disc = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['disc'],
 					var_list=variables)
 			self.optimizers = {
 				'gen' : optimizer_gen,
