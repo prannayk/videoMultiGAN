@@ -41,8 +41,12 @@ def loader(path):
 training_data, train_caption_data = loader(path)
 batch_size = 50
 embedding_size = 180
-def generator():
-	global training_data, train_caption_data, batch_size, embedding_size
+def generator(batch_s=None):
+	global training_data, train_caption_data, embedding_size
+	if batch_s == None:
+		global batch_size
+	else:
+		batch_size = batch_s
 	t = np.random.randint(0,len(train_caption_data)-batch_size)
 	image_shape = reduce(lambda x,y : x*y , training_data[0].shape)
 	image_data = training_data[t:t+batch_size].reshape(batch_size, image_shape)
@@ -256,15 +260,16 @@ class DCGAN():
 			print("Saving sample images for reference")
 			feed_dict = dict(zip(self.placeholders.values(), sample_input))
 			gen_samples = self.session.run(self.image_samples, feed_dict)
-			save_visualization(gen_samples, (32,32), 'mnistimages/sample_output_%d.png'%(ep+1))
+			save_visualization(gen_samples, (32,32), 'mnistimages/sample_output_%d.jpg'%(ep+1))
+			np.save("model1.samples.npy",gen_samples)
+			self.saver.save(self.session, 'model1.ckpt')
 			print('Saved session and here we go')
-		self.saver.save(session, 'model1.ckpt')
 
 
 gan = DCGAN(batch_size, [64, 64,1 ], embedding_size, num_class=300)
 gan.build_model()
 gan.start()
-samples = generator()
+samples = generator(batch_s=10)
 gan.train(generator, 100, 50000, samples)
 
 pritn("Complete GAN code in under 250 lines, done!!")

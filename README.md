@@ -26,7 +26,7 @@ Video Generation from Text using Tree like decision using GANs. The text annotat
 ## Documentation
 1. We use Sync-DRAW to develop our datasets (https://github.com/syncdraw/Sync-DRAW)
 2. UCF101 is available from University of Montreal
-3. We use multiple GPU training (or a single K80)
-4. Cluster traning is impossible
+3. We use multiple GPU training (or a single K80 or Titan X)
+4. Cluster traning is impossible for now
 
 ### Results will not be updated here since there might be related publications.
