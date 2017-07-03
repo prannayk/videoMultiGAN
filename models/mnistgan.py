@@ -83,7 +83,7 @@ class DCGAN():
 		self.dim_channel = dim_channel
 		self.device = device
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
-		self.initializer = tf.random_normal_initializer(stddev=1.0/self.image_size)
+		self.initializer = tf.random_normal_initializer(stddev=0.02)
 
 	def generate(self, embedding, classes,scope):
 		with tf.device(self.device):
@@ -91,16 +91,16 @@ class DCGAN():
 			embedding = tf.concat(axis=1, values=[embedding, classes])
 			h1 = tf.layers.dense(embedding, units=self.dim1, activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				activity_regularizer = tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer,name='dense_1',
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# activity_regularizer = tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer,name='dense_1',
 				reuse=scope.reuse)
 			h1_concat = tf.concat(axis=1, values=[h1, classes])
 			h2 = tf.layers.dense(h1_concat, units=8*8*self.dim2, activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				activity_regularizer = tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_2',
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# activity_regularizer = tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_2',
 				reuse=scope.reuse)
 			h2_concat = tf.concat(axis=3,
 				values=[tf.reshape(h2, shape=[self.batch_size,8,8,self.dim2]), 
@@ -108,9 +108,9 @@ class DCGAN():
 			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer,
-				activity_regularizer=tf.contrib.layers.l2_regularizer,
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer,
+				# activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse,name='conv_1')
             #print(h3.get_shape())
 			h3_concat = tf.concat(axis=3,
@@ -119,9 +119,9 @@ class DCGAN():
 			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim4, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer,
-				activity_regularizer=tf.contrib.layers.l2_regularizer,
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer,
+				# activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse,name="conv_2")
 			h4_concat = tf.concat(axis=3,
 				values=[tf.reshape(h4, shape=[self.batch_size,32,32,self.dim4]), 
@@ -129,9 +129,9 @@ class DCGAN():
 			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters = self.dim_channel, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer,
-				activity_regularizer=tf.contrib.layers.l2_regularizer,
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer,
+				# activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse,name="conv_3")
 			return h5
 
@@ -149,44 +149,44 @@ class DCGAN():
 				strides=[2,2], padding='SAME',
 				activation=tf.contrib.keras.layers.LeakyReLU(),
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer, 
-				activity_regularizer=tf.contrib.layers.l2_regularizer,
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer, 
+				# activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse, name="conv_1")
 			h1_concat = tf.concat(axis=3, values=[h1, yneed_2])
 			h2 = tf.layers.conv2d(h1_concat, filters=self.dim3, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=tf.contrib.keras.layers.LeakyReLU(),
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer, 
-				activity_regularizer=tf.contrib.layers.l2_regularizer, 
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer, 
+				# activity_regularizer=tf.contrib.layers.l2_regularizer, 
 				reuse=scope.reuse,name="conv_2")
 			h2_concat = tf.concat(axis=3, values=[h2, yneed_3])
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=tf.contrib.keras.layers.LeakyReLU(),
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer, 
-				activity_regularizer=tf.contrib.layers.l2_regularizer, 
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer, 
+				# activity_regularizer=tf.contrib.layers.l2_regularizer, 
 				reuse=scope.reuse,name="conv_3")
 			h3_reshape = tf.reshape(h3, shape=[-1, 8*8*self.dim2])
 			h3_concat = tf.concat(axis=1, values=[h3_reshape, classes])
 			h4 = tf.layers.dense(h3_concat, units=self.dim1, 
 				activation=tf.contrib.keras.layers.LeakyReLU(),
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				activity_regularizer = tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_1',
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# activity_regularizer = tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_1',
 				reuse=scope.reuse)
 			h4_concat = tf.concat(axis=1, values=[h4, classes])
 			h5 = tf.layers.dense(h4_concat, units=1, 
 				activation=tf.contrib.keras.layers.LeakyReLU(),
 				kernel_initializer=self.initializer,
-				kernel_regularizer=tf.contrib.layers.l2_regularizer,
-				activity_regularizer = tf.contrib.layers.l2_regularizer,
-				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_2',
+				# kernel_regularizer=tf.contrib.layers.l2_regularizer,
+				# activity_regularizer = tf.contrib.layers.l2_regularizer,
+				# bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_2',
 				reuse=scope.reuse)
 			return h5
 
