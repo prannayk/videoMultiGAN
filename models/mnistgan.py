@@ -249,6 +249,7 @@ class DCGAN():
 		assert num_examples % self.batch_size == 0
 		start = time.time()
 		for ep in xrange(epoch):
+			start_cycle = time.time()
 			for t in range(num_examples // self.batch_size):
 				inputs = generator()
 				feed_dict = dict(zip(self.placeholders.values(),inputs))
@@ -264,7 +265,8 @@ class DCGAN():
 			np.save("model1.samples.npy",gen_samples.reshape([self.batch_size*self.image_shape[0]] + self.image_shape[1:]))
 			self.saver.save(self.session, 'model1.ckpt')
 			print('Saved session and here we go')
-
+			print("Complete time:" + str(time.time() - start_cycle))
+			start_cycle = time.time()
 
 gan = DCGAN(batch_size, [64, 64,1 ], embedding_size, num_class=300)
 gan.build_model()
