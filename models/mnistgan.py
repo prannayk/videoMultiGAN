@@ -148,7 +148,8 @@ class DCGAN():
 				bias_regularizer=tf.contrib.layers.l2_regularizer, 
 				activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse, name="conv_1")
-			h1_concat = tf.layers.batch_normalization(tf.concat(axis=3, values=[h1, yneed_2]))
+			h1_concat = tf.layers.batch_normalization(tf.concat(axis=3, values=[h1, yneed_2]),
+				name="h1_concat_normalize",reuse=scope.reuse)
 			h2 = tf.layers.conv2d(h1_concat, filters=self.dim3, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=tf.contrib.keras.layers.LeakyReLU(),
@@ -157,25 +158,28 @@ class DCGAN():
 				bias_regularizer=tf.contrib.layers.l2_regularizer, 
 				activity_regularizer=tf.contrib.layers.l2_regularizer, 
 				reuse=scope.reuse,name="conv_2")
-			h2_concat = tf.concat(axis=3, values=[h2, yneed_3])
+			h2_concat = tf.layers.batch_normalization(tf.concat(axis=3, values=[h2, yneed_3])
+				name="h2_concat_normalize",reuse=scope.reuse)
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
-				activation=tf.contrib.keras.layers.LeakyReLU(),
+				activation=tf.tanh,
 				kernel_initializer=self.initializer,
 				kernel_regularizer=tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer, 
 				activity_regularizer=tf.contrib.layers.l2_regularizer, 
 				reuse=scope.reuse,name="conv_3")
 			h3_reshape = tf.reshape(h3, shape=[-1, 8*8*self.dim2])
-			h3_concat = tf.concat(axis=1, values=[h3_reshape, classes])
+			h3_concat = tf.layers.batch_normalization(tf.concat(axis=1, values=[h3_reshape, classes]),
+				name="h3_concat_normalize", reuse=scope.reuse)
 			h4 = tf.layers.dense(h3_concat, units=self.dim1, 
-				activation=tf.contrib.keras.layers.LeakyReLU(),
+				activation=tf.tanh,
 				kernel_initializer=self.initializer,
 				kernel_regularizer=tf.contrib.layers.l2_regularizer,
 				activity_regularizer = tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_1',
 				reuse=scope.reuse)
-			h4_concat = tf.concat(axis=1, values=[h4, classes])
+			h4_concat = tf.layers.batch_normalize(tf.concat(axis=1, values=[h4, classes]),
+				name="h4_concat_normalize",reuse=scope.reuse)
 			h5 = tf.layers.dense(h4_concat, units=1, 
 				activation=None,
 				kernel_initializer=self.initializer,
@@ -183,7 +187,7 @@ class DCGAN():
 				activity_regularizer = tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_2',
 				reuse=scope.reuse)
-			return tf.layers.batch_normalization(h2_concat,name="last_normalize")
+			return tf.layers.batch_normalization(h2_concat,name="last_normalize",reuse=scope.reuse)
 
 	def build_model(self):
 		with tf.device(self.device):
