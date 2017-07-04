@@ -130,7 +130,7 @@ class DCGAN():
 			h3_concat = tf.concat(axis=3,
 				values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
-			h4 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim4, 
+			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim4, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_2")
