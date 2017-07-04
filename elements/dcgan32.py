@@ -126,7 +126,7 @@ class DCGAN():
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name='conv_1')
 			h3_relu = tf.nn.relu(self.normalize(h3,flag=True))
-            print(h3.get_shape())
+#            print(h3.get_shape())
 			h3_concat = tf.concat(axis=3,
 				values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
