@@ -38,7 +38,7 @@ def loader(path):
 	return training_data, np.array(train_caption_data)
 
 training_data, train_caption_data = loader(path)
-batch_size = 50
+batch_size = 100
 embedding_size = 180
 def generator():
 	global training_data, train_caption_data, embedding_size
@@ -210,7 +210,7 @@ class DCGAN():
 				fake_value = self.normalize(self.discriminate(g_image, classes, scope))
 			with tf.variable_scope('generator') as scope:
 				scope.reuse_variables()
-				self.image_samples = self.generate(embedding, classes, scope)
+				self.image_samples = tf.nn.sigmoid(self.generate(embedding, classes, scope))
 			prob_fake = tf.nn.sigmoid(fake_value)
 
 			d_cost = -tf.reduce_mean(tf.log(prob_real) + (tf.log(1. - prob_fake)))
@@ -230,11 +230,11 @@ class DCGAN():
 			}
 			with tf.variable_scope('generator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="generator")
-				optimizer_gen = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['gen'], 
+				optimizer_gen = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['gen'], 
 					var_list=variables)
 			with tf.variable_scope('discriminator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator")
-				optimizer_disc = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['disc'],
+				optimizer_disc = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['disc'],
 					var_list=variables)
 			self.optimizers = {
 				'gen' : optimizer_gen,
@@ -251,14 +251,17 @@ class DCGAN():
 		start = time.time()
 		for ep in xrange(epoch):
 			start_cycle = time.time()
+			average_losses = [0,0]
 			for t in range(num_examples // self.batch_size):
 				inputs = generator()
 				feed_dict = dict(zip(self.placeholders.values(),inputs))
 				_, g_loss_val = self.session.run([self.optimizers['gen'], self.losses['gen']],feed_dict=feed_dict)
 				#d_loss_val = 0
 				_, d_loss_val = self.session.run([self.optimizers['disc'], self.losses['disc']], feed_dict=feed_dict)
+				average_losses[0] += g_loss_val
+				average_losses[1] += d_loss_val
 				if t%10 == 0 and t > 0:
-					print("Done with batches: " + str(self.batch_size*t) + " with lossses : " + str(g_loss_val) +  " and " + str(d_loss_val) + " in " + str(time.time() - start))
+					print("Done with batches: " + str(self.batch_size*t) + " with lossses : " + str(average_losses[0]/10) +  " and " + str(average_losses[1]/10) + " in " + str(time.time() - start))
 					start = time.time()
 			print("Saving sample images for reference")
 			feed_dict = dict(zip(self.placeholders.values(), sample_input))
