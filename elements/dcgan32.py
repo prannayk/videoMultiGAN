@@ -57,9 +57,9 @@ def generator():
 	image_batch, one_hot_batch = mnist.train.next_batch(batch_size)
 	image_batch = image_batch.reshape([batch_size, 28,28,1])
 	images = np.zeros([batch_size,32,32,1])
-	images[:,:28,:28,0] = image_batch
+	images[:,:28,:28,:] = image_batch
 	random_batch = np.random.normal(size=[batch_size, embedding_size])
-	return image_batch, one_hot_batch, random_batch
+	return images, one_hot_batch, random_batch
 
 
 def save_visualization(X, nh_nw, save_path='../mnistimages/sample_0.jpg'):
