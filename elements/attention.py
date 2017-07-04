@@ -47,3 +47,11 @@ def attention_multi(X, frames, scope):
 			shape=[batch_size, height,embedding_size])
 		tf.concat([output_layer,final_layer], axis=1)
 	return output_layer
+
+test = tf.placeholder(tf.float32, shape=[100,1,20,300])
+with tf.variable_scope("roller") as scope:
+	attention_1 = attention_single(test,frames=10,scope)
+	attention_2 = attention_multi(test,frames=10, scope)
+	print(test.shape)
+	print(attention_1.shape)
+	print(attention_2.shape)
