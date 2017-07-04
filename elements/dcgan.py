@@ -103,13 +103,15 @@ class DCGAN():
 		with tf.device(self.device):
 			ystack = tf.reshape(classes, [self.batch_size,1, 1, self.num_class])
 			embedding = tf.concat(axis=1, values=[embedding, classes])
-			h1 = tf.layers.dense(embedding, units=self.dim1, activation=tf.tanh,
+			h1 = tf.layers.dense(embedding, units=self.dim1, activation=None,
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
-			h1_concat = self.normalize(tf.concat(axis=1, values=[h1, classes]))
+			h1_relu = tf.nn.relu(self.normalize(h1))
+			h1_concat = tf.concat(axis=1, values=[h1_relu, classes])
 			h2 = tf.layers.dense(h1_concat, units=self.dim_4*self.dim_4*self.dim2, 
 				activation=tf.tanh, kernel_initializer=self.initializer,
 				name='dense_2',	reuse=scope.reuse)
+			h2_relu = tf.nn.relu(self.normalize(h2))
 			h2_concat = self.normalize(tf.concat(axis=3,
 				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim2]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, 
