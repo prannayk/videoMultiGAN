@@ -167,14 +167,15 @@ class DCGAN():
 			h2_concat = tf.concat(axis=3, values=[h2_relu, yneed_3])
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
 				strides=[1,1], padding='SAME',
-				activation=tf.tanh,
+				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			h3_reshape = tf.reshape(h3, shape=[-1, self.dim_4*self.dim_4*self.dim2])
+			h3_relu = LeakyReLU(self.normalize(h3,flag=True))
+			h3_reshape = tf.reshape(h3_relu, shape=[-1, self.dim_4*self.dim_4*self.dim2])
 			h3_concat = self.normalize(tf.concat(axis=1, values=[h3_reshape, classes]),
 				name="h3_concat_normalize", reuse=scope.reuse)
 			h4 = tf.layers.dense(h3_concat, units=self.dim1, 
-				activation=tf.tanh,
+				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_1',
 				reuse=scope.reuse)
