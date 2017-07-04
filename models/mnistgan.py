@@ -22,7 +22,7 @@ count = int(sys.argv[2])
 dictionary =  {'zero':0, 'one':1, 'two':2, 'three':3, 'four':4, 'five':5, 'six':6, 'seven':7, 'eight':8, 'nine':9, 'the': 10, 'digit': 11, 'and': 12, 'are':13, 'bouncing': 14, 'moving':15, 'here':16, 'there':17, 'around':18, 'jumping':19, 'up':20, 'down':21, '.':22, 'is':23, 'left':24, 'right': 25}
 rev_dict = dict(zip(dictionary.values(), dictionary.keys()))
 def loader(path):
-	training_data = numpy.ndarray(shape=[50000,64,64,1], dtype=np.int32)
+	training_data = numpy.ndarray(shape=[count*10000,64,64,1], dtype=np.int32)
 	train_caption_data = list()
 	for i in range(count):
 		filename="%s/mnist_two_%d_gif.h5"%(path, count)
@@ -80,9 +80,9 @@ class DCGAN():
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 
-	def normalize(self, X):
+	def normalize(self, X,epsilon=1e-6,name=None,reuse=False):
 		mean, vari = tf.nn.moments(X, 0, keep_dims=True)
-		return tf.nn.batch_normalization(X, mean, vari, offset=None, scale=None, variance_epsilon=1e-6)
+		return tf.nn.batch_normalization(X, mean, vari, offset=None, scale=None, variance_epsilon=epsilon)
 
 	def generate(self, embedding, classes,scope):
 		with tf.device(self.device):
@@ -94,35 +94,35 @@ class DCGAN():
 				activity_regularizer = tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer,name='dense_1',
 				reuse=scope.reuse)
-			h1_concat = tf.layers.batch_normalization(tf.concat(axis=1, values=[h1, classes]))
+			h1_concat = self.normalize(tf.concat(axis=1, values=[h1, classes]))
 			h2 = tf.layers.dense(h1_concat, units=8*8*self.dim2, activation=tf.tanh,
 				kernel_initializer=self.initializer,
 				kernel_regularizer=tf.contrib.layers.l2_regularizer,
 				activity_regularizer = tf.contrib.layers.l2_regularizer,
 				 bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_2',
 				reuse=scope.reuse)
-			h2_concat = tf.layers.batch_normalization(tf.concat(axis=3,
+			h2_concat = self.normalize(tf.concat(axis=3,
 				values=[tf.reshape(h2, shape=[self.batch_size,8,8,self.dim2]), 
 				ystack*tf.ones(shape=[self.batch_size, 8, 8, self.num_class])]))
 			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
-				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
+				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.tanh,
 				kernel_initializer=self.initializer,
 				kernel_regularizer=tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer,
 				activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse,name='conv_1')
             #print(h3.get_shape())
-			h3_concat = tf.layers.batch_normalization(tf.concat(axis=3,
+			h3_concat = self.normalize(tf.concat(axis=3,
 				values=[tf.reshape(h3, shape=[self.batch_size,16,16,self.dim3]), 
 				ystack*tf.ones(shape=[self.batch_size, 16, 16, self.num_class])]))
 			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim4, 
-				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
+				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.tanh,
 				kernel_initializer=self.initializer,
 				kernel_regularizer=tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer,
 				activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse,name="conv_2")
-			h4_concat = tf.layers.batch_normalization(tf.concat(axis=3,
+			h4_concat = self.normalize(tf.concat(axis=3,
 				values=[tf.reshape(h4, shape=[self.batch_size,32,32,self.dim4]), 
 				ystack*tf.ones(shape=[self.batch_size, 32, 32, self.num_class])]))
 			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters = self.dim_channel, 
@@ -132,7 +132,7 @@ class DCGAN():
 				bias_regularizer=tf.contrib.layers.l2_regularizer,
 				activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse,name="conv_3")
-			return tf.layers.batch_normalization(h5)
+			return self.normalize(h5)
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -143,7 +143,7 @@ class DCGAN():
 			print(scope.reuse)
 
 			image_proc = tf.concat(axis=3,
-				values=[tf.layers.batch_normalization(image,name="img_normalize"), yneed_1])
+				values=[self.normalize(image,name="img_normalize"), yneed_1])
 			h1 = tf.layers.conv2d(image_proc, filters=self.dim4, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=tf.contrib.keras.layers.LeakyReLU(),
@@ -152,7 +152,7 @@ class DCGAN():
 				bias_regularizer=tf.contrib.layers.l2_regularizer, 
 				activity_regularizer=tf.contrib.layers.l2_regularizer,
 				reuse=scope.reuse, name="conv_1")
-			h1_concat = tf.layers.batch_normalization(tf.concat(axis=3, values=[h1, yneed_2]),
+			h1_concat = self.normalize(tf.concat(axis=3, values=[h1, yneed_2]),
 				name="h1_concat_normalize",reuse=scope.reuse)
 			h2 = tf.layers.conv2d(h1_concat, filters=self.dim3, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
@@ -162,7 +162,7 @@ class DCGAN():
 				bias_regularizer=tf.contrib.layers.l2_regularizer, 
 				activity_regularizer=tf.contrib.layers.l2_regularizer, 
 				reuse=scope.reuse,name="conv_2")
-			h2_concat = tf.layers.batch_normalization(tf.concat(axis=3, values=[h2, yneed_3]),
+			h2_concat = self.normalize(tf.concat(axis=3, values=[h2, yneed_3]),
 				name="h2_concat_normalize",reuse=scope.reuse)
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
@@ -173,7 +173,7 @@ class DCGAN():
 				activity_regularizer=tf.contrib.layers.l2_regularizer, 
 				reuse=scope.reuse,name="conv_3")
 			h3_reshape = tf.reshape(h3, shape=[-1, 8*8*self.dim2])
-			h3_concat = tf.layers.batch_normalization(tf.concat(axis=1, values=[h3_reshape, classes]),
+			h3_concat = self.normalize(tf.concat(axis=1, values=[h3_reshape, classes]),
 				name="h3_concat_normalize", reuse=scope.reuse)
 			h4 = tf.layers.dense(h3_concat, units=self.dim1, 
 				activation=tf.tanh,
@@ -182,7 +182,7 @@ class DCGAN():
 				activity_regularizer = tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_1',
 				reuse=scope.reuse)
-			h4_concat = tf.layers.batch_normalization(tf.concat(axis=1, values=[h4, classes]),
+			h4_concat = self.normalize(tf.concat(axis=1, values=[h4, classes]),
 				name="h4_concat_normalize",reuse=scope.reuse)
 			h5 = tf.layers.dense(h4_concat, units=1, 
 				activation=None,
@@ -191,7 +191,7 @@ class DCGAN():
 				activity_regularizer = tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_2',
 				reuse=scope.reuse)
-			return tf.layers.batch_normalization(h5,name="last_normalize",reuse=scope.reuse)
+			return self.normalize(h5,name="last_normalize",reuse=scope.reuse)
 
 	def build_model(self):
 		with tf.device(self.device):
@@ -230,11 +230,11 @@ class DCGAN():
 			}
 			with tf.variable_scope('generator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="generator")
-				optimizer_gen = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['gen'], 
+				optimizer_gen = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['gen'], 
 					var_list=variables)
 			with tf.variable_scope('discriminator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator")
-				optimizer_disc = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['disc'],
+				optimizer_disc = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['disc'],
 					var_list=variables)
 			self.optimizers = {
 				'gen' : optimizer_gen,
@@ -258,16 +258,18 @@ class DCGAN():
 				_, g_loss_val = self.session.run([self.optimizers['gen'], self.losses['gen']],feed_dict=feed_dict)
 				#d_loss_val = 0
 				_, d_loss_val = self.session.run([self.optimizers['disc'], self.losses['disc']], feed_dict=feed_dict)
+#				if t > 20 : break
 				average_losses[0] += g_loss_val
 				average_losses[1] += d_loss_val
-				if t%10 == 0 and t > 0:
-					print("Done with batches: " + str(self.batch_size*t) + " with lossses : " + str(average_losses[0]/10) +  " and " + str(average_losses[1]/10) + " in " + str(time.time() - start))
+				if t%20 == 0 and t > 0:
+					print("Done with batches: " + str(self.batch_size*t) + " with lossses : " + str(average_losses[0]/20) +  " and " + str(average_losses[1]/20) + " in " + str(time.time() - start))
+					average_losses = [0,0]
 					start = time.time()
 			print("Saving sample images for reference")
 			feed_dict = dict(zip(self.placeholders.values(), sample_input))
 			gen_samples = self.session.run(self.image_samples, feed_dict)
 			# save_visualization(gen_samples, (32,32), 'mnistimages/sample_output_%d.jpg'%(ep+1))
-			sample_save = gen_samples.reshape([self.batch_size*self.image_shape[0]] + self.image_shape[1:])
+			sample_save = gen_samples[0].reshape(64,64,1)
 			sample_save = np.concatenate([sample_save, sample_save, sample_save],axis=2)
 			print(np.mean(sample_save[:64]))
 			scipy.misc.imsave("mnistimages/samepl_%d.png"%(ep+1),sample_save)
@@ -281,6 +283,6 @@ gan = DCGAN(batch_size, [64, 64,1 ], embedding_size, num_class=300)
 gan.build_model()
 gan.start()
 samples = generator()
-gan.train(generator, 100, 50000, samples)
+gan.train(generator, 100, count*10000, samples)
 
 print("Complete GAN code in under 250 lines, done!!")
