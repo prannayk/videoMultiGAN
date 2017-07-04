@@ -107,28 +107,28 @@ class DCGAN():
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
 			h1_concat = self.normalize(tf.concat(axis=1, values=[h1, classes]))
-			h2 = tf.layers.dense(h1_concat, units=self.dim_8*self.dim_8*self.dim2, 
+			h2 = tf.layers.dense(h1_concat, units=self.dim_4*self.dim_4*self.dim2, 
 				activation=tf.tanh, kernel_initializer=self.initializer,
 				name='dense_2',	reuse=scope.reuse)
 			h2_concat = self.normalize(tf.concat(axis=3,
-				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_8,self.dim_8,self.dim2]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_8, self.dim_8, 
-				self.num_class])])
+				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim2]), 
+				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, 
+				self.num_class])]),
 				flag=True)
-			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
-				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
-				kernel_initializer=self.initializer,
-				reuse=scope.reuse,name='conv_1')
-			h3_relu = tf.nn.relu(self.normalize(h3,flag=True))
+#			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
+#				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
+#				kernel_initializer=self.initializer,
+#				reuse=scope.reuse,name='conv_1')
+#			h3_relu = tf.nn.relu(self.normalize(h3,flag=True))
             #print(h3.get_shape())
-			h3_concat = tf.concat(axis=3,
-				values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
-			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim4, 
+#			h3_concat = tf.concat(axis=3,
+#				values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
+#				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
+			h4 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim4, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_2")
-			h4_relu = tf.nn.relu(self.normalize(h4_relu,flag=True))
+			h4_relu = tf.nn.relu(self.normalize(h4,flag=True))
 			h4_concat = tf.concat(axis=3,
 				values=[tf.reshape(h4_relu, shape=[self.batch_size,self.dim_2,self.dim_2,self.dim4]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_2, self.dim_2, self.num_class])])
@@ -136,7 +136,7 @@ class DCGAN():
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			return tf.nn.sigmoid(self.normalize(h5))
+			return tf.nn.sigmoid(self.normalize(h5,flag=True))
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -164,11 +164,11 @@ class DCGAN():
 			h2_relu = LeakyReLU(self.normalize(h2, flag=True))
 			h2_concat = tf.concat(axis=3, values=[h2_relu, yneed_3])
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
-				strides=[2,2], padding='SAME',
+				strides=[1,1], padding='SAME',
 				activation=tf.tanh,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			h3_reshape = tf.reshape(h3, shape=[-1, self.dim_8*self.dim_8*self.dim2])
+			h3_reshape = tf.reshape(h3, shape=[-1, self.dim_4*self.dim_4*self.dim2])
 			h3_concat = self.normalize(tf.concat(axis=1, values=[h3_reshape, classes]),
 				name="h3_concat_normalize", reuse=scope.reuse)
 			h4 = tf.layers.dense(h3_concat, units=self.dim1, 
@@ -189,22 +189,24 @@ class DCGAN():
 		with tf.device(self.device):
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
 			classes = tf.placeholder(tf.float32, [self.batch_size, self.num_class])
-			r_image = tf.placeholder(tf.float32, [self.batch_size, 4096])
+			r_image = tf.placeholder(tf.float32, [self.batch_size, 28, 28, 1])
 			real_image = tf.reshape(r_image, [self.batch_size] + self.image_shape)
 			with tf.variable_scope('generator') as scope:
 				fake_image = self.generate(embedding, classes, scope)
-			g_image = tf.nn.sigmoid(fake_image)
+			g_image = fake_image
 			with tf.variable_scope('discriminator') as scope:
-				real_value = self.normalize(self.discriminate(real_image, classes, scope))
+				real_value = self.discriminate(real_image, classes, scope)
 			with tf.variable_scope('discriminator') as scope:
 				scope.reuse_variables()
-				fake_value = self.normalize(self.discriminate(g_image, classes, scope))
+				fake_value = self.discriminate(g_image, classes, scope)
 			with tf.variable_scope('generator') as scope:
 				scope.reuse_variables()
 				self.image_samples = tf.nn.sigmoid(self.generate(embedding, classes, scope))
 
 			d_cost = -tf.reduce_mean(tf.log(real_value) + (tf.log(1. - fake_value)))
+#			d_cost = real_value + fake_value
 			g_cost = -tf.reduce_mean(tf.log(fake_value))
+#			g_cost = g_image
 			self.placeholders = {
 				'embedding' : embedding,
 				'classes' : classes,
@@ -214,10 +216,10 @@ class DCGAN():
     			'disc' : d_cost,
 				'gen' : g_cost
 			}
-			self.prob = {
-				'disc' : prob_real,
-				'gen' : prob_fake	
-			}
+			#self.prob = {
+			#	'disc' : prob_real,
+			#	'gen' : prob_fake	
+			#}
 			with tf.variable_scope('generator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="generator")
 				optimizer_gen = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['gen'], 
@@ -250,24 +252,25 @@ class DCGAN():
 				_, d_loss_val = self.session.run([self.optimizers['disc'], self.losses['disc']], feed_dict=feed_dict)
 				average_losses[0] += g_loss_val
 				average_losses[1] += d_loss_val
-				if t%10 == 0 and t > 0:
-					print("Done with batches: " + str(self.batch_size*t) + " with lossses : " + str(average_losses[0]/10) +  " and " + str(average_losses[1]/10) + " in " + str(time.time() - start))
+				if t%100 == 0 and t > 0:
+					print("Done with batches: " + str(self.batch_size*t) + " with lossses : " + str(average_losses[0]/100) +  " and " + str(average_losses[1]/100) + " in " + str(time.time() - start))
+					average_losses = [0,0]
 					start = time.time()
 			print("Saving sample images for reference")
 			feed_dict = dict(zip(self.placeholders.values(), sample_input))
 			gen_samples = self.session.run(self.image_samples, feed_dict)
-			save_visualization(gen_samples, (10,10), 'mnistimages/sample_output_%d.jpg'%(ep+1))
+			save_visualization(gen_samples, (10,10), '../mnistimages/sample_output_%d.jpg'%(ep+1))
 			# sample_save = gen_samples.reshape([self.batch_size*self.image_shape[0]] + self.image_shape[1:])
 			# sample_save = np.concatenate([sample_save, sample_save, sample_save],axis=2)
-			print(np.mean(sample_save[:64]))
-			scipy.misc.imsave("mnistimages/samepl_%d.png"%(ep+1),sample_save)
-			np.save("last_sample.npy", sample_save)
+#			print(np.mean(sample_save[:64]))
+#			scipy.misc.imsave("mnistimages/samepl_%d.png"%(ep+1),sample_save)
+#			np.save("last_sample.npy", sample_save)
 			self.saver.save(self.session, 'model1.ckpt')
 			print('Saved session and here we go')
 			print("Complete time:" + str(time.time() - start_cycle))
 			start_cycle = time.time()
 
-gan = DCGAN(batch_size, [28, 28,1 ], embedding_size, num_class=300)
+gan = DCGAN(batch_size, [28, 28,1 ], embedding_size, num_class=10)
 gan.build_model()
 gan.start()
 samples = generator()
