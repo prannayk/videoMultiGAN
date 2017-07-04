@@ -222,11 +222,11 @@ class DCGAN():
 			#}
 			with tf.variable_scope('generator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="generator")
-				optimizer_gen = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['gen'], 
+				optimizer_gen = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['gen'], 
 					var_list=variables)
 			with tf.variable_scope('discriminator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator")
-				optimizer_disc = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['disc'],
+				optimizer_disc = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['disc'],
 					var_list=variables)
 			self.optimizers = {
 				'gen' : optimizer_gen,
@@ -256,7 +256,7 @@ class DCGAN():
 					print("Done with batches: " + str(self.batch_size*t) + " with lossses : " + str(average_losses[0]/100) +  " and " + str(average_losses[1]/100) + " in " + str(time.time() - start))
 					average_losses = [0,0]
 					start = time.time()
-			print("Saving sample images for reference")
+			print("Saving sample images for reference after epoch: %d"%(ep+1))
 			feed_dict = dict(zip(self.placeholders.values(), sample_input))
 			gen_samples = self.session.run(self.image_samples, feed_dict)
 			save_visualization(gen_samples, (10,10), '../mnistimages/sample_output_%d.jpg'%(ep+1))
