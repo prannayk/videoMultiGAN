@@ -222,11 +222,11 @@ class DCGAN():
 			#}
 			with tf.variable_scope('generator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="generator")
-				optimizer_gen = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['gen'], 
+				optimizer_gen = tf.train.AdamOptimizer(3e-2,beta1=0.5).minimize(self.losses['gen'], 
 					var_list=variables)
 			with tf.variable_scope('discriminator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator")
-				optimizer_disc = tf.train.AdamOptimizer(1e-3,beta1=0.5).minimize(self.losses['disc'],
+				optimizer_disc = tf.train.AdamOptimizer(3e-2,beta1=0.5).minimize(self.losses['disc'],
 					var_list=variables)
 			self.optimizers = {
 				'gen' : optimizer_gen,
