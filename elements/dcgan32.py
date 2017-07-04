@@ -117,7 +117,7 @@ class DCGAN():
 				activation=tf.tanh, kernel_initializer=self.initializer,
 				name='dense_2',	reuse=scope.reuse)
 			h2_concat = self.normalize(tf.concat(axis=3,
-				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim2]), 
+				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_8,self.dim_8,self.dim2]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, 
 				self.num_class])]),
 				flag=True)
