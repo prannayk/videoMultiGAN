@@ -80,6 +80,10 @@ class DCGAN():
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 
+	def normalize(self, X):
+		mean, vari = tf.nn.moments(X, 0, keep_dims=True)
+		return tf.nn.batch_normalization(X, mean, vari, offset=None, scale=None, variance_epsilon=1e-6)
+
 	def generate(self, embedding, classes,scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(classes, [self.batch_size,1, 1, self.num_class])
@@ -158,7 +162,7 @@ class DCGAN():
 				bias_regularizer=tf.contrib.layers.l2_regularizer, 
 				activity_regularizer=tf.contrib.layers.l2_regularizer, 
 				reuse=scope.reuse,name="conv_2")
-			h2_concat = tf.layers.batch_normalization(tf.concat(axis=3, values=[h2, yneed_3])
+			h2_concat = tf.layers.batch_normalization(tf.concat(axis=3, values=[h2, yneed_3]),
 				name="h2_concat_normalize",reuse=scope.reuse)
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
@@ -178,7 +182,7 @@ class DCGAN():
 				activity_regularizer = tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_1',
 				reuse=scope.reuse)
-			h4_concat = tf.layers.batch_normalize(tf.concat(axis=1, values=[h4, classes]),
+			h4_concat = tf.layers.batch_normalization(tf.concat(axis=1, values=[h4, classes]),
 				name="h4_concat_normalize",reuse=scope.reuse)
 			h5 = tf.layers.dense(h4_concat, units=1, 
 				activation=None,
@@ -187,7 +191,7 @@ class DCGAN():
 				activity_regularizer = tf.contrib.layers.l2_regularizer,
 				bias_regularizer=tf.contrib.layers.l2_regularizer, name='dense_2',
 				reuse=scope.reuse)
-			return tf.layers.batch_normalization(h2_concat,name="last_normalize",reuse=scope.reuse)
+			return tf.layers.batch_normalization(h5,name="last_normalize",reuse=scope.reuse)
 
 	def build_model(self):
 		with tf.device(self.device):
@@ -197,48 +201,44 @@ class DCGAN():
 			real_image = tf.reshape(r_image, [self.batch_size] + self.image_shape)
 			with tf.variable_scope('generator') as scope:
 				fake_image = self.generate(embedding, classes, scope)
-			g_image = tf.nn.sigmoid(tf.layers.batch_normalization(fake_image))
-			# with tf.variable_scope('discriminator') as scope:
-				# real_value = self.discriminate(real_image, classes, scope)
-			# prob_real = tf.nn.sigmoid(real_value)
-			# with tf.variable_scope('discriminator') as scope:
-				# scope.reuse_variables()
-				# fake_value = self.discriminate(g_image, classes, scope)
+			g_image = tf.nn.sigmoid(fake_image)
+			with tf.variable_scope('discriminator') as scope:
+				real_value = self.normalize(self.discriminate(real_image, classes, scope))
+			prob_real = tf.nn.sigmoid(real_value)
+			with tf.variable_scope('discriminator') as scope:
+				scope.reuse_variables()
+				fake_value = self.normalize(self.discriminate(g_image, classes, scope))
 			with tf.variable_scope('generator') as scope:
 				scope.reuse_variables()
 				self.image_samples = self.generate(embedding, classes, scope)
-			#prob_fake = tf.nn.sigmoid(fake_value)
+			prob_fake = tf.nn.sigmoid(fake_value)
 
-#			d_cost = -tf.reduce_mean(tf.log(prob_real) + (1. - tf.log(prob_fake)))
-#			g_cost = -tf.reduce_mean(tf.log(prob_fake))
-			# d_cost = prob_real
-			g_cost = g_image
+			d_cost = -tf.reduce_mean(tf.log(prob_real) + (tf.log(1. - prob_fake)))
+			g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			self.placeholders = {
 				'embedding' : embedding,
 				'classes' : classes,
 				'real_image' : r_image
 			}
 			self.losses = {
-				# 'disc' : d_cost,
+    			'disc' : d_cost,
 				'gen' : g_cost
 			}
 			self.prob = {
-				# 'disc' : prob_fake,
-			#	'gen' : prob_real	
+				'disc' : prob_real,
+				'gen' : prob_fake	
 			}
 			with tf.variable_scope('generator') as scope:
 				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="generator")
-				print(variables)
-				optimizer_gen = tf.train.AdamOptimizer(2e-3,beta1=0.5).minimize(self.losses['gen'], 
+				optimizer_gen = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['gen'], 
 					var_list=variables)
-			# with tf.variable_scope('discriminator') as scope:
-				# variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator")
-				# print(variables)
-				# optimizer_disc = tf.train.AdamOptimizer(2e-3,beta1=0.5).minimize(self.losses['disc'],
-					# var_list=variables)
+			with tf.variable_scope('discriminator') as scope:
+				variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator")
+				optimizer_disc = tf.train.AdamOptimizer(1e-2,beta1=0.5).minimize(self.losses['disc'],
+					var_list=variables)
 			self.optimizers = {
 				'gen' : optimizer_gen,
-				# 'disc' : optimizer_disc
+				'disc' : optimizer_disc
 			}
 		self.init = tf.global_variables_initializer()
 		self.saver = tf.train.Saver()
@@ -253,11 +253,10 @@ class DCGAN():
 			start_cycle = time.time()
 			for t in range(num_examples // self.batch_size):
 				inputs = generator()
-				if t > 10:  break
 				feed_dict = dict(zip(self.placeholders.values(),inputs))
 				_, g_loss_val = self.session.run([self.optimizers['gen'], self.losses['gen']],feed_dict=feed_dict)
-				d_loss_val = 0
-				# _, d_loss_val = self.session.run([self.optimizers['disc'], self.losses['disc']], feed_dict=feed_dict)
+				#d_loss_val = 0
+				_, d_loss_val = self.session.run([self.optimizers['disc'], self.losses['disc']], feed_dict=feed_dict)
 				if t%10 == 0 and t > 0:
 					print("Done with batches: " + str(self.batch_size*t) + " with lossses : " + str(g_loss_val) +  " and " + str(d_loss_val) + " in " + str(time.time() - start))
 					start = time.time()
