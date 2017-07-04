@@ -56,7 +56,7 @@ def generator():
 	global batch_size, embedding_size
 	image_batch, one_hot_batch = mnist.train.next_batch(batch_size)
 	image_batch = image_batch.reshape([batch_size, 28,28,1])
-	images = np.zeros([batch_size,32,32])
+	images = np.zeros([batch_size,32,32,1])
 	images[:,:28,:28,0] = image_batch
 	random_batch = np.random.normal(size=[batch_size, embedding_size])
 	return image_batch, one_hot_batch, random_batch
@@ -113,12 +113,12 @@ class DCGAN():
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
 			h1_concat = self.normalize(tf.concat(axis=1, values=[h1, classes]))
-			h2 = tf.layers.dense(h1_concat, units=self.dim_4*self.dim_4*self.dim2, 
+			h2 = tf.layers.dense(h1_concat, units=self.dim_8*self.dim_8*self.dim2, 
 				activation=tf.tanh, kernel_initializer=self.initializer,
 				name='dense_2',	reuse=scope.reuse)
 			h2_concat = self.normalize(tf.concat(axis=3,
 				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_8,self.dim_8,self.dim2]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, 
+				ystack*tf.ones(shape=[self.batch_size, self.dim_8, self.dim_8, 
 				self.num_class])]),
 				flag=True)
 			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
