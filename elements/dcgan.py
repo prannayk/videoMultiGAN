@@ -113,7 +113,7 @@ class DCGAN():
 				name='dense_2',	reuse=scope.reuse)
 			h2_relu = tf.nn.relu(self.normalize(h2))
 			h2_concat = self.normalize(tf.concat(axis=3,
-				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim2]), 
+				values=[tf.reshape(h2_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim2]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, 
 				self.num_class])]),
 				flag=True)
@@ -157,7 +157,7 @@ class DCGAN():
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_1")
 			h1_relu = LeakyReLU(self.normalize(h1,flag=True))
-			h1_concat = tf.concat(axis=3, values=[h1, yneed_2])
+			h1_concat = tf.concat(axis=3, values=[h1_relu, yneed_2])
 			h2 = tf.layers.conv2d(h1_concat, filters=self.dim3, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=None, 
