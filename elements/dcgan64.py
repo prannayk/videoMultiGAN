@@ -168,13 +168,13 @@ class DCGAN():
 				name='dense_1', reuse=scope.reuse)
 			h1_relu = tf.nn.relu(self.normalize(h1))
 			h1_concat = tf.concat(axis=1, values=[h1_relu, classes])
-			h2 = tf.layers.dense(h1_concat, units=self.dim_2*self.dim_2*self.dim2, 
+			h2 = tf.layers.dense(h1_concat, units=self.dim_8*self.dim_8*self.dim2, 
 				activation=None, kernel_initializer=self.initializer,
 				name='dense_2',	reuse=scope.reuse)
 			h2_relu = tf.nn.relu(self.normalize(h2))
 			h2_concat = tf.concat(axis=3,
-				values=[tf.reshape(h2_relu, shape=[self.batch_size,self.dim_2,self.dim_2,self.dim2]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_2, self.dim_2, 
+				values=[tf.reshape(h2_relu, shape=[self.batch_size,self.dim_8,self.dim_8,self.dim2]), 
+				ystack*tf.ones(shape=[self.batch_size, self.dim_8, self.dim_8, 
 				self.num_class])])
 			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
