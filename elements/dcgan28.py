@@ -81,11 +81,11 @@ class DCGAN():
 			g_image = h4
 			with tf.variable_scope("discriminator") as scope:	
 				real_value = self.discriminate(real_image,classes,scope)
-			prob_real = tf.nn.sigmoid(real_value)
+			prob_real = real_value
 			with tf.variable_scope("discriminator") as scope:	
 				scope.reuse_variables()
 				fake_value = self.discriminate(real_image,classes,scope)
-			prob_fake = tf.nn.sigmoid(fake_value)
+			prob_fake = fake_value
 			# d_cost = bce(real_value, tf.ones_like(real_value)) + bce(fake_value,tf.zeros_like(fake_value))
 			# g_cost = bce(fake_value, tf.ones_like(fake_value))
 			d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
