@@ -83,7 +83,7 @@ class DCGAN():
 			labels = tf.ones_like(X)
 		else:
 			labels = tf.zeros_like(X)
-		softmax = tf.nn.softmax_cross_entropy_with_logits(X, labels)
+		softmax = tf.nn.softmax_cross_entropy_with_logits(logits=X, labels=labels)
 		return tf.reduce_mean(softmax)
 
 	def build_model(self):
@@ -106,7 +106,7 @@ class DCGAN():
 			g_cost = self.cross_entropy(fake_value, True)
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
-			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
+			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -152,7 +152,7 @@ class DCGAN():
 			h4_relu = LeakyReLU(h4)
 			h4_concat = self.normalize(tf.concat(axis=1, values=[h4_relu, classes]),
 				name="h4_concat_normalize",reuse=scope.reuse)
-			h5 = tf.layers.dense(h4_concat, units=num_class, 
+			h5 = tf.layers.dense(h4_concat, units=self.num_class, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_2',
@@ -233,7 +233,7 @@ embedding_sample, vector_sample, image_sample = gan.samples_generator()
 
 tf.global_variables_initializer().run()
 
-def save_visualization(X, nh_nw, save_path='../results/dcgan21/sample.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/dcgan_alt/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -285,7 +285,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(14,14),save_path=('../results/dcgan21/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(14,14),save_path=('../results/dcgan_alt/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
