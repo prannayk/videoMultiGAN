@@ -26,7 +26,7 @@ def batch_normalize(X, eps=1e-6,flag=False):
 		raise NoImplementationForSuchDimensions
 	return X
 
-LeakyRelu = tf.contrib.keras.LeakyRelu()
+LeakyRelu = tf.contrib.keras.layers.LeakyReLU()
 def lrelu(X):
 	return LeakyRelu(X)
 
@@ -35,7 +35,7 @@ def lrelu(X):
 	# return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class DCGAN():
-	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1):
+	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -44,17 +44,15 @@ class DCGAN():
 		self.dim2 = dim2
 		self.dim3 = dim3
 		self.dim4 = dim4
-		self.learning_rate_1 = learning_rate_1
-		self.learning_rate_2 = learning_rate_2
 		self.dim_1 = self.image_shape[0]
 		self.dim_2 = self.image_shape[0] // 2
 		self.dim_4 = self.image_shape[0] // 4
 		self.dim_8 = self.image_shape[0] // 8
 		self.dim_channel = dim_channel
-		self.device = device
+		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
-		# with tf.device("/gpu:0"):
+		with tf.device("/gpu:0"):
 			# self.g_weight1 = tf.Variable(tf.random_normal([embedding_size + num_class, dim1], stddev = 0.2), name="generator_weight1")
 			# self.g_weight2 = tf.Variable(tf.random_normal([dim1 + num_class, dim2*7*7], stddev = 0.2), name="generator_weight2")
 			# self.g_weight3 = tf.Variable(tf.random_normal([5,5,dim3,dim2+num_class], stddev = 0.2), name="generator_weight3")
@@ -185,7 +183,8 @@ class DCGAN():
 			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
 			classes = tf.placeholder(tf.float32,[batch_size,self.num_class])
 			with tf.variable_scope("generator") as scope:
-				t = self.generate(embedding,classes)
+				scope.reuse_variables()
+				t = self.generate(embedding,classes,scope)
 			return embedding,classes,t
 
 # training part
@@ -211,7 +210,7 @@ embedding_sample, vector_sample, image_sample = gan.samples_generator()
 
 tf.global_variables_initializer().run()
 
-def save_visualization(X, nh_nw, save_path='./mnistimages/sample.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/dcgan28/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -263,7 +262,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(14,14),save_path=('mnistsamples/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(14,14),save_path=('../results/dcgan28/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
