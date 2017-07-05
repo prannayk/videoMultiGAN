@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import scipy.misc
-
+import sys
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 
@@ -51,7 +51,7 @@ class DCGAN():
 		self.dim_4 = self.image_shape[0] // 4
 		self.dim_8 = self.image_shape[0] // 8
 		self.dim_channel = dim_channel
-		self.device = device
+		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		with tf.device("/gpu:0"):
@@ -65,7 +65,7 @@ class DCGAN():
 			self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
 			self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
 	
-    def learningR(self):
+	def learningR(self):
 		return self.learning_rate_1 , self.learning_rate_2
 
 	def normalize(self, X,reuse=False, name=None, flag=False):
@@ -178,8 +178,9 @@ print(g_weight_list)
 print(d_weight_list)
 # optimizers
 # with tf.device("/gpu:0"):
-g_optimizer = tf.train.AdamOptimizer(learning_rate,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
-d_optimizer = tf.train.AdamOptimizer(learning_rate,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
+lr1, lr2 = gan.learningR()
+g_optimizer = tf.train.AdamOptimizer(lr1,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
+d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
 saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
