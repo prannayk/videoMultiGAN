@@ -117,7 +117,7 @@ class DCGAN():
 
 # training part
 epoch = 1000
-learning_rate = 1e-3
+learning_rate = 4e-3
 
 gan = DCGAN()
 
