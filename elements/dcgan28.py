@@ -202,8 +202,10 @@ print(g_weight_list)
 print(d_weight_list)
 # optimizers
 # with tf.device("/gpu:0"):
-g_optimizer = tf.train.AdamOptimizer(learning_rate,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
-d_optimizer = tf.train.AdamOptimizer(learning_rate,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
+lr1 = float(sys.argv[1])
+lr2 = float(sys.argv[2])
+g_optimizer = tf.train.AdamOptimizer(lr1,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
+d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
 saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
