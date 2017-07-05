@@ -98,8 +98,10 @@ class DCGAN():
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 
-	def normalize(self, X,reuse=False, name=None, flag=False):
-		if not flag:
+	def normalize(self, X,reuse=False, name=None, flag=False, axis=None):
+		if axis != None:
+			mean, vari = tf.nn.moments(X, axis, keep_dims=True)
+		elif not flag:
 			mean, vari = tf.nn.moments(X, 0, keep_dims=True)
 		else:
 			mean, vari = tf.nn.moments(X, [0,1,2], keep_dims=True)
@@ -142,7 +144,7 @@ class DCGAN():
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			return tf.nn.sigmoid(h5)
+			return tf.nn.sigmoid(self.normalize(h5,axis=[1,2]))
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
