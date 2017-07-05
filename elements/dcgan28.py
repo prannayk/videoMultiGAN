@@ -92,24 +92,52 @@ class DCGAN():
 			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
 
 	def discriminate(self, image, classes):
-		with tf.device("/gpu:0"):
-			ystack = tf.reshape(classes, tf.stack([self.batch_size, 1,1, self.num_class]))
-			yneed = ystack*tf.ones([self.batch_size,28,28,self.num_class])
-			yneed2 = ystack*tf.ones([self.batch_size,14,14,self.num_class])
-			# print(yneed.shape)
-			image_ = batch_normalize(image)
-			# print(image_.shape)
-			proc_image = tf.concat(axis=3, values=[image_, yneed])
-			# print(proc_image.shape)
-			h1 = lrelu(tf.nn.conv2d(proc_image, self.d_weight1, strides=[1,2,2,1],padding='SAME'))
-			h1 = batch_normalize(tf.concat(axis=3, values=[h1, yneed2]))
-			h2 = lrelu(tf.nn.conv2d(h1, self.d_weight2, strides=[1,2,2,1],padding='SAME'))
-			h3 = tf.reshape(h2,[self.batch_size,-1])
-			h4 = tf.concat(axis=1,values=[h3,classes])
-			h5 = lrelu(batch_normalize(tf.matmul(h4, self.d_weight3)))
-			h6 = tf.concat(axis=1,values=[h5,classes])
-			h7 = lrelu(batch_normalize(tf.matmul(h6, self.d_weight4)))
-			return h7
+		with tf.device(self.device):
+			ystack = tf.reshape(classes, [self.batch_size, 1,1, self.num_class])
+			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1, self.dim_1, self.num_class])
+			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2, self.dim_2, self.num_class])
+			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_4, self.dim_4, self.num_class])
+		
+			LeakyReLU = tf.contrib.keras.layers.LeakyReLU()
+
+			image_proc = self.normalize(tf.concat(axis=3,
+				values=[image, yneed_1]),flag=True)
+			h1 = tf.layers.conv2d(image_proc, filters=self.dim4, kernel_size=[4,4],
+				strides=[2,2], padding='SAME',
+				activation=None,
+				kernel_initializer=self.initializer,
+				reuse=scope.reuse, name="conv_1")
+			h1_relu = LeakyReLU(self.normalize(h1,flag=True))
+			h1_concat = tf.concat(axis=3, values=[h1, yneed_2])
+			h2 = tf.layers.conv2d(h1_concat, filters=self.dim3, kernel_size=[4,4],
+				strides=[2,2], padding='SAME',
+				activation=None, 
+				kernel_initializer=self.initializer,
+				reuse=scope.reuse,name="conv_2")
+			h2_relu = LeakyReLU(self.normalize(h2, flag=True))
+			h2_concat = tf.concat(axis=3, values=[h2_relu, yneed_3])
+			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
+				strides=[1,1], padding='SAME',
+				activation=None,
+				kernel_initializer=self.initializer,
+				reuse=scope.reuse,name="conv_3")
+			h3_relu = tf.nn.relu(self.normalize(h3))
+			h3_reshape = tf.reshape(h3_relu, shape=[-1, self.dim_4*self.dim_4*self.dim2])
+			h3_concat = self.normalize(tf.concat(axis=1, values=[h3_reshape, classes]),
+				name="h3_concat_normalize", reuse=scope.reuse)
+			h4 = tf.layers.dense(h3_concat, units=self.dim1, 
+				activation=tf.tanh,
+				kernel_initializer=self.initializer,
+				name='dense_1',
+				reuse=scope.reuse)
+			h4_concat = self.normalize(tf.concat(axis=1, values=[h4, classes]),
+				name="h4_concat_normalize",reuse=scope.reuse)
+			h5 = tf.layers.dense(h4_concat, units=1, 
+				activation=None,
+				kernel_initializer=self.initializer,
+				name='dense_2',
+				reuse=scope.reuse)
+			return tf.nn.sigmoid(self.normalize(h5,name="last_normalize",reuse=scope.reuse))
 
 	def generate(self, embedding, classes, scope):
 		with tf.device(self.device):
