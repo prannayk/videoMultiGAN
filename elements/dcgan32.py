@@ -62,7 +62,7 @@ def generator():
 	return images, one_hot_batch, random_batch
 
 
-def save_visualization(X, nh_nw, save_path='../mnistimages/sample_0.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/dcgan32/sample_0.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -142,7 +142,7 @@ class DCGAN():
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			return tf.nn.sigmoid(self.normalize(h5,flag=True))
+			return tf.nn.sigmoid(h5)
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -265,7 +265,7 @@ class DCGAN():
 			print("Saving sample images for reference")
 			feed_dict = dict(zip(self.placeholders.values(), sample_input))
 			gen_samples = self.session.run(self.image_samples, feed_dict)
-			save_visualization(gen_samples, (10,10), '../mnistimages/sample_output_%d.jpg'%(ep+1))
+			save_visualization(gen_samples, (10,10), '../results/dcgan32/sample_output_%d.jpg'%(ep+1))
 			# sample_save = gen_samples.reshape([self.batch_size*self.image_shape[0]] + self.image_shape[1:])
 			# sample_save = np.concatenate([sample_save, sample_save, sample_save],axis=2)
 #			print(np.mean(sample_save[:64]))
