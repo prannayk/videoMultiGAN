@@ -83,7 +83,7 @@ class DCGAN():
 			labels = tf.ones_like(X)
 		else:
 			labels = tf.zeros_like(X)
-		softmax = tf.nn.softmax_cross_entropy_with_logits(X, labels)
+		softmax = tf.nn.softmax_cross_entropy_with_logits(logits=X, labels=labels)
 		return tf.reduce_mean(softmax)
 
 	def build_model(self):
@@ -106,7 +106,7 @@ class DCGAN():
 			g_cost = self.cross_entropy(fake_value, True)
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
-			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
+			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -185,7 +185,7 @@ class DCGAN():
 			h3_concat = tf.concat(axis=3,
 				values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
-			h4 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim4, 
+			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim4, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_2")
