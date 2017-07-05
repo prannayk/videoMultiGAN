@@ -190,7 +190,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(14,14),save_path=('mnistsamples/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(14,14),save_path=('../results/dcgan_old/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
