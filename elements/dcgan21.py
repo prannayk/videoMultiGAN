@@ -26,7 +26,10 @@ def batch_normalize(X, eps=1e-6,flag=False):
 		raise NoImplementationForSuchDimensions
 	return X
 
-LeakyRelu = tf.contrib.keras.layers.LeakyReLU()
+# LeakyRelu = tf.cosntrib.keras.layers.LeakyReLU()
+def LeakyRelu(X,alpha=0.3):
+	return alpha*X + (1-alpha)*tf.nn.relu(X)
+
 def lrelu(X):
 	return LeakyRelu(X)
 
@@ -122,7 +125,7 @@ class DCGAN():
 				reuse=scope.reuse,name="conv_2")
 			h2_relu = LeakyReLU(self.normalize(h2, flag=True))
 			h2_concat = tf.concat(axis=3, values=[h2_relu, yneed_3])
-			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
+			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[5,5],
 				strides=[1,1], padding='SAME',
 				activation=None,
 				kernel_initializer=self.initializer,
