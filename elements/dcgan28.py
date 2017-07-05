@@ -81,15 +81,13 @@ class DCGAN():
 			g_image = h4
 			with tf.variable_scope("discriminator") as scope:	
 				real_value = self.discriminate(real_image,classes,scope)
-			prob_real = real_value
 			with tf.variable_scope("discriminator") as scope:	
 				scope.reuse_variables()
 				fake_value = self.discriminate(real_image,classes,scope)
-			prob_fake = fake_value
 			# d_cost = bce(real_value, tf.ones_like(real_value)) + bce(fake_value,tf.zeros_like(fake_value))
 			# g_cost = bce(fake_value, tf.ones_like(fake_value))
-			d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
-			g_cost = -tf.reduce_mean(tf.log(prob_fake))
+			d_cost = -tf.reduce_mean(tf.log(real_value) + tf.log(1 - fake_value))
+			g_cost = -tf.reduce_mean(tf.log(fake_value))
 			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
 
 	def discriminate(self, image, classes, scope):
