@@ -106,7 +106,7 @@ class DCGAN():
 			g_cost = self.cross_entropy(fake_value, True)
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
-			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
+			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
