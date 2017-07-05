@@ -79,8 +79,11 @@ class DCGAN():
 			with tf.variable_scope("generator") as scope:	
 				h4 = self.generate(embedding,classes,scope)
 			g_image = h4
-			real_value = self.discriminate(real_image,classes)
+			with tf.variable_scope("discriminator") as scope:	
+				real_value = self.discriminate(real_image,classes,scope)
 			prob_real = tf.nn.sigmoid(real_value)
+			with tf.variable_scope("discriminator") as scope:	
+				fake_value = self.discriminate(real_image,classes,scope)
 			fake_value = self.discriminate(g_image,classes)
 			prob_fake = tf.nn.sigmoid(fake_value)
 			# d_cost = bce(real_value, tf.ones_like(real_value)) + bce(fake_value,tf.zeros_like(fake_value))
