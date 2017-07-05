@@ -3,7 +3,7 @@ import numpy as np
 import scipy.misc
 
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
+mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/MNIST/",one_hot=True)
 
 
 def batch_normalize(X, eps=1e-6):
@@ -117,7 +117,7 @@ class DCGAN():
 
 # training part
 epoch = 1000
-learning_rate = 1e-2
+learning_rate = 4e-3
 
 gan = DCGAN()
 
@@ -190,7 +190,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(14,14),save_path=('mnistsamples/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(14,14),save_path=('../results/dcgan_old/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 

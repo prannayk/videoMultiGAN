@@ -39,7 +39,7 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 # training_data, train_caption_data = loader(path)
 lr1 = float(sys.argv[1])
 lr2 = float(sys.argv[2])
-batch_size = 100
+batch_size = 50
 embedding_size = 128
 # def generator():
 # 	global training_data, train_caption_data, embedding_size
@@ -56,13 +56,13 @@ def generator():
 	global batch_size, embedding_size
 	image_batch, one_hot_batch = mnist.train.next_batch(batch_size)
 	image_batch = image_batch.reshape([batch_size, 28,28,1])
-	images = np.zeros([batch_size,32,32])
-	images[:,:28,:28,0] = image_batch
+	images = np.zeros([batch_size,32,32,1])
+	images[:,:28,:28,:] = image_batch
 	random_batch = np.random.normal(size=[batch_size, embedding_size])
-	return image_batch, one_hot_batch, random_batch
+	return images, one_hot_batch, random_batch
 
 
-def save_visualization(X, nh_nw, save_path='../mnistimages/sample_0.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/dcgan32/sample_0.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -98,8 +98,10 @@ class DCGAN():
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 
-	def normalize(self, X,reuse=False, name=None, flag=False):
-		if not flag:
+	def normalize(self, X,reuse=False, name=None, flag=False, axis=None):
+		if axis != None:
+			mean, vari = tf.nn.moments(X, axis, keep_dims=True)
+		elif not flag:
 			mean, vari = tf.nn.moments(X, 0, keep_dims=True)
 		else:
 			mean, vari = tf.nn.moments(X, [0,1,2], keep_dims=True)
@@ -112,26 +114,25 @@ class DCGAN():
 			h1 = tf.layers.dense(embedding, units=self.dim1, activation=None,
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
-			h1_relu = tf.nn.relu(self.normalize(h1))
-			h1_concat = tf.concat(axis=1, values=[h1_relu, classes])
-			h2 = tf.layers.dense(h1_concat, units=self.dim_4*self.dim_4*self.dim2, 
-				activation=None, kernel_initializer=self.initializer,
+			h1_concat = self.normalize(tf.concat(axis=1, values=[h1, classes]))
+			h2 = tf.layers.dense(h1_concat, units=self.dim_8*self.dim_8*self.dim2, 
+				activation=tf.tanh, kernel_initializer=self.initializer,
 				name='dense_2',	reuse=scope.reuse)
-			h2_relu = tf.nn.relu(self.normalize(h2))
-			h2_concat = tf.concat(axis=3,
-				values=[tf.reshape(h2_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim2]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, 
-				self.num_class])])
-			# h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
-				# kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
-				# kernel_initializer=self.initializer,
-				# reuse=scope.reuse,name='conv_1')
-			# h3_relu = tf.nn.relu(self.normalize(h3,flag=True))
-            # print(h3.get_shape())
-			# h3_concat = tf.concat(axis=3,
-				# values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
-				# ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
-			h4 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim4, 
+			h2_concat = self.normalize(tf.concat(axis=3,
+				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_8,self.dim_8,self.dim2]), 
+				ystack*tf.ones(shape=[self.batch_size, self.dim_8, self.dim_8, 
+				self.num_class])]),
+				flag=True)
+			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
+				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
+				kernel_initializer=self.initializer,
+				reuse=scope.reuse,name='conv_1')
+			h3_relu = tf.nn.relu(self.normalize(h3,flag=True))
+#            print(h3.get_shape())
+			h3_concat = tf.concat(axis=3,
+				values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
+				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
+			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim4, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_2")
@@ -143,7 +144,7 @@ class DCGAN():
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			return tf.nn.sigmoid(self.normalize(h5,flag=True))
+			return tf.nn.sigmoid(self.normalize(h5))
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -267,7 +268,7 @@ class DCGAN():
 			print("Saving sample images for reference")
 			feed_dict = dict(zip(self.placeholders.values(), sample_input))
 			gen_samples = self.session.run(self.image_samples, feed_dict)
-			save_visualization(gen_samples, (10,10), '../mnistimages/sample_output_%d.jpg'%(ep+1))
+			save_visualization(gen_samples, (10,10), '../results/dcgan32/sample_output_%d.jpg'%(ep+1))
 			# sample_save = gen_samples.reshape([self.batch_size*self.image_shape[0]] + self.image_shape[1:])
 			# sample_save = np.concatenate([sample_save, sample_save, sample_save],axis=2)
 #			print(np.mean(sample_save[:64]))
