@@ -90,7 +90,7 @@ class DCGAN():
 		with tf.device("/gpu:0"):
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
 			classes = tf.placeholder(tf.float32, [self.batch_size,self.num_class])
-			r_image = tf.placeholder(tf.float32,[self.batch_size,784])
+			r_image = tf.placeholder(tf.float32,[self.batch_size] + self.image_shape)
 			real_image = tf.reshape(r_image,[self.batch_size] + self.image_shape)
 			with tf.variable_scope("generator") as scope:	
 				h4 = self.generate(embedding,classes,scope)
