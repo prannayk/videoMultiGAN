@@ -149,7 +149,7 @@ class DCGAN():
 				kernel_initializer=self.initializer,
 				name='dense_2',
 				reuse=scope.reuse)
-			return self.normalize(h5,name="last_normalize",reuse=scope.reuse)
+			return LeakyReLU(self.normalize(h5,name="last_normalize",reuse=scope.reuse))
 
 	def generate(self, embedding, classes, scope):
 		with tf.device(self.device):
