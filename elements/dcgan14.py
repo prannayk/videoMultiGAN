@@ -64,6 +64,9 @@ class DCGAN():
 			self.d_weight2 = tf.Variable(tf.random_normal([5,5,dim3+num_class, dim2],stddev = 0.2), name="disc_weight2")
 			self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
 			self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
+	
+    def learningR(self):
+		return self.learning_rate_1 , self.learning_rate_2
 
 	def normalize(self, X,reuse=False, name=None, flag=False):
 		if not flag:
