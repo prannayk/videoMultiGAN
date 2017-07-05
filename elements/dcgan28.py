@@ -89,7 +89,7 @@ class DCGAN():
 			g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
 
-	def discriminate(self, image, classes):
+	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(classes, [self.batch_size, 1,1, self.num_class])
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1, self.dim_1, self.num_class])
