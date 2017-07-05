@@ -118,21 +118,21 @@ class DCGAN():
 				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_1")
-			h1_relu = LeakyReLU(self.normalize(h1,flag=True))
-			h1_concat = tf.concat(axis=3, values=[h1, yneed_2])
+			h1_relu = LeakyReLU(h1,flag=True)
+			h1_concat = self.normalize(tf.concat(axis=3, values=[h1, yneed_2]))
 			h2 = tf.layers.conv2d(h1_concat, filters=self.dim3, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=None, 
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_2")
-			h2_relu = LeakyReLU(self.normalize(h2, flag=True))
-			h2_concat = tf.concat(axis=3, values=[h2_relu, yneed_3])
+			h2_relu = LeakyReLU(h2, flag=True)
+			h2_concat = self.normalize(tf.concat(axis=3, values=[h2_relu, yneed_3]))
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[5,5],
 				strides=[1,1], padding='SAME',
 				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			h3_relu = LeakyReLU(self.normalize(h3))
+			h3_relu = LeakyReLU(h3)
 			h3_reshape = tf.reshape(h3_relu, shape=[-1, self.dim_4*self.dim_4*self.dim2])
 			h3_concat = self.normalize(tf.concat(axis=1, values=[h3_reshape, classes]),
 				name="h3_concat_normalize", reuse=scope.reuse)
@@ -141,14 +141,15 @@ class DCGAN():
 				kernel_initializer=self.initializer,
 				name='dense_1',
 				reuse=scope.reuse)
-			h4_concat = self.normalize(tf.concat(axis=1, values=[h4, classes]),
+			h4_relu = LeakyReLU(h4)
+			h4_concat = self.normalize(tf.concat(axis=1, values=[h4_relu, classes]),
 				name="h4_concat_normalize",reuse=scope.reuse)
 			h5 = tf.layers.dense(h4_concat, units=1, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_2',
 				reuse=scope.reuse)
-			return LeakyReLU(self.normalize(h5,name="last_normalize",reuse=scope.reuse))
+			return self.normalize(h5,name="last_normalize",reuse=scope.reuse)
 
 	def generate(self, embedding, classes, scope):
 		with tf.device(self.device):
