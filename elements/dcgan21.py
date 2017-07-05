@@ -219,7 +219,7 @@ embedding_sample, vector_sample, image_sample = gan.samples_generator()
 
 tf.global_variables_initializer().run()
 
-def save_visualization(X, nh_nw, save_path='../results/dcgan14/sample.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/dcgan21/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -271,7 +271,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(14,14),save_path=('../results/dcgan14/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(14,14),save_path=('../results/dcgan21/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
