@@ -160,7 +160,8 @@ class DCGAN():
 			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
 			classes = tf.placeholder(tf.float32,[batch_size,self.num_class])
 			with tf.variable_scope("generator") as scope:
-				t = self.generate(embedding,classes)
+				scope.reuse_variables()
+				t = self.generate(embedding,classes,scope)
 			return embedding,classes,t
 
 # training part
