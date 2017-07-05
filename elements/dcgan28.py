@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import scipy.misc
-
+import sys
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 
@@ -52,16 +52,17 @@ class DCGAN():
 		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
-		# with tf.device("/gpu:0"):
+
+#		with tf.device("/gpu:0"):
 			# self.g_weight1 = tf.Variable(tf.random_normal([embedding_size + num_class, dim1], stddev = 0.2), name="generator_weight1")
 			# self.g_weight2 = tf.Variable(tf.random_normal([dim1 + num_class, dim2*7*7], stddev = 0.2), name="generator_weight2")
 			# self.g_weight3 = tf.Variable(tf.random_normal([5,5,dim3,dim2+num_class], stddev = 0.2), name="generator_weight3")
 			# self.g_weight4 = tf.Variable(tf.random_normal([5,5,dim_channel,dim3+num_class], stddev = 0.2), name="generator_weight4")
 
-			# self.d_weight1 = tf.Variable(tf.random_normal([5,5,dim_channel+num_class, dim3],stddev = 0.2), name="disc_weight1")
-			# self.d_weight2 = tf.Variable(tf.random_normal([5,5,dim3+num_class, dim2],stddev = 0.2), name="disc_weight2")
-			# self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
-			# self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
+#			self.d_weight1 = tf.Variable(tf.random_normal([5,5,dim_channel+num_class, dim3],stddev = 0.2), name="disc_weight1")
+#			self.d_weight2 = tf.Variable(tf.random_normal([5,5,dim3+num_class, dim2],stddev = 0.2), name="disc_weight2")
+#			self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
+#			self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
 
 	def normalize(self, X,reuse=False, name=None, flag=False):
 		if not flag:
@@ -79,17 +80,18 @@ class DCGAN():
 			with tf.variable_scope("generator") as scope:	
 				h4 = self.generate(embedding,classes,scope)
 			g_image = h4
-			real_value = self.discriminate(real_image,classes)
-			prob_real = tf.nn.sigmoid(real_value)
-			fake_value = self.discriminate(g_image,classes)
-			prob_fake = tf.nn.sigmoid(fake_value)
+			with tf.variable_scope("discriminator") as scope:	
+				real_value = self.discriminate(real_image,classes,scope)
+			with tf.variable_scope("discriminator") as scope:	
+				scope.reuse_variables()
+				fake_value = self.discriminate(real_image,classes,scope)
 			# d_cost = bce(real_value, tf.ones_like(real_value)) + bce(fake_value,tf.zeros_like(fake_value))
 			# g_cost = bce(fake_value, tf.ones_like(fake_value))
-			d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
-			g_cost = -tf.reduce_mean(tf.log(prob_fake))
-			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
+			d_cost = -tf.reduce_mean(tf.log(real_value) + tf.log(1 - fake_value))
+			g_cost = -tf.reduce_mean(tf.log(fake_value))
+			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
 
-	def discriminate(self, image, classes):
+	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(classes, [self.batch_size, 1,1, self.num_class])
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1, self.dim_1, self.num_class])
@@ -175,7 +177,7 @@ class DCGAN():
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			return tf.tanh(h5)
+			return tf.nn.sigmoid(h5)
 
 	def samples_generator(self):
 		with tf.device("/gpu:0"):
