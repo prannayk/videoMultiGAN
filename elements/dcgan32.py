@@ -109,27 +109,28 @@ class DCGAN():
 		with tf.device(self.device):
 			ystack = tf.reshape(classes, [self.batch_size,1, 1, self.num_class])
 			embedding = tf.concat(axis=1, values=[embedding, classes])
-			h1 = tf.layers.dense(embedding, units=self.dim1, activation=tf.tanh,
+			h1 = tf.layers.dense(embedding, units=self.dim1, activation=None,
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
-			h1_concat = self.normalize(tf.concat(axis=1, values=[h1, classes]))
+			h1_relu = tf.nn.relu(self.normalize(h1))
+			h1_concat = tf.concat(axis=1, values=[h1_relu, classes])
 			h2 = tf.layers.dense(h1_concat, units=self.dim_4*self.dim_4*self.dim2, 
-				activation=tf.tanh, kernel_initializer=self.initializer,
+				activation=None, kernel_initializer=self.initializer,
 				name='dense_2',	reuse=scope.reuse)
-			h2_concat = self.normalize(tf.concat(axis=3,
-				values=[tf.reshape(h2, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim2]), 
+			h2_relu = tf.nn.relu(self.normalize(h2))
+			h2_concat = tf.concat(axis=3,
+				values=[tf.reshape(h2_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim2]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, 
-				self.num_class])]),
-				flag=True)
-			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
-				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
-				kernel_initializer=self.initializer,
-				reuse=scope.reuse,name='conv_1')
-			h3_relu = tf.nn.relu(self.normalize(h3,flag=True))
-            print(h3.get_shape())
-			h3_concat = tf.concat(axis=3,
-				values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
+				self.num_class])])
+			# h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
+				# kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
+				# kernel_initializer=self.initializer,
+				# reuse=scope.reuse,name='conv_1')
+			# h3_relu = tf.nn.relu(self.normalize(h3,flag=True))
+            # print(h3.get_shape())
+			# h3_concat = tf.concat(axis=3,
+				# values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
+				# ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
 			h4 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim4, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
@@ -170,11 +171,12 @@ class DCGAN():
 			h2_relu = LeakyReLU(self.normalize(h2, flag=True))
 			h2_concat = tf.concat(axis=3, values=[h2_relu, yneed_3])
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[4,4],
-				strides=[2,2], padding='SAME',
-				activation=tf.tanh,
+				strides=[1,1], padding='SAME',
+				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			h3_reshape = tf.reshape(h3, shape=[-1, self.dim_8*self.dim_8*self.dim2])
+			h3_relu = tf.nn.relu(self.normalize(h3))
+			h3_reshape = tf.reshape(h3_relu, shape=[-1, self.dim_4*self.dim_4*self.dim2])
 			h3_concat = self.normalize(tf.concat(axis=1, values=[h3_reshape, classes]),
 				name="h3_concat_normalize", reuse=scope.reuse)
 			h4 = tf.layers.dense(h3_concat, units=self.dim1, 
