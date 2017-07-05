@@ -52,16 +52,16 @@ class DCGAN():
 		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
-		with tf.device("/gpu:0"):
+		# with tf.device("/gpu:0"):
 			# self.g_weight1 = tf.Variable(tf.random_normal([embedding_size + num_class, dim1], stddev = 0.2), name="generator_weight1")
 			# self.g_weight2 = tf.Variable(tf.random_normal([dim1 + num_class, dim2*7*7], stddev = 0.2), name="generator_weight2")
 			# self.g_weight3 = tf.Variable(tf.random_normal([5,5,dim3,dim2+num_class], stddev = 0.2), name="generator_weight3")
 			# self.g_weight4 = tf.Variable(tf.random_normal([5,5,dim_channel,dim3+num_class], stddev = 0.2), name="generator_weight4")
 
-			self.d_weight1 = tf.Variable(tf.random_normal([5,5,dim_channel+num_class, dim3],stddev = 0.2), name="disc_weight1")
-			self.d_weight2 = tf.Variable(tf.random_normal([5,5,dim3+num_class, dim2],stddev = 0.2), name="disc_weight2")
-			self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
-			self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
+			# self.d_weight1 = tf.Variable(tf.random_normal([5,5,dim_channel+num_class, dim3],stddev = 0.2), name="disc_weight1")
+			# self.d_weight2 = tf.Variable(tf.random_normal([5,5,dim3+num_class, dim2],stddev = 0.2), name="disc_weight2")
+			# self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
+			# self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
 
 	def normalize(self, X,reuse=False, name=None, flag=False):
 		if not flag:
