@@ -152,7 +152,7 @@ class DCGAN():
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			return tf.nn.sigmoid(self.normalize(h5,flag=True))
+			return tf.nn.sigmoid(h5)
 
 	def samples_generator(self):
 		with tf.device("/gpu:0"):
