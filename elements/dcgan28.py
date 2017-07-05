@@ -88,7 +88,7 @@ class DCGAN():
 			# g_cost = bce(fake_value, tf.ones_like(fake_value))
 			d_cost = -tf.reduce_mean(tf.log(real_value) + tf.log(1 - fake_value))
 			g_cost = -tf.reduce_mean(tf.log(fake_value))
-			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
+			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
