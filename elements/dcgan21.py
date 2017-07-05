@@ -78,6 +78,14 @@ class DCGAN():
 			mean, vari = tf.nn.moments(X, [0,1,2], keep_dims=True)
 		return tf.nn.batch_normalization(X, mean, vari, offset=None, scale=None, variance_epsilon=1e-6,name=name)
 
+	def cross_entropy(self, X, flag=True):
+		if flag:
+			labels = tf.ones_like(X)
+		else:
+			labels = tf.zeros_like(X)
+		softmax = tf.nn.softmax_cross_entropy_with_logits(X, labels)
+		return tf.reduce_mean(softmax)
+
 	def build_model(self):
 		with tf.device("/gpu:0"):
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
@@ -89,15 +97,15 @@ class DCGAN():
 			g_image = h4
 			with tf.variable_scope("discriminator") as scope:
 				real_value = self.discriminate(real_image,classes,scope)
-			prob_real = tf.nn.sigmoid(real_value)
+			# prob_real = tf.nn.sigmoid(real_value)
 			with tf.variable_scope("discriminator") as scope:
 				scope.reuse_variables()
 				fake_value = self.discriminate(g_image,classes,scope)
-			prob_fake = tf.nn.sigmoid(fake_value)
-			# d_cost = bce(real_value, tf.ones_like(real_value)) + bce(fake_value,tf.zeros_like(fake_value))
-			# g_cost = bce(fake_value, tf.ones_like(fake_value))
-			d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
-			g_cost = -tf.reduce_mean(tf.log(prob_fake))
+			# prob_fake = tf.nn.sigmoid(fake_value)
+			d_cost = self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False)
+			g_cost = self.cross_entropy(fake_value, True)
+			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
+			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			return embedding, classes, r_image, d_cost, g_cost, prob_fake, prob_real
 
 	def discriminate(self, image, classes, scope):
@@ -144,7 +152,7 @@ class DCGAN():
 			h4_relu = LeakyReLU(h4)
 			h4_concat = self.normalize(tf.concat(axis=1, values=[h4_relu, classes]),
 				name="h4_concat_normalize",reuse=scope.reuse)
-			h5 = tf.layers.dense(h4_concat, units=1, 
+			h5 = tf.layers.dense(h4_concat, units=num_class, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_2',
