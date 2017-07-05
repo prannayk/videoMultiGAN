@@ -118,14 +118,14 @@ class DCGAN():
 				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_1")
-			h1_relu = LeakyReLU(h1,flag=True)
+			h1_relu = LeakyReLU(h1)
 			h1_concat = self.normalize(tf.concat(axis=3, values=[h1, yneed_2]))
 			h2 = tf.layers.conv2d(h1_concat, filters=self.dim3, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=None, 
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_2")
-			h2_relu = LeakyReLU(h2, flag=True)
+			h2_relu = LeakyReLU(h2)
 			h2_concat = self.normalize(tf.concat(axis=3, values=[h2_relu, yneed_3]))
 			h3 = tf.layers.conv2d(h2_concat, filters=self.dim2, kernel_size=[5,5],
 				strides=[1,1], padding='SAME',
