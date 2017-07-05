@@ -3,7 +3,7 @@ import numpy as np
 import scipy.misc
 
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
+mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/MNIST/",one_hot=True)
 
 
 def batch_normalize(X, eps=1e-6):
