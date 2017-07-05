@@ -39,7 +39,7 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 # training_data, train_caption_data = loader(path)
 lr1 = float(sys.argv[1])
 lr2 = float(sys.argv[2])
-batch_size = 100
+batch_size = 50
 embedding_size = 128
 # def generator():
 # 	global training_data, train_caption_data, embedding_size
