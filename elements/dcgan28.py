@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import scipy.misc
-
+import sys
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 
@@ -83,8 +83,8 @@ class DCGAN():
 				real_value = self.discriminate(real_image,classes,scope)
 			prob_real = tf.nn.sigmoid(real_value)
 			with tf.variable_scope("discriminator") as scope:	
+				scope.reuse_variables()
 				fake_value = self.discriminate(real_image,classes,scope)
-			fake_value = self.discriminate(g_image,classes)
 			prob_fake = tf.nn.sigmoid(fake_value)
 			# d_cost = bce(real_value, tf.ones_like(real_value)) + bce(fake_value,tf.zeros_like(fake_value))
 			# g_cost = bce(fake_value, tf.ones_like(fake_value))
