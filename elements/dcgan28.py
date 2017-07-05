@@ -26,7 +26,7 @@ def batch_normalize(X, eps=1e-6,flag=False):
 		raise NoImplementationForSuchDimensions
 	return X
 
-LeakyRelu = tf.contrib.keras.LeakyRelu()
+LeakyRelu = tf.contrib.keras.layers.LeakyReLU()
 def lrelu(X):
 	return LeakyRelu(X)
 
@@ -35,7 +35,7 @@ def lrelu(X):
 	# return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class DCGAN():
-	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1):
+	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -54,7 +54,7 @@ class DCGAN():
 		self.device = device
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
-		# with tf.device("/gpu:0"):
+		with tf.device("/gpu:0"):
 			# self.g_weight1 = tf.Variable(tf.random_normal([embedding_size + num_class, dim1], stddev = 0.2), name="generator_weight1")
 			# self.g_weight2 = tf.Variable(tf.random_normal([dim1 + num_class, dim2*7*7], stddev = 0.2), name="generator_weight2")
 			# self.g_weight3 = tf.Variable(tf.random_normal([5,5,dim3,dim2+num_class], stddev = 0.2), name="generator_weight3")
