@@ -44,14 +44,12 @@ class DCGAN():
 		self.dim2 = dim2
 		self.dim3 = dim3
 		self.dim4 = dim4
-		self.learning_rate_1 = learning_rate_1
-		self.learning_rate_2 = learning_rate_2
 		self.dim_1 = self.image_shape[0]
 		self.dim_2 = self.image_shape[0] // 2
 		self.dim_4 = self.image_shape[0] // 4
 		self.dim_8 = self.image_shape[0] // 8
 		self.dim_channel = dim_channel
-		self.device = device
+		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		with tf.device("/gpu:0"):
@@ -157,7 +155,8 @@ class DCGAN():
 			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
 			classes = tf.placeholder(tf.float32,[batch_size,self.num_class])
 			with tf.variable_scope("generator") as scope:
-				t = self.generate(embedding,classes)
+				scope.reuse_variables()
+				t = self.generate(embedding,classes,scope)
 			return embedding,classes,t
 
 # training part
