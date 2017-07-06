@@ -159,7 +159,15 @@ class DCGAN():
 				kernel_initializer=self.initializer,
 				name='dense_2',
 				reuse=scope.reuse)
-			return LeakyReLU(self.normalize(h5,name="last_normalize",reuse=scope.reuse))
+			h5_relu = LeakyReLU(h5)
+			h5_concat = self.normalize(tf.concat(axis=1, values=[h5_relu, classes]),
+				name="h4_concat_normalize",reuse=scope.reuse)
+			h6 = tf.layers.dense(h4_concat, units=num_class, 
+				activation=None,
+				kernel_initializer=self.initializer,
+				name='dense_3',
+				reuse=scope.reuse)
+			return LeakyReLU(self.normalize(h6,name="last_normalize",reuse=scope.reuse))
 
 	def generate(self, embedding, classes, scope):
 		with tf.device(self.device):
@@ -195,11 +203,18 @@ class DCGAN():
 			h4_concat = tf.concat(axis=3,
 				values=[tf.reshape(h4_relu, shape=[self.batch_size,self.dim_2,self.dim_2,self.dim4]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_2, self.dim_2, self.num_class])])
-			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters = self.dim_channel, 
+			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters = self.5*dim_channel, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			return tf.nn.sigmoid(h5)
+			h5_relu = tf.nn.relu(self.normalize(h4, flag=True))
+			h4_concat = tf.concat(axis=3, 
+				values=[h5_relu, ystack*tf.ones(shape=[self.batch_size, self.dim_1, self.dim_1, self.num_class])])
+			h6 = tf.layers.conv2d_transpose(inputs=h5_concat, filters = self.dim_channel,
+				kernel_size=[5,5], strides=[1,1], padding='SAME', activation=None,
+				kernel_initializer=self.initializer,
+				reuse=scope.reuse, name="conv_3")
+			return tf.nn.sigmoid(h6)
 
 	def samples_generator(self):
 		with tf.device("/gpu:0"):
