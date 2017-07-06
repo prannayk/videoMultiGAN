@@ -55,42 +55,37 @@ class SingleGAN():
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
 			classes = tf.placeholder(tf.float32, [self.batch_size, self.frames, self.num_class+1])
 			r_image = tf.placeholder(tf.float32,[self.batch_size, self.frames] + self.image_shape)
-			real_image = tf.reshape(r_image,[self.batch_size, self.frames] + self.image_shape)
-			with tf.variable_scope("lstm") as scope:
-				self.lstm_setup(scope)
-			real_value = []
-			real_player = []
-			fake_value = []
-			fake_player = []
-			embedding_current = embedding
-			for i in range(self.frames):
-				embedding_current, fake_player_i, fake_value_i, real_player_i, real_value_i = self.frames(embedding_current, classes[:,i], r_image[:,i])
-				fake_player.append(fake_player_i)
-				fake_value.append(fake_value_i)
-				real_player.append(real_player_i)
-				real_value.append(real_value_i)
-			fake_value = tf.reshape(tf.stack(fake_value),shape=[self.batch_size*self.frames, self.num_class])
-			real_value = tf.reshape(tf.stack(real_value),shape=[self.batch_size*self.frames, self.num_class])
-			fake_player = tf.reshape(tf.stack(fake_player),shape=[self.batch_size*self.frames, self.dim0])
-			real_player = tf.reshape(tf.stack(real_player),shape=[self.batch_size*self.frames, self.dim0])
+			fake_player, real_player, real_value, fake_value, _ = self.generate_video(embedding, classes, r_image)
 			energy_lstm = tf.reduce_mean(tf.square(fake_player-real_player))
-			# with tf.variable_scope("generator") as scope:	
-			# 	h4 = self.generate(embedding,classes,scope)
-			# g_image = h4
-			# with tf.variable_scope("discriminator") as scope:
-			# 	real_value = self.discriminate(real_image,classes,scope)
-			# # prob_real = tf.nn.sigmoid(real_value)
-			# with tf.variable_scope("discriminator") as scope:
-			# 	scope.reuse_variables()
-			# 	fake_value = self.discriminate(g_image,classes,scope)
-			# # prob_fake = tf.nn.sigmoid(fake_value)
 			real_value_softmax = tf.nn.softmax(real_value)
 			energy = tf.nn.softmax_cross_entropy_with_logits(labels=real_value_softmax, logits=fake_value)
 			d_cost = self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False) - (0.2*energy)
 			g_cost = self.cross_entropy(fake_value, True) - (0.2*energy)
-			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
-			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
+	def generate_video(self, embedding, classes, r_image):
+		with tf.variable_scope("lstm") as scope:
+			self.lstm_setup(scope)
+		real_value = []
+		real_player = []
+		fake_value = []
+		fake_player = []
+		embedding_current = embedding
+		video = None
+		for i in range(self.frames):
+			embedding_current, fake_player_i, fake_value_i, real_player_i, real_value_i,g_image = self.frames(embedding_current, classes[:,i], r_image[:,i])
+			fake_player.append(fake_player_i)
+			fake_value.append(fake_value_i)
+			real_player.append(real_player_i)
+			real_value.append(real_value_i)
+			if video == None:
+				video = tf.reshape(g_image,shape=[self.batch_size, 1] + self.image_shape)
+			elif: 
+				video = tf.concat([video, tf.reshape(g_image,shape=[self.batch_size, 1] + self.image_shape)], axis=1)
+		fake_value = tf.reshape(tf.stack(fake_value),shape=[self.batch_size*self.frames, self.num_class])
+		real_value = tf.reshape(tf.stack(real_value),shape=[self.batch_size*self.frames, self.num_class])
+		fake_player = tf.reshape(tf.stack(fake_player),shape=[self.batch_size*self.frames, self.dim0])
+		real_player = tf.reshape(tf.stack(real_player),shape=[self.batch_size*self.frames, self.dim0])
+		return fake_player, real_player, real_value, fake_value, video
 
 	def lstm_setup(scope):
 		self.lstm = tf.contrib.rnn.BasicLSTMCell(self.dim0, reuse=scope.reuse)
@@ -112,7 +107,7 @@ class SingleGAN():
 			fake_player,fake_value = self.discriminate(g_image, classes, scope)
 		with tf.variable_scope("lstm") as scope:
 		embedding_return = self.lstm_layer(fake_player, scope)
-		return embedding_return, fake_player, fake_value, real_player, real_value
+		return embedding_return, fake_player, fake_value, real_player, real_value, g_image
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -171,7 +166,7 @@ class SingleGAN():
 				kernel_initializer=self.initializer,
 				name='dense_3',
 				reuse=scope.reuse)
-			return LeakyReLU(self.normalize(h6,name="last_normalize",reuse=scope.reuse))
+			return self.normalize(h5_relu), LeakyReLU(self.normalize(h6,name="last_normalize",reuse=scope.reuse))
 
 	def generate(self, embedding, classes, scope):
 		with tf.device(self.device):
@@ -216,12 +211,23 @@ class SingleGAN():
 	def samples_generator(self):
 		with tf.device("/gpu:0"):
 			batch_size = self.batch_size
-			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
-			classes = tf.placeholder(tf.float32,[batch_size,self.num_class])
-			with tf.variable_scope("generator") as scope:
-				scope.reuse_variables()
-				t = self.generate(embedding,classes,scope)
-			return embedding,classes,t
+			embedding = tf.placeholder(tf.float32,[self.batch_size, self.embedding_size])
+			classes = tf.placeholder(tf.float32,[self.batch_size, self.frames, self.num_class])
+			list_images = []
+			embedding_current = embedding
+			for i in range(self.frames):
+				with tf.variable_scope("generator") as scope:
+					scope.reuse_variables()
+					t = self.generate(embedding_current,classes[:,i],scope)
+					list_images.append(t)
+				with tf.variable_scope("discriminator") as scope:
+					scope.reuse_variables()
+					fake_player, _ = self.discriminate(t, classes[:,i], scope)
+				with tf.variable_scope("lstm") as scope:
+					scope.reuse_variables()
+					embedding_current = self.lstm_layer(fake_player,scope)
+			images = tf.reshape(tf.stack(list_images),shape=[self.batch_size*self.frames] + self.image_shape)
+			return embedding,classes,images
 
 # training part
 epoch = 100
@@ -257,13 +263,16 @@ def generate(batch_size, frames):
 	# batch2, batch2_labels = mnist.train.next_batch(batch_size)
 	# batch2 = batch2.reshape([batch_size, 28, 28, 1])
 	batch = np.zeros([batch_size,frames,64,64,1])
-	for i in range(8):
+	batch_lab = np.zeros([batch_size, frames, 11])
+	for i in range(frames):
 		batch[:,i,2+(4*i):30+(4*i),2:30,:] = batch1
+		batch_lab[:, i, :10] = batch1_labels
+		batch_lab[:,i, :1] = i
 	# batch[:,i,34:62,34:62,:] = batch2
 	# return (batch, batch1_labels + batch2_labels)
 	return (batch, batch1_labels)
 
-def save_visualization(X, nh_nw, save_path='../results/dcgan64/sample.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/singlegan/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -312,7 +321,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan64/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(8,8),save_path=('../results/singlegan/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 

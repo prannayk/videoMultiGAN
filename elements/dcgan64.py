@@ -272,6 +272,7 @@ embedding_,vector_,image_sample = gan.samples_generator()
 print('mnistsamples/sample_%d.jpg'%(batch_size))
 
 for ep in range(epoch):
+	average_loss = [0,0]
 	for t in range(64000 // batch_size):
 		# print(t+1)
 		batch = generate(batch_size)
@@ -289,6 +290,7 @@ for ep in range(epoch):
 		# g_loss_val = 0
 		_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
 		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
+		
 		if t%10 == 0 and t>0:
 			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
 	print("Saving sample images and data for later testing for epoch: %d"%(ep+1))
