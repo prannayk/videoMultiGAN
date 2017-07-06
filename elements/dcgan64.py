@@ -246,7 +246,7 @@ def generate(batch_size):
 	batch = np.zeros([batch_size,64,64,1])
 	batch[:,2:30,2:30,:] = batch1
 	batch[:,34:62,34:62,:] = batch2
-	return (batch, np.concatenate([batch1_labels,batch2_labels],axis=1))
+	return (batch, np.concatenate([batch1_labels,batch2_labels],axis=1)/2)
 
 def save_visualization(X, nh_nw, save_path='../results/dcgan64/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
