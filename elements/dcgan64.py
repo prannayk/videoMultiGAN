@@ -262,7 +262,8 @@ vector_sample = np.zeros([batch_size,num_class])
 rand = np.random.randint(0,num_class-1,batch_size)
 for t in range(batch_size):
 	vector_sample[t][rand[t]] = 1
-
+sample_ = generate(batch_size)
+save_visualization(sample_[0], (8,8))
 embedding_,vector_,image_sample = gan.samples_generator()
 
 print('mnistsamples/sample_%d.jpg'%(batch_size))
@@ -294,7 +295,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(14,14),save_path=('../results/dcgan64/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan64/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
