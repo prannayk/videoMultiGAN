@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import scipy.misc
 import sys
+import time
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 
@@ -203,17 +204,17 @@ class DCGAN():
 			h4_concat = tf.concat(axis=3,
 				values=[tf.reshape(h4_relu, shape=[self.batch_size,self.dim_2,self.dim_2,self.dim4]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_2, self.dim_2, self.num_class])])
-			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters = self.5*dim_channel, 
+			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters = 5*self.dim_channel, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			h5_relu = tf.nn.relu(self.normalize(h4, flag=True))
+			h5_relu = tf.nn.relu(self.normalize(h5, flag=True))
 			h5_concat = tf.concat(axis=3, 
 				values=[h5_relu, ystack*tf.ones(shape=[self.batch_size, self.dim_1, self.dim_1, self.num_class])])
 			h6 = tf.layers.conv2d_transpose(inputs=h5_concat, filters = self.dim_channel,
 				kernel_size=[5,5], strides=[1,1], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
-				reuse=scope.reuse, name="conv_3")
+				reuse=scope.reuse, name="conv_4")
 			return tf.nn.sigmoid(h6)
 
 	def samples_generator(self):
@@ -288,6 +289,7 @@ print('mnistsamples/sample_%d.jpg'%(batch_size))
 
 for ep in range(epoch):
 	average_loss = [0,0]
+	start_time = time.time()
 	for t in range(64000 // batch_size):
 		# print(t+1)
 		batch = generate(batch_size)
@@ -317,5 +319,6 @@ for ep in range(epoch):
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
 	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan_deep/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
+	print(time.time() - start_time)
 	print("Saved session")
 
