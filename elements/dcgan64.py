@@ -104,8 +104,8 @@ class DCGAN():
 			# prob_fake = tf.nn.sigmoid(fake_value)
 			real_value_softmax = tf.nn.softmax(real_value)
 			energy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=real_value_softmax, logits=fake_value))
-			d_cost = self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False) - (0.2*energy)
-			g_cost = self.cross_entropy(fake_value, True) + (0.2*energy)
+			d_cost = 0.7*(self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False)) - (0.3*energy)
+			g_cost = 0.7*(self.cross_entropy(fake_value, True)) + (0.3*energy)
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
@@ -248,7 +248,7 @@ def generate(batch_size):
 	batch[:,34:62,34:62,:] = batch2
 	return (batch, np.concatenate([batch1_labels,batch2_labels],axis=1)/2)
 
-def save_visualization(X, nh_nw, save_path='../results/dcgan64/sample.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/dcgan_fast/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -298,7 +298,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan64/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan_fast/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
