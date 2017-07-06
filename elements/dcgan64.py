@@ -266,6 +266,7 @@ for t in range(batch_size):
 	vector_sample[t][rand[t]] = 1
 sample_ = generate(batch_size)
 save_visualization(sample_[0], (8,8))
+vector_sample = sample_[1]
 embedding_,vector_,image_sample = gan.samples_generator()
 
 print('mnistsamples/sample_%d.jpg'%(batch_size))
