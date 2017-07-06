@@ -102,8 +102,10 @@ class DCGAN():
 				scope.reuse_variables()
 				fake_value = self.discriminate(g_image,classes,scope)
 			# prob_fake = tf.nn.sigmoid(fake_value)
-			d_cost = self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False)
-			g_cost = self.cross_entropy(fake_value, True)
+			real_value_softmax = tf.nn.softmax(real_value)
+			energy = tf.nn.softmax_cross_entropy_with_logits(labels=real_value_softmax, logits=fake_value)
+			d_cost = self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False) - (0.2*energy)
+			g_cost = self.cross_entropy(fake_value, True) + (0.2*energy)
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
@@ -288,7 +290,7 @@ for ep in range(epoch):
 		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
 		if t%10 == 0 and t>0:
 			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
-	print("Saving sample images and data for later testing")
+	print("Saving sample images and data for later testing for epoch: %d"%(ep+1))
 	feed_dict = {
 		# real_image : batch[0],
 		embedding_ : embedding_sample,

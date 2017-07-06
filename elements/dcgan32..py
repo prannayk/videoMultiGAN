@@ -5,6 +5,38 @@ import sys
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 
+
+def batch_normalize(X, eps=1e-6,flag=False):
+	if flag : 
+		if X.get_shape().ndims == 4:
+			mean, vari = tf.nn.moments(X, [0,1,2], keep_dims=True)
+			return tf.nn.batch_normalization(X,mean, vari, variance_epsilon=eps)
+		elif X.get_shape().ndims == 2:
+			mean, vari = tf.nn.moments(X, 0, keep_dims=True)
+			return tf.nn.batch_normalization(X, mean, vari, variance_epsilon=eps)
+	if X.get_shape().ndims == 4 :
+		mean = tf.reduce_mean(X,[0,1,2])
+		stddev = tf.reduce_mean(tf.square(X-mean),[0,1,2])
+		X = (X - mean)/tf.sqrt(stddev + eps)
+	elif X.get_shape().ndims == 2:
+		mean = tf.reduce_mean(X,[0])
+		stddev = tf.reduce_mean(tf.square(X-mean),[0])
+		X = (X - mean)/tf.sqrt(stddev + eps)
+	else:
+		raise NoImplementationForSuchDimensions
+	return X
+
+# LeakyRelu = tf.cosntrib.keras.layers.LeakyReLU()
+def LeakyRelu(X,alpha=0.3):
+	return alpha*X + (1-alpha)*tf.nn.relu(X)
+
+def lrelu(X):
+	return LeakyRelu(X)
+
+# def bce(o,t):
+	# o  = tf.clip_by_value(o,1e-5,-1e-5)
+	# return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
+
 class DCGAN():
 	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2]):
 		self.batch_size = batch_size
@@ -25,6 +57,16 @@ class DCGAN():
 		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
+		with tf.device("/gpu:0"):
+			# self.g_weight1 = tf.Variable(tf.random_normal([embedding_size + num_class, dim1], stddev = 0.2), name="generator_weight1")
+			# self.g_weight2 = tf.Variable(tf.random_normal([dim1 + num_class, dim2*7*7], stddev = 0.2), name="generator_weight2")
+			# self.g_weight3 = tf.Variable(tf.random_normal([5,5,dim3,dim2+num_class], stddev = 0.2), name="generator_weight3")
+			# self.g_weight4 = tf.Variable(tf.random_normal([5,5,dim_channel,dim3+num_class], stddev = 0.2), name="generator_weight4")
+
+			self.d_weight1 = tf.Variable(tf.random_normal([5,5,dim_channel+num_class, dim3],stddev = 0.2), name="disc_weight1")
+			self.d_weight2 = tf.Variable(tf.random_normal([5,5,dim3+num_class, dim2],stddev = 0.2), name="disc_weight2")
+			self.d_weight3 = tf.Variable(tf.random_normal([dim2*7*7+num_class, dim1],stddev = 0.2), name="disc_weight3")
+			self.d_weight4 = tf.Variable(tf.random_normal([dim1+num_class,1],stddev = 0.2), name="disc_weight4")
 	
 	def learningR(self):
 		return self.learning_rate_1 , self.learning_rate_2
@@ -64,20 +106,7 @@ class DCGAN():
 			g_cost = self.cross_entropy(fake_value, True)
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
-			self.placeholders = [embedding, classes, r_image]
-			self.losses = [g_cost, d_cost]
-			self.logits = [real_value, fake_value]
-
-			g_weight_list = [i for i in (filter(lambda x: x.name.startswith("gen"),tf.trainable_variables()))]
-			d_weight_list = [i for i in (filter(lambda x: x.name.startswith("disc"),tf.trainable_variables()))]
-			print(g_weight_list)
-			print(d_weight_list)
-			lr1, lr2 = self.learningR()
-			g_optimizer = tf.train.AdamOptimizer(lr1,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
-			d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
-			self.optimizers = [g_optimizer, d_optimizer]
-			self.saver = tf.train.Saver()
-			# return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
+			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -180,37 +209,28 @@ class DCGAN():
 				t = self.generate(embedding,classes,scope)
 			return embedding,classes,t
 
-	def train(self, session):
-		batch = generate(self.batch_size)
-		random = np.random.uniform(-1,1,size=[self.batch_size,self.embedding_size]).astype(np.float32)
-		feed_dict_1 = {
-			real_image : batch[0],
-			embedding : random,
-			vector : batch[1]
-		}
-		feed_dict_2 = {
-			# real_image : batch[0],
-			embedding : random,
-			vector : batch[1]
-		}
-		# g_loss_val = 0
-		_,g_loss_val = session.run([self.optimizers[0], self.losses[0]],feed_dict=feed_dict_2) 
-		_,d_loss_val = session.run([self.optimizers[0], self.losses[0]],feed_dict=feed_dict_1)
-		return g_loss_val, d_loss_val
-
 # training part
 epoch = 100
-# learning_rate = 1e-2
+learning_rate = 1e-2
 batch_size = 64
 embedding_size = 256
 num_class = 10
 
-gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,32,1])
+gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1])
 
-gan.build_model()
+embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
 session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 # relevant weight list
-
+g_weight_list = [i for i in (filter(lambda x: x.name.startswith("gen"),tf.trainable_variables()))]
+d_weight_list = [i for i in (filter(lambda x: x.name.startswith("disc"),tf.trainable_variables()))]
+print(g_weight_list)
+print(d_weight_list)
+# optimizers
+# with tf.device("/gpu:0"):
+lr1, lr2 = gan.learningR()
+g_optimizer = tf.train.AdamOptimizer(lr1,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
+d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
+saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
 
@@ -219,13 +239,12 @@ tf.global_variables_initializer().run()
 def generate(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28, 28, 1])
-	# batch2, batch2_labels = mnist.train.next_batch(batch_size)
-	# batch2 = batch2.reshape([batch_size, 28, 28, 1])
-	batch = np.zeros([batch_size,32,32,1])
+	batch2, batch2_labels = mnist.train.next_batch(batch_size)
+	batch2 = batch2.reshape([batch_size, 28, 28, 1])
+	batch = np.zeros([batch_size,64,64,1])
 	batch[:,2:30,2:30,:] = batch1
-	# batch[:,34:62,34:62,:] = batch2
-	# return (batch, batch1_labels + batch2_labels)
-	return (batch, batch1_labels)
+	batch[:,34:62,34:62,:] = batch2
+	return (batch, batch1_labels + batch2_labels)
 
 def save_visualization(X, nh_nw, save_path='../results/dcgan64/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
@@ -250,16 +269,25 @@ embedding_,vector_,image_sample = gan.samples_generator()
 print('mnistsamples/sample_%d.jpg'%(batch_size))
 
 for ep in range(epoch):
-	start = time.time()
-	losses_avg = [0,0]
 	for t in range(64000 // batch_size):
 		# print(t+1)
-		losses_val = gan.train(session)
-		losses_avg = map(lambda pair : sum(pair), zip(losses_val,losses_avg))
+		batch = generate(batch_size)
+		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
+		feed_dict_1 = {
+			real_image : batch[0],
+			embedding : random,
+			vector : batch[1]
+		}
+		feed_dict_2 = {
+			# real_image : batch[0],
+			embedding : random,
+			vector : batch[1]
+		}
+		# g_loss_val = 0
+		_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
+		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
 		if t%10 == 0 and t>0:
-			print("Done with batches: " + str(t*batch_size) + "with losses: " + str(losses_avg[0]/10) + "(gen) + " + str(losses_avg[1]/10) + "(disc) = " + str(losses_avg[0]/10 + losses_avg[1]/10) + "in time: "+ str(time.time()-start))
-			start = time.time()
-			losses_avg = [0,0]
+			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
 	print("Saving sample images and data for later testing")
 	feed_dict = {
 		# real_image : batch[0],
