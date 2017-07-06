@@ -263,7 +263,7 @@ def generate(batch_size):
 	batch[:,34:62,34:62,:] = batch2
 	return (batch, np.concatenate([batch1_labels,batch2_labels],axis=1)/2)
 
-def save_visualization(X, nh_nw, save_path='../results/dcgan_fast/sample.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/dcgan_deep/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -315,7 +315,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan_fast/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan_deep/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
