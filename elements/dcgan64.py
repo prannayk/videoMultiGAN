@@ -256,7 +256,7 @@ def save_visualization(X, nh_nw, save_path='../results/dcgan64/sample.jpg'):
         j = n // nh_nw[1]
         i = n % nh_nw[1]
         img[j*h:j*h+h, i*w:i*w+w, :] = x
-
+    np.save("%s.%s"(save_path.split(".")[0],".npy"), img)
     scipy.misc.imsave(save_path, img)
 
 embedding_sample = np.random.uniform(-1,1,size=[batch_size,embedding_size])
