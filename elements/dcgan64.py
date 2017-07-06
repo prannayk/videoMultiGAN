@@ -216,9 +216,9 @@ epoch = 100
 learning_rate = 1e-2
 batch_size = 64
 embedding_size = 256
-num_class = 10
+num_class = 20
 
-gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1])
+gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1], num_class=num_class)
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
 session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
@@ -246,7 +246,7 @@ def generate(batch_size):
 	batch = np.zeros([batch_size,64,64,1])
 	batch[:,2:30,2:30,:] = batch1
 	batch[:,34:62,34:62,:] = batch2
-	return (batch, batch1_labels + batch2_labels)
+	return (batch, np.concatenate([batch1_labels,batch2_labels],axis=1))
 
 def save_visualization(X, nh_nw, save_path='../results/dcgan64/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
