@@ -72,8 +72,10 @@ class SingleGAN():
 		fake_player = []
 		embedding_current = embedding
 		video = None
+		flag = False
 		for i in range(self.frames):
-			embedding_current, fake_player_i, fake_value_i, real_player_i, real_value_i,g_image = self.frame_gen(embedding_current, classes[:,i], r_image[:,i])
+			embedding_current, fake_player_i, fake_value_i, real_player_i, real_value_i,g_image = self.frame_gen(embedding_current, classes[:,i], r_image[:,i],flag)
+			flag = True
 			fake_player.append(fake_player_i)
 			fake_value.append(fake_value_i)
 			real_player.append(real_player_i)
@@ -99,9 +101,13 @@ class SingleGAN():
 
 	def frame_gen(self, embedding, classes, r_image, flag=False):
 		with tf.variable_scope("generator") as scope:
+			if flag : 
+				scope.reuse_variables()
 			h4 = self.generate(embedding, classes, scope)
 		g_image = h4
 		with tf.variable_scope("discriminator") as scope:
+			if flag :
+				scope.reuse_variables()
 			real_player, real_value = self.discriminate(r_image, classes, scope)
 		with tf.variable_scope("discriminator") as scope:
 			scope.reuse_variables()
