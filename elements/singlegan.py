@@ -295,7 +295,7 @@ vector_sample = np.zeros([batch_size,num_class])
 rand = np.random.randint(0,num_class-1,batch_size)
 for t in range(batch_size):
 	vector_sample[t][rand[t]] = 1
-sample_ = generate(batch_size)
+sample_ = generate(batch_size, frames)
 save_visualization(sample_[0], (8,8))
 embedding_,vector_,image_sample = gan.samples_generator()
 
@@ -304,7 +304,7 @@ print('mnistsamples/sample_%d.jpg'%(batch_size))
 for ep in range(epoch):
 	for t in range(64000 // batch_size):
 		# print(t+1)
-		batch = generate(batch_size)
+		batch = generate(batch_size,frames)
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
 		feed_dict_1 = {
 			real_image : batch[0],
