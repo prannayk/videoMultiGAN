@@ -326,7 +326,7 @@ for ep in range(epoch):
 			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
 	print("Saving sample images and data for later testing for epoch: %d"%(ep+1))
 	feed_dict = {
-		# real_image : batch[0],
+		real_image : batch[0],
 		embedding_ : embedding_sample,
 		vector_ : vector_sample
 	}
