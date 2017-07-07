@@ -59,9 +59,9 @@ class SingleGAN():
 			fake_player, real_player, real_value, fake_value, _ = self.generate_video(embedding, classes, r_image)
 			energy_lstm = tf.reduce_mean(tf.square(fake_player-real_player))
 			real_value_softmax = tf.nn.softmax(real_value)
-			energy = tf.nn.softmax_cross_entropy_with_logits(labels=real_value_softmax, logits=fake_value)
-			d_cost = self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False) - (0.2*energy)
-			g_cost = self.cross_entropy(fake_value, True) - (0.2*energy)
+			energy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=real_value_softmax, logits=fake_value))
+			d_cost = 0.7*(self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False)) - (0.3*energy)
+			g_cost = 0.7*self.cross_entropy(fake_value, True) - (0.3*energy)
 			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
 	def generate_video(self, embedding, classes, r_image):
 		with tf.variable_scope("lstm") as scope:
