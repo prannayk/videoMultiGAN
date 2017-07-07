@@ -246,7 +246,7 @@ embedding_sample, vector_sample, image_sample = gan.samples_generator()
 def generate(batch_size):
 	global frames
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
-	batch1 = batch1.reshape([batch_size, 28, 28, 1])
+	batch1 = batch1.reshape([batch_size, 28, 28] )
 	# batch2, batch2_labels = mnist.train.next_batch(batch_size)
 	# batch2 = batch2.reshape([batch_size, 28, 28, 1])
 	batch = np.zeros([batch_size,64,64,frames])
@@ -260,7 +260,7 @@ def morph(X,frames):
 	global batch_size
 	img = np.zeros([batch_size,frames,64,64,1])
 	for i in range(frames):
-		img[:,i] = x[:,:,:,i]
+		img[:,i] = X[:,:,:,i]
 	return img
 
 def save_visualization(X, nh_nw, save_path='../results/convgan/sample.jpg'):
