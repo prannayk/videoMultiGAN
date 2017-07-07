@@ -260,8 +260,8 @@ def morph(X,frames):
 	global batch_size
 	img = np.zeros([batch_size,frames,64,64,1])
 	for i in range(frames):
-		img[:,i] = X[:,:,:,i]
-	return img
+		img[:,i] = X[:,:,:,i].reshape(batch_size, 64,64,1)
+	return img.reshape([batch_size*frames, 64,64,1])
 
 def save_visualization(X, nh_nw, save_path='../results/convgan/sample.jpg'):
 	global frames
