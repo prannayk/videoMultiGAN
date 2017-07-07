@@ -11,12 +11,12 @@ def LeakyRelu(X,alpha=0.3):
 	return alpha*X + (1-alpha)*tf.nn.relu(X)
 
 class SingleGAN():
-	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim0=256,dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2]):
+	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim0=256,dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2], frames = 8):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
 		self.num_class = num_class
-        self.frames  = frames
+		self.frames = frames
 		self.dim0 = dim0
 		self.dim1 = dim1
 		self.dim2 = dim2
@@ -73,7 +73,7 @@ class SingleGAN():
 		embedding_current = embedding
 		video = None
 		for i in range(self.frames):
-			embedding_current, fake_player_i, fake_value_i, real_player_i, real_value_i,g_image = self.frames(embedding_current, classes[:,i], r_image[:,i])
+			embedding_current, fake_player_i, fake_value_i, real_player_i, real_value_i,g_image = self.frame_gen(embedding_current, classes[:,i], r_image[:,i])
 			fake_player.append(fake_player_i)
 			fake_value.append(fake_value_i)
 			real_player.append(real_player_i)
@@ -97,7 +97,7 @@ class SingleGAN():
 		self.state = state_output
 		return self.normalize(cell_output)
 
-	def frames(self, embedding, classes, r_image):
+	def frame_gen(self, embedding, classes, r_image):
 		with tf.variable_scope("generator") as scope:
 			h4 = self.generate(embedding, classes, scope)
 		g_image = h4
