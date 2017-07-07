@@ -11,7 +11,7 @@ def LeakyRelu(X,alpha=0.3):
 	return alpha*X + (1-alpha)*tf.nn.relu(X)
 
 class SingleGAN():
-	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim0=256,dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2], frames = 8):
+	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim0=256,dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2], learning_rate_3=sys.argv[3], frames = 8):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -24,6 +24,7 @@ class SingleGAN():
 		self.dim4 = dim4
 		self.learning_rate_1 = float(learning_rate_1)
 		self.learning_rate_2 = float(learning_rate_2)
+		self.learning_rate_3 = float(learning_rate_3)
 		self.dim_1 = self.image_shape[0]
 		self.dim_2 = self.image_shape[0] // 2
 		self.dim_4 = self.image_shape[0] // 4
@@ -34,7 +35,7 @@ class SingleGAN():
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 	
 	def learningR(self):
-		return self.learning_rate_1 , self.learning_rate_2
+		return self.learning_rate_1 , self.learning_rate_2, self.learning_rate_3
 
 	def normalize(self, X,reuse=False, name=None, flag=False):
 		if not flag:
