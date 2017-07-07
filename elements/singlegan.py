@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import scipy.misc
 import sys
+import time
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 
@@ -332,6 +333,11 @@ for ep in range(epoch):
 			average_loss_val[2] += lstm_loss_val
 		if t%10 == 0 and t>0:
 			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(average_loss_val[0]/10) + " and Discriminator: " + str(average_loss_val[0]/10) + " = " + str(average_loss_val[0]/10 + average_loss_val[1]/10))
+			if ep > 3:
+				print("LSTM loss : " + str(average_loss_val[2]/10))
+			print(time.time()-start_time)
+			start_time= time.time()
+			average_loss_val = [0,0,0]
 	print("Saving sample images and data for later testing for epoch: %d"%(ep+1))
 	feed_dict = {
 		real_image : batch[0],
