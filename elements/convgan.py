@@ -263,7 +263,7 @@ def morph(X,frames):
 		img[:,i] = X[:,:,:,i].reshape(batch_size, 64,64,1)
 	return img.reshape([batch_size*frames, 64,64,1])
 
-def save_visualization(X, nh_nw, save_path='../results/convgan/sample.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	global frames
 	X = morph(X,frames)
 	h,w = X.shape[1], X.shape[2]
@@ -322,7 +322,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(32,8),save_path=('../results/convgan/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(32,8),save_path=('../results/%s/sample_%d.jpg'%(ep, sys.argv[4])))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
