@@ -114,9 +114,9 @@ class SingleGAN():
 		with tf.variable_scope("discriminator") as scope:
 			scope.reuse_variables()
 			fake_player,fake_value = self.discriminate(g_image, classes, scope)
-		with tf.variable_scope("lstm") as scope:
-			embedding_return = self.lstm_layer(fake_player, scope)
-		return embedding_return, fake_player, fake_value, real_player, real_value, g_image
+		# with tf.variable_scope("lstm") as scope:
+			# embedding_return = self.lstm_layer(fake_player, scope)
+		return embedding, fake_player, fake_value, real_player, real_value, g_image
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
@@ -224,9 +224,9 @@ class SingleGAN():
 			classes = tf.placeholder(tf.float32,[self.batch_size, self.frames, self.num_class])
 			list_images = []
 			embedding_current = embedding
-			with tf.variable_scope("lstm") as scope:
-				scope.reuse_variables()
-				self.lstm_setup(scope)
+			# with tf.variable_scope("lstm") as scope:
+			# 	scope.reuse_variables()
+			# 	self.lstm_setup(scope)
 			for i in range(self.frames):
 				with tf.variable_scope("generator") as scope:
 					scope.reuse_variables()
@@ -235,9 +235,9 @@ class SingleGAN():
 				with tf.variable_scope("discriminator") as scope:
 					scope.reuse_variables()
 					fake_player, _ = self.discriminate(t, classes[:,i], scope)
-				with tf.variable_scope("lstm") as scope:
-					scope.reuse_variables()
-					embedding_current = self.lstm_layer(fake_player,scope)
+				# with tf.variable_scope("lstm") as scope:
+				# 	scope.reuse_variables()
+				# 	embedding_current = self.lstm_layer(fake_player,scope)
 			images = tf.reshape(tf.stack(list_images),shape=[self.batch_size*self.frames] + self.image_shape)
 			return embedding,classes,images
 
@@ -265,7 +265,7 @@ print(lstm_weight_list)
 lr1, lr2, lr3 = gan.learningR()
 g_optimizer = tf.train.AdamOptimizer(lr1,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
 d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
-lstm_optimizer = tf.train.AdamOptimizer(lr3,  beta1=0.3).minimize(lstm_loss, var_list=lstm_weight_list)
+# lstm_optimizer = tf.train.AdamOptimizer(lr3,  beta1=0.3).minimize(lstm_loss, var_list=lstm_weight_list)
 saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
@@ -328,13 +328,13 @@ for ep in range(epoch):
 			_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
 			average_loss_val[0] += g_loss_val
 			average_loss_val[1] += d_loss_val
-		if ep > 3:
-			_,lstm_loss_val = session.run([lstm_optimizer,lstm_loss],feed_dict=feed_dict_2) 
-			average_loss_val[2] += lstm_loss_val
+		# if ep > 3:
+		# 	_,lstm_loss_val = session.run([lstm_optimizer,lstm_loss],feed_dict=feed_dict_2) 
+		# 	average_loss_val[2] += lstm_loss_val
 		if t%10 == 0 and t>0:
 			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(average_loss_val[0]/10) + " and Discriminator: " + str(average_loss_val[0]/10) + " = " + str(average_loss_val[0]/10 + average_loss_val[1]/10))
-			if ep > 3:
-				print("LSTM loss : " + str(average_loss_val[2]/10))
+			# if ep > 3:
+			# 	print("LSTM loss : " + str(average_loss_val[2]/10))
 			print(time.time()-start_time)
 			start_time= time.time()
 			average_loss_val = [0,0,0]
