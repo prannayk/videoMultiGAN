@@ -246,13 +246,15 @@ frames = 8
 
 gan = SingleGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1], frames = frames, num_class=num_class)
 
-embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
+embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real, lstm_loss = gan.build_model()
 session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 # relevant weight list
 g_weight_list = [i for i in (filter(lambda x: x.name.startswith("gen"),tf.trainable_variables()))]
 d_weight_list = [i for i in (filter(lambda x: x.name.startswith("disc"),tf.trainable_variables()))]
+lstm_weight_list = [i for i in (filter(lambda x: x.name.startswith("lstm"), tf.trainable_variables()))]
 print(g_weight_list)
 print(d_weight_list)
+print(lstm_weight_list)
 # optimizers
 # with tf.device("/gpu:0"):
 lr1, lr2 = gan.learningR()
