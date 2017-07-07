@@ -54,7 +54,7 @@ class SingleGAN():
 	def build_model(self):
 		with tf.device("/gpu:0"):
 			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
-			classes = tf.placeholder(tf.float32, [self.batch_size, self.frames, self.num_class+1])
+			classes = tf.placeholder(tf.float32, [self.batch_size, self.frames, self.num_class])
 			r_image = tf.placeholder(tf.float32,[self.batch_size, self.frames] + self.image_shape)
 			fake_player, real_player, real_value, fake_value, _ = self.generate_video(embedding, classes, r_image)
 			energy_lstm = tf.reduce_mean(tf.square(fake_player-real_player))
@@ -88,11 +88,11 @@ class SingleGAN():
 		real_player = tf.reshape(tf.stack(real_player),shape=[self.batch_size*self.frames, self.dim0])
 		return fake_player, real_player, real_value, fake_value, video
 
-	def lstm_setup(scope):
+	def lstm_setup(self, scope):
 		self.lstm = tf.contrib.rnn.BasicLSTMCell(self.dim0, reuse=scope.reuse)
-		self.state = self.lstm.zero_state(batch_size, self.float32)
+		self.state = self.lstm.zero_state(batch_size, tf.float32)
 
-	def lstm_layer(embedding,scope):
+	def lstm_layer(self, embedding,scope):
 		cell_output, state_output = self.lstm(embedding, self.state)
 		self.state = state_output
 		return self.normalize(cell_output)
