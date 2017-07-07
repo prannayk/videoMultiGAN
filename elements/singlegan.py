@@ -239,7 +239,7 @@ class SingleGAN():
 # training part
 epoch = 100
 learning_rate = 1e-2
-batch_size = 8
+batch_size = 16
 embedding_size = 256
 num_class = 10
 frames = 8
@@ -257,7 +257,7 @@ print(d_weight_list)
 print(lstm_weight_list)
 # optimizers
 # with tf.device("/gpu:0"):
-lr1, lr2 = gan.learningR()
+lr1, lr2, lr3 = gan.learningR()
 g_optimizer = tf.train.AdamOptimizer(lr1,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
 d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
 lstm_optimizer = tf.train.AdamOptimizer(lr3,  beta1=0.3).minimize(lstm_loss, var_list=lstm_weight_list)
@@ -298,13 +298,16 @@ rand = np.random.randint(0,num_class-1,batch_size)
 for t in range(batch_size):
 	vector_sample[t][rand[t]] = 1
 sample_ = generate(batch_size, frames)
-save_visualization(sample_[0].reshape([batch_size*frames, 64,64,1]), (8,8))
+save_visualization(sample_[0].reshape([batch_size*frames, 64,64,1]), (8,16))
 embedding_,vector_,image_sample = gan.samples_generator()
 
 print('mnistsamples/sample_%d.jpg'%(batch_size))
 
 for ep in range(epoch):
-	for t in range(16000 // batch_size):
+	start_time = time.time()
+	average_loss_val = [0,0,0]
+	lstm_loss_val = 0
+	for t in range(32000 // batch_size):
 		# print(t+1)
 		batch = generate(batch_size,frames)
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
@@ -320,18 +323,22 @@ for ep in range(epoch):
 		}
 		# g_loss_val = 0
 		_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
-		_,lstm_loss_val = session.run([lstm_optimizer,lstm_loss],feed_dict=feed_dict_2) 
 		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
+		average_loss_val[0] += g_loss_val
+		average_loss_val[1] += d_loss_val
+		if ep > 3:
+			_,lstm_loss_val = session.run([lstm_optimizer,lstm_loss],feed_dict=feed_dict_2) 
+			average_loss_val[2] += lstm_loss_val
 		if t%10 == 0 and t>0:
-			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
+			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(average_loss_val[0]/10) + " and Discriminator: " + str(average_loss_val[0]/10) + " = " + str(average_loss_val[0]/10 + average_loss_val[1]/10))
 	print("Saving sample images and data for later testing for epoch: %d"%(ep+1))
 	feed_dict = {
 		# real_image : batch[0],
 		embedding_ : embedding_sample,
-		vector_ : vector_sample
+		vector_ : sample_[1]
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(8,8),save_path=('../results/singlegan/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(16,8),save_path=('../results/singlegan/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
