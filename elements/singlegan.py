@@ -270,14 +270,13 @@ def generate(batch_size, frames):
 	# batch2, batch2_labels = mnist.train.next_batch(batch_size)
 	# batch2 = batch2.reshape([batch_size, 28, 28, 1])
 	batch = np.zeros([batch_size,frames,64,64,1])
-	batch_lab = np.zeros([batch_size, frames, 11])
+	batch_lab = np.zeros([batch_size, frames, 10])
 	for i in range(frames):
 		batch[:,i,2+(4*i):30+(4*i),2:30,:] = batch1
 		batch_lab[:, i, :10] = batch1_labels
-		batch_lab[:,i, :1] = i
 	# batch[:,i,34:62,34:62,:] = batch2
 	# return (batch, batch1_labels + batch2_labels)
-	return (batch, batch1_labels)
+	return (batch, batch_lab)
 
 def save_visualization(X, nh_nw, save_path='../results/singlegan/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
