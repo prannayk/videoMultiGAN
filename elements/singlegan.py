@@ -97,7 +97,7 @@ class SingleGAN():
 		self.state = state_output
 		return self.normalize(cell_output)
 
-	def frame_gen(self, embedding, classes, r_image):
+	def frame_gen(self, embedding, classes, r_image, flag=False):
 		with tf.variable_scope("generator") as scope:
 			h4 = self.generate(embedding, classes, scope)
 		g_image = h4
