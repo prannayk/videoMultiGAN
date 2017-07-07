@@ -219,7 +219,7 @@ class DCGAN():
 			return embedding,classes,t
 
 # training part
-epoch = 100
+epoch = 40
 learning_rate = 1e-2
 batch_size = 32
 frames = 8
