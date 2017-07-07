@@ -311,7 +311,7 @@ for ep in range(epoch):
 			vector : batch[1]
 		}
 		feed_dict_2 = {
-			# real_image : batch[0],
+			real_image : batch[0],
 			embedding : random,
 			vector : batch[1]
 		}
