@@ -221,7 +221,7 @@ class DCGAN():
 # training part
 epoch = 100
 learning_rate = 1e-2
-batch_size = 8
+batch_size = 32
 frames = 8
 embedding_size = 256
 num_class = 10
@@ -282,7 +282,7 @@ rand = np.random.randint(0,num_class-1,batch_size)
 for t in range(batch_size):
 	vector_sample[t][rand[t]] = 1
 sample_ = generate(batch_size)
-save_visualization(sample_[0], (8,8))
+save_visualization(sample_[0], (32,8))
 vector_sample = sample_[1]
 embedding_,vector_,image_sample = gan.samples_generator()
 
@@ -322,7 +322,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(8,8),save_path=('../results/convgan/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(32,8),save_path=('../results/convgan/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
