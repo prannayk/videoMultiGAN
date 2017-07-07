@@ -309,7 +309,7 @@ for ep in range(epoch):
 	start_time = time.time()
 	average_loss_val = [0,0,0]
 	lstm_loss_val = 0
-	for t in range(32000 // batch_size):
+	for t in range(16000 // batch_size):
 		# print(t+1)
 		batch = generate(batch_size,frames)
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
@@ -324,10 +324,11 @@ for ep in range(epoch):
 			vector : batch[1]
 		}
 		# g_loss_val = 0
-		_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
-		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
-		average_loss_val[0] += g_loss_val
-		average_loss_val[1] += d_loss_val
+		if ep < 50:
+			_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
+			_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
+			average_loss_val[0] += g_loss_val
+			average_loss_val[1] += d_loss_val
 		if ep > 3:
 			_,lstm_loss_val = session.run([lstm_optimizer,lstm_loss],feed_dict=feed_dict_2) 
 			average_loss_val[2] += lstm_loss_val
