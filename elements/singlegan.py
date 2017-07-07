@@ -16,6 +16,7 @@ class SingleGAN():
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
 		self.num_class = num_class
+        self.frames  = frames
 		self.dim0 = dim0
 		self.dim1 = dim1
 		self.dim2 = dim2
@@ -79,7 +80,7 @@ class SingleGAN():
 			real_value.append(real_value_i)
 			if video == None:
 				video = tf.reshape(g_image,shape=[self.batch_size, 1] + self.image_shape)
-			elif: 
+			else: 
 				video = tf.concat([video, tf.reshape(g_image,shape=[self.batch_size, 1] + self.image_shape)], axis=1)
 		fake_value = tf.reshape(tf.stack(fake_value),shape=[self.batch_size*self.frames, self.num_class])
 		real_value = tf.reshape(tf.stack(real_value),shape=[self.batch_size*self.frames, self.num_class])
@@ -106,7 +107,7 @@ class SingleGAN():
 			scope.reuse_variables()
 			fake_player,fake_value = self.discriminate(g_image, classes, scope)
 		with tf.variable_scope("lstm") as scope:
-		embedding_return = self.lstm_layer(fake_player, scope)
+			embedding_return = self.lstm_layer(fake_player, scope)
 		return embedding_return, fake_player, fake_value, real_player, real_value, g_image
 
 	def discriminate(self, image, classes, scope):
