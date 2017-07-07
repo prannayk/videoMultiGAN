@@ -260,6 +260,7 @@ print(lstm_weight_list)
 lr1, lr2 = gan.learningR()
 g_optimizer = tf.train.AdamOptimizer(lr1,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
 d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
+lstm_optimizer = tf.train.AdamOptimizer(lr3,  beta1=0.3).minimize(lstm_loss, var_list=lstm_weight_list)
 saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
