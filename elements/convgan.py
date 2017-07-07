@@ -243,9 +243,6 @@ d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_w
 saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
-
-tf.global_variables_initializer().run()
-
 def generate(batch_size):
 	global frames
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
@@ -266,7 +263,7 @@ def morph(X,frames):
 		img[:,i] = x[:,:,:,i]
 	return img
 
-def save_visualization(X, nh_nw, save_path='../results/dcgan_deep/sample.jpg'):
+def save_visualization(X, nh_nw, save_path='../results/convgan/sample.jpg'):
 	global frames
 	X = morph(X,frames)
 	h,w = X.shape[1], X.shape[2]
@@ -288,6 +285,9 @@ sample_ = generate(batch_size)
 save_visualization(sample_[0], (8,8))
 vector_sample = sample_[1]
 embedding_,vector_,image_sample = gan.samples_generator()
+
+tf.global_variables_initializer().run()
+
 
 print('mnistsamples/sample_%d.jpg'%(batch_size))
 
@@ -322,7 +322,7 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan_deep/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(8,8),save_path=('../results/convgan/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
