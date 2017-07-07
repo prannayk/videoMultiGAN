@@ -324,7 +324,7 @@ for ep in range(epoch):
 			vector : batch[1]
 		}
 		# g_loss_val = 0
-		if ep < 50:
+		if ep < 30:
 			_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
 			_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
 			average_loss_val[0] += g_loss_val
