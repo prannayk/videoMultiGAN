@@ -96,7 +96,6 @@ class DCGAN():
 				fake_value = self.discriminate(g_image,classes,scope)
 			# prob_fake = tf.nn.sigmoid(fake_value)
 			# real_value_softmax = tf.nn.softmax(real_value)
-			energy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=real_value_softmax, logits=fake_value))
 			epsilon = tf.random_uniform([],0.0,1.0)
 			image_x = g_image*epsilon + r_image*(1-epsilon)
 			with tf.variable_scope("discriminator") as scope:
