@@ -260,7 +260,7 @@ def generate(batch_size):
 	batch = np.zeros([batch_size,32,32,frames])
 	for i in range(frames):
 		batch[:,2:30,2:30,i] = batch1
-		batch1 = np.rot90(batch1,axis=(1,2))
+		batch1 = np.rot90(batch1,axes=(1,2))
 	return (batch, batch1_labels)
 
 def morph(X,frames):
