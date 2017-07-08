@@ -323,6 +323,5 @@ for ep in range(epoch):
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
 	save_visualization(gen_samples,(32,8),save_path=('../results/%s/sample_%d.jpg'%(sys.argv[4],ep)))
-	saver.save(session,'./dcgan.ckpt')
 	print("Saved session")
 
