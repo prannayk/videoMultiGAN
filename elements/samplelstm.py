@@ -268,7 +268,7 @@ def generate(batch_size):
 	batch = np.zeros([batch_size,frames,32,32,1])
 	batch_labels = np.zeros([batch_size, frames, num_class_input])
 	random = np.random.randint(0,2,[batch_size,frames]).reshape(batch_size, frames,1)
-	batch_labels[:,:,10:12] = np.concat([random,1-random],axis=2)
+	batch_labels[:,:,10:12] = np.concatenate([random,1-random],axis=2)
 	for i in range(frames):
 		batch_labels[:,i,:10] = batch1_labels
 		batch[:,i,2:30,2:30,0] = batch1
