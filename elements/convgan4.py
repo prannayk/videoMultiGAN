@@ -271,7 +271,7 @@ def morph(X,frames):
 	return img.reshape([batch_size*frames, 32,32,1])
 
 def save_visualization(X, nh_nw=[batch_size,frames], save_path='../results/%s/sample.jpg'%(sys.argv[3])):
-	X = morph(X)
+	X = morph(X,frames)
 	h,w = X.shape[1], X.shape[2]
 	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
