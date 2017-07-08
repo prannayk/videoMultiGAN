@@ -273,7 +273,7 @@ def generate(batch_size):
 		batch_labels[:,i,:10] = batch1_labels
 		batch[:,i,2:30,2:30,0] = batch1
 		for t in range(batch_size):
-			if batch_labels[t,i,11] == 1:
+			if batch_labels[t,i,10] == 1:
 				np.rot90(batch1[t])
 			else:
 				np.rot90(batch1[t],k=3)
