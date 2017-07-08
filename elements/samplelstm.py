@@ -229,7 +229,7 @@ class DCGAN():
 			embedding_reshape = tf.reshape(embedding, shape=[self.batch_size*self.frames, self.embedding_size])
 			with tf.variable_scope("generator") as scope:
 				scope.reuse_variables()
-				t = self.generate(embedding,classes,scope)
+				t = self.generate(embedding_reshape,classes,scope)
 			return embedding,classes,t
 
 # training part
