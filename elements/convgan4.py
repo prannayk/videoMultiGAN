@@ -39,7 +39,7 @@ def lrelu(X):
 	# return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class DCGAN():
-	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2]):
+	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, frames=8, num_class =10, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2]):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -50,6 +50,7 @@ class DCGAN():
 		self.dim4 = dim4
 		self.learning_rate_1 = float(learning_rate_1)
 		self.learning_rate_2 = float(learning_rate_2)
+		self.frames = frames
 		self.dim_1 = self.image_shape[0]
 		self.dim_2 = self.image_shape[0] // 2
 		self.dim_4 = self.image_shape[0] // 4
@@ -235,7 +236,7 @@ embedding_size = 256
 num_class = 20
 frames = 4
 
-gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,frames], num_class=num_class)
+gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, frames=frames, image_shape=[64,64,frames], num_class=num_class)
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
 session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
