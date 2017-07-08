@@ -110,7 +110,7 @@ class DCGAN():
 				return_class_f = tf.concat(values=[return_class_f, required_front],axis=1)
 				return_class_b = tf.concat(values=[required_back, return_class_b],axis=1)
 		class_embedding = tf.reshape(tf.concat(values=[return_class_f, return_class_b],axis=2),shape=[self.batch_size*self.frames, self.num_class])
-		assert map(lambda x: int(x), class_embedding.shape()) == [self.batch_size*self.frames, self.num_class]
+		assert map(lambda x: int(x), class_embedding.get_shape()) == [self.batch_size*self.frames, self.num_class]
 		return self.normalize(class_embedding,local=True)
 				
 
