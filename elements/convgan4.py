@@ -147,7 +147,7 @@ class DCGAN():
 			h3_reshape = tf.reshape(h3_relu, shape=[-1, self.dim_4*self.dim_4*2*self.dim2])
 			h3_concat = self.normalize(tf.concat(axis=1, values=[h3_reshape, classes]),
 				name="h3_concat_normalize", reuse=scope.reuse)
-			h4 = tf.layers.dense(h3_concat, units=self.dim1, 
+			h4 = tf.layers.dense(h3_concat, units=4*self.dim2, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_1',
@@ -202,7 +202,7 @@ class DCGAN():
 				reuse=scope.reuse,name="conv_2")
 			h4_relu = tf.nn.relu(self.normalize(h4,flag=True))
 			h4_concat = tf.concat(axis=3,
-				values=[tf.reshape(h4_relu, shape=[self.batch_size,self.dim_2,self.dim_2,self.dim4]), 
+				values=[tf.reshape(h4_relu, shape=[self.batch_size,self.dim_2,self.dim_2,2*self.dim4]), 
 				ystack*tf.ones(shape=[self.batch_size, self.dim_2, self.dim_2, self.num_class])])
 			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters = 4*self.dim4, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
