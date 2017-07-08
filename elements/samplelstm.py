@@ -82,22 +82,22 @@ class DCGAN():
 
 	def bilstm(self, class_input,flag=False):
 		assert num_class % 2 == 0
-		with tf.variable_scope("lstm_front"):
+		with tf.variable_scope("lstm_front") as scope:
 			if flag :
 				scope.reuse_variables()
 			self.lstmf = tf.contrib.rnn.BasicLSTMCell(self.num_class // 2, reuse=scope.reuse)
 			self.statef = self.lstmf.zero_state(batch_size, tf.float32)
-		with tf.variable_scope("lstm_back"):
+		with tf.variable_scope("lstm_back") as scope:
 			if flag :
 				scope.reuse_variables()
 			self.lstmb = tf.contrib.rnn.BasicLSTMCell(self.num_class // 2, reuse=scope.reuse)
 			self.stateb = self.lstmb.zero_state(batch_size, tf.float32)
 		for i in range(self.frames):
-			with tf.variable_scope("lstm_front"):
+			with tf.variable_scope("lstm_front") as scope:
 				if i > 0 or flag:
 					scope.reuse_variables()
 				cell_output_f, self.statef = self.lstmf(class_input[:,i], self.statef)
-			with tf.variable_scope("lstm_back"):
+			with tf.variable_scope("lstm_back") as scope:
 				if i > 0 or flag:
 					scope.reuse_variables()
 				cell_output_b, self.statef = self.lstmb(class_input[:,self.frames - i - 1], self.stateb)
