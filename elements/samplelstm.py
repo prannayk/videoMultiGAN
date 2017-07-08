@@ -311,7 +311,7 @@ for ep in range(epoch):
 	for t in range(64000 // batch_size):
 		# print(t+1)
 		batch = generate(batch_size)
-		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
+		random = np.random.uniform(-1,1,size=[batch_size,frames,embedding_size]).astype(np.float32)
 		feed_dict_1 = {
 			real_image : batch[0],
 			embedding : random,
