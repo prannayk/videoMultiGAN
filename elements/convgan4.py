@@ -231,7 +231,7 @@ class DCGAN():
 # training part
 epoch = 100
 learning_rate = 1e-2
-batch_size = 16
+batch_size = 32
 embedding_size = 256
 num_class = 10
 frames = 4
