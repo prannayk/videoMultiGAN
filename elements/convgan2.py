@@ -226,7 +226,7 @@ frames = 2
 embedding_size = 256
 num_class = 10
 
-gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1], num_class=num_class)
+gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1], num_class=num_class, frames=frames)
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
 session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
