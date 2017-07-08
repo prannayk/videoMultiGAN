@@ -12,7 +12,7 @@ def LeakyRelu(X,alpha=0.3):
 	return alpha*X + (1-alpha)*tf.nn.relu(X)
 
 class DCGAN():
-	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, frames=8, num_class =12, num_class_input=32, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2]):
+	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, frames=8, num_class =32, num_class_input=12, dim1 = 1024, dim2 = 128, dim3 = 64, dim_channel = 1, dim4=16, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2]):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
@@ -226,6 +226,7 @@ class DCGAN():
 			embedding = tf.placeholder(tf.float32,[self.batch_size, self.frames, self.embedding_size])
 			class_input = tf.placeholder(tf.float32,[self.batch_size,self.frames,self.num_class_input])
 			classes = self.bilstm(class_input, flag=True)
+			embedding_reshape = tf.reshape(embedding, shape=[self.batch_size*self.frames, self.embedding_size])
 			with tf.variable_scope("generator") as scope:
 				scope.reuse_variables()
 				t = self.generate(embedding,classes,scope)
@@ -234,11 +235,13 @@ class DCGAN():
 # training part
 epoch = 100
 learning_rate = 1e-2
-batch_size = 64
+batch_size = 16
+frames = 4
 embedding_size = 256
-num_class = 20
+num_class = 32
+num_class_input = 12
 
-gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1], num_class=num_class)
+gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,32,1], num_class=num_class, num_class_input=num_class_input, frames=4)
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
 session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
@@ -258,17 +261,23 @@ saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
 
-tf.global_variables_initializer().run()
 
 def generate(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
-	batch1 = batch1.reshape([batch_size, 28, 28, 1])
-	batch2, batch2_labels = mnist.train.next_batch(batch_size)
-	batch2 = batch2.reshape([batch_size, 28, 28, 1])
-	batch = np.zeros([batch_size,64,64,1])
-	batch[:,2:30,2:30,:] = batch1
-	batch[:,34:62,34:62,:] = batch2
-	return (batch, np.concatenate([batch1_labels,batch2_labels],axis=1)/2)
+	batch1 = batch1.reshape([batch_size, 28, 28])
+	batch = np.zeros([batch_size,frames,32,32,1])
+	batch_labels = np.zeros([batch_size, frames, num_class_input])
+	batch_labels[:,:,:10] = batch1_labels
+	random = np.random.randint(0,2,[batch_size,frames]).reshape(batch_size, frames,1)
+	batch_labels[:,:,10:12] = np.concat([random,1-random],axis=2)
+	for i in range(frames):
+		batch[:,i,2:30,2:30,0] = batch1
+		for t in range(batch_size):
+			if batch_labels[t,i,11] == 1:
+				np.rot90(batch1[t])
+			else:
+				np.rot90(batch1[t],k=3)
+	return (batch, batch_labels)
 
 def save_visualization(X, nh_nw=[batch_size, frames], save_path='../results/sample_lstm/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
@@ -292,6 +301,7 @@ vector_sample = sample_[1]
 embedding_,vector_,image_sample = gan.samples_generator()
 
 print('mnistsamples/sample_%d.jpg'%(batch_size))
+tf.global_variables_initializer().run()
 
 for ep in range(epoch):
 	average_loss = [0,0]
