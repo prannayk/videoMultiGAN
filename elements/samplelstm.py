@@ -267,10 +267,10 @@ def generate(batch_size):
 	batch1 = batch1.reshape([batch_size, 28, 28])
 	batch = np.zeros([batch_size,frames,32,32,1])
 	batch_labels = np.zeros([batch_size, frames, num_class_input])
-	batch_labels[:,:,:10] = batch1_labels
 	random = np.random.randint(0,2,[batch_size,frames]).reshape(batch_size, frames,1)
 	batch_labels[:,:,10:12] = np.concat([random,1-random],axis=2)
 	for i in range(frames):
+		batch_labels[:,i,:10] = batch1_labels
 		batch[:,i,2:30,2:30,0] = batch1
 		for t in range(batch_size):
 			if batch_labels[t,i,11] == 1:
