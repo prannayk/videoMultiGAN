@@ -233,7 +233,7 @@ epoch = 100
 learning_rate = 1e-2
 batch_size = 16
 embedding_size = 256
-num_class = 20
+num_class = 10
 frames = 4
 
 gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, frames=frames, image_shape=[32,32,frames], num_class=num_class)
