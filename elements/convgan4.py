@@ -239,7 +239,7 @@ frames = 4
 gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, frames=frames, image_shape=[32,32,frames], num_class=num_class)
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
-session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
+session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 # relevant weight list
 g_weight_list = [i for i in (filter(lambda x: x.name.startswith("gen"),tf.trainable_variables()))]
 d_weight_list = [i for i in (filter(lambda x: x.name.startswith("disc"),tf.trainable_variables()))]
