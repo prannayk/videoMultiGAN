@@ -291,7 +291,7 @@ def save_visualization(X, nh_nw=[batch_size, frames], save_path='../results/samp
     np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
     scipy.misc.imsave(save_path, img)
 
-embedding_sample = np.random.uniform(-1,1,size=[batch_size,embedding_size])
+embedding_sample = np.random.uniform(-1,1,size=[batch_size,frames,embedding_size])
 vector_sample = np.zeros([batch_size,num_class])
 rand = np.random.randint(0,num_class-1,batch_size)
 for t in range(batch_size):
