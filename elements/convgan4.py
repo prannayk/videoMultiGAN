@@ -253,8 +253,6 @@ saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
 
-tf.global_variables_initializer().run()
-
 def generate(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28, 28])
@@ -294,6 +292,8 @@ vector_sample = sample_[1]
 embedding_,vector_,image_sample = gan.samples_generator()
 
 print('mnistsamples/sample_%d.jpg'%(batch_size))
+
+tf.global_variables_initializer().run()
 
 for ep in range(epoch):
 	average_loss = [0,0]
