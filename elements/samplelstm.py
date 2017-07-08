@@ -277,7 +277,7 @@ def generate(batch_size):
 				# print("here")
 				batch1[t] = np.rot90(batch1[t])
 			else:
-				np.rot90(batch1[t],k=3)
+				batch1[t] = np.rot90(batch1[t],k=3)
 	return (batch, batch_labels)
 
 def save_visualization(X, nh_nw=[batch_size, frames], save_path='../results/sample_lstm/sample.jpg'):
