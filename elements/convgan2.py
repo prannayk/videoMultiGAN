@@ -146,7 +146,7 @@ class DCGAN():
 			h4_relu = LeakyReLU(h4)
 			h4_concat = self.normalize(tf.concat(axis=1, values=[h4_relu, classes]),
 				name="h4_concat_normalize",reuse=scope.reuse)
-			h5 = tf.layers.dense(h4_concat, units=num_class, 
+			h5 = tf.layers.dense(h4_concat, units=20*num_class, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_2',
@@ -154,7 +154,7 @@ class DCGAN():
 			h5_relu = LeakyReLU(h5)
 			h5_concat = self.normalize(tf.concat(axis=1, values=[h5_relu, classes]),
 				name="h4_concat_normalize",reuse=scope.reuse)
-			h6 = tf.layers.dense(h4_concat, units=num_class, 
+			h6 = tf.layers.dense(h4_concat, units=self.frames*num_class, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_3',
