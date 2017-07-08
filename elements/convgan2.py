@@ -146,20 +146,12 @@ class DCGAN():
 			h4_relu = LeakyReLU(h4)
 			h4_concat = self.normalize(tf.concat(axis=1, values=[h4_relu, classes]),
 				name="h4_concat_normalize",reuse=scope.reuse)
-			h5 = tf.layers.dense(h4_concat, units=20*num_class, 
+			h5 = tf.layers.dense(h4_concat, units=num_class, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_2',
 				reuse=scope.reuse)
-			h5_relu = LeakyReLU(h5)
-			h5_concat = self.normalize(tf.concat(axis=1, values=[h5_relu, classes]),
-				name="h4_concat_normalize",reuse=scope.reuse)
-			h6 = tf.layers.dense(h4_concat, units=self.frames*num_class, 
-				activation=None,
-				kernel_initializer=self.initializer,
-				name='dense_3',
-				reuse=scope.reuse)
-			return LeakyReLU(self.normalize(h6,name="last_normalize",reuse=scope.reuse))
+			return LeakyReLU(self.normalize(h5,name="last_normalize",reuse=scope.reuse))
 
 	def generate(self, embedding, classes, scope):
 		with tf.device(self.device):
@@ -199,14 +191,7 @@ class DCGAN():
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
-			h5_relu = tf.nn.relu(self.normalize(h5, flag=True))
-			h5_concat = tf.concat(axis=3, 
-				values=[h5_relu, ystack*tf.ones(shape=[self.batch_size, self.dim_1, self.dim_1, self.num_class])])
-			h6 = tf.layers.conv2d_transpose(inputs=h5_concat, filters = self.frames*self.dim_channel,
-				kernel_size=[5,5], strides=[1,1], padding='SAME', activation=None,
-				kernel_initializer=self.initializer,
-				reuse=scope.reuse, name="conv_4")
-			return tf.nn.sigmoid(h6)
+			return tf.nn.sigmoid(h5)
 
 	def samples_generator(self):
 		with tf.device("/gpu:0"):
@@ -247,13 +232,17 @@ def generate(batch_size):
 	global frames
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28, 28] )
+
 	# batch2, batch2_labels = mnist.train.next_batch(batch_size)
 	# batch2 = batch2.reshape([batch_size, 28, 28, 1])
 	batch = np.zeros([batch_size,64,64,frames])
+	# batch_labels = np.zeros([batch_size, num_class])
 	# batch[:,2:30,2:30,:] = batch1
 	# batch[:,34:62,34:62,:] = batch2
 	for i in range(frames):
-		batch[:,2+(4*i):30+(4*i),2+(4*i):30+(4*i),i] = batch1
+		batch[:,2:30,2:30,i] = batch1
+		batch1 = np.rot90(batch1, axes=(1,2))
+
 	return (batch, batch1_labels)
 
 def morph(X,frames):
