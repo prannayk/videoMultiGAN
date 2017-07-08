@@ -56,13 +56,14 @@ class DCGAN():
 
 	def build_model(self):
 		with tf.device("/gpu:0"):
-			embedding = tf.placeholder(tf.float32, [self.batch_size, self.embedding_size])
+			embedding = tf.placeholder(tf.float32, [self.batch_size,self.frames, self.embedding_size])
 			class_input = tf.placeholder(tf.float32, [self.batch_size, self.frames,self.num_class_input])
 			classes = self.bilstm(class_input)
 			r_image = tf.placeholder(tf.float32,[self.batch_size,self.frames] + self.image_shape)
 			real_image = tf.reshape(r_image,[self.batch_size*self.frames] + self.image_shape)
+			embedding_reshape = tf.reshape(embedding,shape=[self.batch_size*self.frames, self.embedding_size])
 			with tf.variable_scope("generator") as scope:	
-				h4 = self.generate(embedding,classes,scope)
+				h4 = self.generate(embedding_reshape,classes,scope)
 			g_image = h4
 			with tf.variable_scope("discriminator") as scope:
 				real_value = self.discriminate(real_image,classes,scope)
@@ -79,21 +80,25 @@ class DCGAN():
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
 			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
 
-	def bilstm(self, class_input):
+	def bilstm(self, class_input,flag=False):
 		assert num_class % 2 == 0
 		with tf.variable_scope("lstm_front"):
+			if flag :
+				scope.reuse_variables()
 			self.lstmf = tf.contrib.rnn.BasicLSTMCell(self.num_class // 2, reuse=scope.reuse)
 			self.statef = self.lstmf.zero_state(batch_size, tf.float32)
 		with tf.variable_scope("lstm_back"):
+			if flag :
+				scope.reuse_variables()
 			self.lstmb = tf.contrib.rnn.BasicLSTMCell(self.num_class // 2, reuse=scope.reuse)
 			self.stateb = self.lstmb.zero_state(batch_size, tf.float32)
 		for i in range(self.frames):
 			with tf.variable_scope("lstm_front"):
-				if i > 0:
+				if i > 0 or flag:
 					scope.reuse_variables()
 				cell_output_f, self.statef = self.lstmf(class_input[:,i], self.statef)
 			with tf.variable_scope("lstm_back"):
-				if i > 0:
+				if i > 0 or flag:
 					scope.reuse_variables()
 				cell_output_b, self.statef = self.lstmb(class_input[:,self.frames - i - 1], self.stateb)
 			required_front = tf.reshape(cell_output_f, shape=[self.batch_size, 1, self.num_class // 2])
@@ -111,10 +116,10 @@ class DCGAN():
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
-			ystack = tf.reshape(classes, [self.batch_size, 1,1, self.num_class])
-			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1, self.dim_1, self.num_class])
-			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2, self.dim_2, self.num_class])
-			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_4, self.dim_4, self.num_class])
+			ystack = tf.reshape(classes, [self.batch_size*self.frames, 1,1, self.num_class])
+			yneed_1 = ystack*tf.ones([self.batch_size*self.frames, self.dim_1, self.dim_1, self.num_class])
+			yneed_2 = ystack*tf.ones([self.batch_size*self.frames, self.dim_2, self.dim_2, self.num_class])
+			yneed_3 = ystack*tf.ones([self.batch_size*self.frames, self.dim_4, self.dim_4, self.num_class])
 		
 			LeakyReLU = tf.contrib.keras.layers.LeakyReLU()
 
@@ -170,7 +175,7 @@ class DCGAN():
 
 	def generate(self, embedding, classes, scope):
 		with tf.device(self.device):
-			ystack = tf.reshape(classes, [self.batch_size,1, 1, self.num_class])
+			ystack = tf.reshape(classes, [self.batch_size*self.frames,1, 1, self.num_class])
 			embedding = tf.concat(axis=1, values=[embedding, classes])
 			h1 = tf.layers.dense(embedding, units=self.dim1, activation=None,
 				kernel_initializer=self.initializer, 
@@ -182,8 +187,8 @@ class DCGAN():
 				name='dense_2',	reuse=scope.reuse)
 			h2_relu = tf.nn.relu(self.normalize(h2))
 			h2_concat = tf.concat(axis=3,
-				values=[tf.reshape(h2_relu, shape=[self.batch_size,self.dim_8,self.dim_8,self.dim2]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_8, self.dim_8, 
+				values=[tf.reshape(h2_relu, shape=[self.batch_size*self.frames,self.dim_8,self.dim_8,self.dim2]), 
+				ystack*tf.ones(shape=[self.batch_size*self.frames, self.dim_8, self.dim_8, 
 				self.num_class])])
 			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = self.dim3, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
@@ -192,23 +197,23 @@ class DCGAN():
 			h3_relu = tf.nn.relu(self.normalize(h3,flag=True))
             # print(h3.get_shape())
 			h3_concat = tf.concat(axis=3,
-				values=[tf.reshape(h3_relu, shape=[self.batch_size,self.dim_4,self.dim_4,self.dim3]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_4, self.dim_4, self.num_class])])
+				values=[tf.reshape(h3_relu, shape=[self.batch_size*self.frames,self.dim_4,self.dim_4,self.dim3]), 
+				ystack*tf.ones(shape=[self.batch_size*self.frames, self.dim_4, self.dim_4, self.num_class])])
 			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim4, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=tf.nn.relu,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_2")
 			h4_relu = tf.nn.relu(self.normalize(h4,flag=True))
 			h4_concat = tf.concat(axis=3,
-				values=[tf.reshape(h4_relu, shape=[self.batch_size,self.dim_2,self.dim_2,self.dim4]), 
-				ystack*tf.ones(shape=[self.batch_size, self.dim_2, self.dim_2, self.num_class])])
+				values=[tf.reshape(h4_relu, shape=[self.batch_size*self.frames,self.dim_2,self.dim_2,self.dim4]), 
+				ystack*tf.ones(shape=[self.batch_size*self.frames, self.dim_2, self.dim_2, self.num_class])])
 			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters = 5*self.dim_channel, 
 				kernel_size=[4,4], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
 			h5_relu = tf.nn.relu(self.normalize(h5, flag=True))
 			h5_concat = tf.concat(axis=3, 
-				values=[h5_relu, ystack*tf.ones(shape=[self.batch_size, self.dim_1, self.dim_1, self.num_class])])
+				values=[h5_relu, ystack*tf.ones(shape=[self.batch_size*self.frames, self.dim_1, self.dim_1, self.num_class])])
 			h6 = tf.layers.conv2d_transpose(inputs=h5_concat, filters = self.dim_channel,
 				kernel_size=[5,5], strides=[1,1], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
@@ -218,8 +223,9 @@ class DCGAN():
 	def samples_generator(self):
 		with tf.device("/gpu:0"):
 			batch_size = self.batch_size
-			embedding = tf.placeholder(tf.float32,[batch_size, self.embedding_size])
-			classes = tf.placeholder(tf.float32,[batch_size,self.num_class])
+			embedding = tf.placeholder(tf.float32,[self.batch_size, self.frames, self.embedding_size])
+			class_input = tf.placeholder(tf.float32,[self.batch_size,self.frames,self.num_class_input])
+			classes = self.bilstm(class_input, flag=True)
 			with tf.variable_scope("generator") as scope:
 				scope.reuse_variables()
 				t = self.generate(embedding,classes,scope)
@@ -235,10 +241,11 @@ num_class = 20
 gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1], num_class=num_class)
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
-session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
+session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 # relevant weight list
 g_weight_list = [i for i in (filter(lambda x: x.name.startswith("gen"),tf.trainable_variables()))]
 d_weight_list = [i for i in (filter(lambda x: x.name.startswith("disc"),tf.trainable_variables()))]
+lstm_weight_list = [i for i in (filter(lambda x: x.name.startswith("lstm"), tf.trainable_variables()))]
 print(g_weight_list)
 print(d_weight_list)
 # optimizers
@@ -246,6 +253,7 @@ print(d_weight_list)
 lr1, lr2 = gan.learningR()
 g_optimizer = tf.train.AdamOptimizer(lr1,beta1=0.5).minimize(g_loss,var_list=g_weight_list)
 d_optimizer = tf.train.AdamOptimizer(lr2,beta1=0.5).minimize(d_loss,var_list=d_weight_list)
+lstm_optimizer = tf.train.AdamOptimizer(0.001, beta1=0.5).minimize(g_loss, var_list=g_weight_list+lstm_weight_list)
 saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
@@ -262,7 +270,7 @@ def generate(batch_size):
 	batch[:,34:62,34:62,:] = batch2
 	return (batch, np.concatenate([batch1_labels,batch2_labels],axis=1)/2)
 
-def save_visualization(X, nh_nw, save_path='../results/dcgan_deep/sample.jpg'):
+def save_visualization(X, nh_nw=[batch_size, frames], save_path='../results/sample_lstm/sample.jpg'):
     h,w = X.shape[1], X.shape[2]
     img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
@@ -288,6 +296,7 @@ print('mnistsamples/sample_%d.jpg'%(batch_size))
 for ep in range(epoch):
 	average_loss = [0,0]
 	start_time = time.time()
+	start_cycle = time.time()
 	for t in range(64000 // batch_size):
 		# print(t+1)
 		batch = generate(batch_size)
@@ -303,19 +312,22 @@ for ep in range(epoch):
 			vector : batch[1]
 		}
 		# g_loss_val = 0
-		_,g_loss_val = session.run([g_optimizer,g_loss],feed_dict=feed_dict_2) 
+		if ep < 10:
+			_,g_loss_val = session.run([lstm_optimizer,g_loss],feed_dict=feed_dict_2) 
+		else :
+			_, g_loss_val = session.run([g_optimizer,g_loss])
 		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
 		
 		if t%10 == 0 and t>0:
-			print("Done with batches: " + str(t*batch_size) + "Losses :: Generator: " + str(g_loss_val) + " and Discriminator: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val))
+			print(str(t*batch_size) + " :: G: " + str(g_loss_val) + " +  D: " + str(d_loss_val) + " = " + str(d_loss_val + g_loss_val) + " in " + str(time.time()-start_cycle))
+			start_cycle = time.time()
 	print("Saving sample images and data for later testing for epoch: %d"%(ep+1))
 	feed_dict = {
-		# real_image : batch[0],
 		embedding_ : embedding_sample,
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(8,8),save_path=('../results/dcgan_deep/sample_%d.jpg'%(ep)))
+	save_visualization(gen_samples,(8,8),save_path=('../results/sample_lstm/sample_%d.jpg'%(ep)))
 	saver.save(session,'./dcgan.ckpt')
 	print(time.time() - start_time)
 	print("Saved session")
