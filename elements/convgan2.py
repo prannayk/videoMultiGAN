@@ -39,7 +39,7 @@ def lrelu(X):
 	# return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=o,labels=t))
 
 class DCGAN():
-	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim1 = 2048, dim2 = 256, dim3 = 128, frames=8, dim_channel = 1, dim4=32, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2]):
+	def __init__ (self, batch_size = 50, image_shape = [28,28,1], embedding_size = 128, num_class =10, dim1 = 1024, dim2 = 128, dim3 = 64 , frames=8, dim_channel = 1, dim4=32, learning_rate_1=sys.argv[1], learning_rate_2=sys.argv[2]):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
