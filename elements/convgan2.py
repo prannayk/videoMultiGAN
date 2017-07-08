@@ -294,7 +294,7 @@ print('mnistsamples/sample_%d.jpg'%(batch_size))
 for ep in range(epoch):
 	average_loss = [0,0]
 	start_time = time.time()
-	for t in range(64000 // batch_size):
+	for t in range(32000 // batch_size):
 		# print(t+1)
 		batch = generate(batch_size)
 		random = np.random.uniform(-1,1,size=[batch_size,embedding_size]).astype(np.float32)
