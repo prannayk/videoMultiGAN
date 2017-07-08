@@ -271,15 +271,15 @@ def morph(X,frames):
 
 def save_visualization(X, nh_nw=[batch_size,frames], save_path='../results/%s/sample.jpg'%(sys.argv[3])):
 	X = morph(X)
-    h,w = X.shape[1], X.shape[2]
-    img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
+	h,w = X.shape[1], X.shape[2]
+	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 
-    for n,x in enumerate(X):
-        j = n // nh_nw[1]
-        i = n % nh_nw[1]
-        img[j*h:j*h+h, i*w:i*w+w, :] = x
-    np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
-    scipy.misc.imsave(save_path, img)
+	for n,x in enumerate(X):
+		j = n // nh_nw[1]
+		i = n % nh_nw[1]
+		img[j*h:j*h+h, i*w:i*w+w, :] = x
+	np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
+	scipy.misc.imsave(save_path, img)
 
 embedding_sample = np.random.uniform(-1,1,size=[batch_size,embedding_size])
 vector_sample = np.zeros([batch_size,num_class])
