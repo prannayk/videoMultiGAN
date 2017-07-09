@@ -323,10 +323,10 @@ for ep in range(epoch):
 			vector : batch[1]
 		}
 		# g_loss_val = 0
-		if ep < 10:
+		if ep < 20:
 			_,g_loss_val = session.run([lstm_optimizer,g_loss],feed_dict=feed_dict_2) 
 		else :
-			_, g_loss_val = session.run([g_optimizer,g_loss])
+			_, g_loss_val = session.run([g_optimizer,g_loss],feed_dict_2)
 		_,d_loss_val = session.run([d_optimizer,d_loss],feed_dict=feed_dict_1)
 		
 		if t%10 == 0 and t>0:
