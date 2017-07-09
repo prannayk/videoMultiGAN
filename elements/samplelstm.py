@@ -78,7 +78,7 @@ class DCGAN():
 			g_cost = 0.7*(self.cross_entropy(fake_value, True)) + (0.3*energy)
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
-			return embedding, classes, r_image, d_cost, g_cost, fake_value, real_value
+			return embedding, class_input, r_image, d_cost, g_cost, fake_value, real_value
 
 	def bilstm(self, class_input,flag=False):
 		assert num_class % 2 == 0
