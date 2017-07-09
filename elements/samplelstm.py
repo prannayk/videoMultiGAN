@@ -74,7 +74,7 @@ class DCGAN():
 			# prob_fake = tf.nn.sigmoid(fake_value)
 		#	real_value_softmax = tf.nn.softmax(real_value)
 		#	energy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=real_value_softmax, logits=fake_value))
-			d_cost = self.cross_entropy(real_value, True) + self.cross_entropy(fake_value, False)
+			d_cost = self.cross_entropy(real_value, True)# + self.cross_entropy(fake_value, False)
 			g_cost = self.cross_entropy(fake_value, True)
 			# d_cost = -tf.reduce_mean(tf.log(prob_real) + tf.log(1 - prob_fake))
 			# g_cost = -tf.reduce_mean(tf.log(prob_fake))
