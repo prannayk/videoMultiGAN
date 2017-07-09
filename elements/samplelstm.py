@@ -230,7 +230,7 @@ class DCGAN():
 			with tf.variable_scope("generator") as scope:
 				scope.reuse_variables()
 				t = self.generate(embedding_reshape,classes,scope)
-			return embedding,classes,t
+			return embedding,class_input,t
 
 # training part
 epoch = 100
