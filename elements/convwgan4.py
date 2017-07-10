@@ -236,7 +236,7 @@ embedding_size = 256
 num_class = 10
 frames = 4
 
-gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, frames=frames, image_shape=[32,32,frames], num_class=num_class)
+gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, frames=frames, image_shape=[64,64,frames], num_class=num_class)
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
 session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
@@ -257,18 +257,18 @@ embedding_sample, vector_sample, image_sample = gan.samples_generator()
 def generate(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28, 28])
-	batch = np.zeros([batch_size,32,32,frames])
+	batch = np.zeros([batch_size,64,64,frames])
 	for i in range(frames):
-		batch[:,2:30,2:30,i] = batch1
-		batch1 = np.rot90(batch1,axes=(1,2))
+		batch[:,2+(4*i):30+(4*i),2+(4*i):30+(4*i),i] = batch1
+		# batch1 = np.rot90(batch1,axes=(1,2))
 	return (batch, batch1_labels)
 
 def morph(X,frames):
 	global batch_size
-	img = np.zeros([batch_size,frames,32,32,1])
+	img = np.zeros([batch_size,frames,64,64,1])
 	for i in range(frames):
-		img[:,i] = X[:,:,:,i].reshape(batch_size, 32,32,1)
-	return img.reshape([batch_size*frames, 32,32,1])
+		img[:,i] = X[:,:,:,i].reshape(batch_size, 64,64,1)
+	return img.reshape([batch_size*frames, 64,64,1])
 
 def save_visualization(X, nh_nw=[batch_size,frames], save_path='../results/%s/sample.jpg'%(sys.argv[3])):
 	X = morph(X,frames)
