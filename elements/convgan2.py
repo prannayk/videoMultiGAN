@@ -206,12 +206,12 @@ class DCGAN():
 # training part
 epoch = 40
 learning_rate = 1e-2
-batch_size = 16
+batch_size = 32
 frames = 2
 embedding_size = 256
 num_class = 10
 
-gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,32,1], num_class=num_class, frames=frames)
+gan = DCGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,1], num_class=num_class, frames=frames)
 
 embedding, vector, real_image, d_loss, g_loss, prob_fake, prob_real = gan.build_model()
 session  = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
@@ -235,22 +235,22 @@ def generate(batch_size):
 
 	# batch2, batch2_labels = mnist.train.next_batch(batch_size)
 	# batch2 = batch2.reshape([batch_size, 28, 28, 1])
-	batch = np.zeros([batch_size,32,32,frames])
+	batch = np.zeros([batch_size,64,64,frames])
 	# batch_labels = np.zeros([batch_size, num_class])
 	# batch[:,2:30,2:30,:] = batch1
 	# batch[:,34:62,34:62,:] = batch2
 	for i in range(frames):
-		batch[:,2:30,2:30,i] = batch1
-		batch1 = np.rot90(batch1, axes=(1,2))
+		batch[:,2+(4*i):30+(4*i),2+(4*i):30+(4*i),i] = batch1
+		# batch1 = np.rot90(batch1, axes=(1,2))
 
 	return (batch, batch1_labels)
 
 def morph(X,frames):
 	global batch_size
-	img = np.zeros([batch_size,frames,32,32,1])
+	img = np.zeros([batch_size,frames,64,64,1])
 	for i in range(frames):
-		img[:,i] = X[:,:,:,i].reshape(batch_size, 32,32,1)
-	return img.reshape([batch_size*frames, 32,32,1])
+		img[:,i] = X[:,:,:,i].reshape(batch_size, 64,64,1)
+	return img.reshape([batch_size*frames, 64,64,1])
 
 def save_visualization(X, nh_nw, save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	global frames
@@ -271,7 +271,7 @@ rand = np.random.randint(0,num_class-1,batch_size)
 for t in range(batch_size):
 	vector_sample[t][rand[t]] = 1
 sample_ = generate(batch_size)
-save_visualization(sample_[0], (32,8))
+save_visualization(sample_[0], (32,2))
 vector_sample = sample_[1]
 embedding_,vector_,image_sample = gan.samples_generator()
 
@@ -311,6 +311,6 @@ for ep in range(epoch):
 		vector_ : vector_sample
 	}
 	gen_samples = session.run(image_sample,feed_dict=feed_dict)
-	save_visualization(gen_samples,(32,8),save_path=('../results/%s/sample_%d.jpg'%(sys.argv[4],ep)))
+	save_visualization(gen_samples,(32,2),save_path=('../results/%s/sample_%d.jpg'%(sys.argv[4],ep)))
 	print("Saved session")
 
