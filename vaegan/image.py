@@ -320,11 +320,11 @@ def random_label(batch_size):
 	t = np.random.choice(10, batch_size, replace=True)
 	random = np.zeros(shape=[batch_size,13])
 	for i in range(batch_size):
-		random[int(t[i])] = 1
-		random[10:] = np.random.randint(0,256,[3]).astype(float) / 255
+		random[i, int(t[i])] = 1
+		random[i, 10:] = np.random.randint(0,256,[3]).astype(float) / 255
 	return random	
 
-image_sample,image_gen,image_labels = generate(64)
+image_sample,image_gen,image_labels, text_labels = generate(64)
 save_visualization(image_sample, save_path='../results/vae/image/sample.jpg')
 save_visualization(image_gen, save_path='../results/vae/image/sample_gen.jpg')	
 saver = tf.train.Saver()
@@ -353,15 +353,15 @@ for ep in range(epoch):
 				placeholders['x'] : feed_list[1],
 				placeholders['image_class_input'] : feed_list[2],
 				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,shape=[batch_size, embedding_size])
-				placeholders['z_c'] : random_label(batch_size)
-				placeholders['z_t'] : np.random.normal(0,1,shape=[batch_size, num_class_motion])
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 			}
 			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
 			_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
 			_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
 			if t % 10 == 0:
-				print(",".join(loss_val))
+				print(",".join(map(lambda x: str(x), loss_val)))
 		feed_list = generate(batch_size)
 		run += batch_size
 		feed_dict = {
@@ -369,9 +369,9 @@ for ep in range(epoch):
 			placeholders['x'] : feed_list[1],
 			placeholders['image_class_input'] : feed_list[2],
 			placeholders['text_label_input'] : feed_list[3],
-			placeholders['z_s'] : np.random.normal(0,1,shape=[batch_size, embedding_size])
-			placeholders['z_c'] : random_label(batch_size)
-			placeholders['z_t'] : np.random.normal(0,1,shape=[batch_size, num_class_motion])
+			placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
+			placeholders['z_c'] : random_label(batch_size),
+			placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 		}
 		_, loss_val[3] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
 		_, loss_val[4] = session.run([optimizers["text_encoder"], losses["encoder"]], feed_dict=feed_dict)
