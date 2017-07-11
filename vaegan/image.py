@@ -211,6 +211,15 @@ class VAEGAN():
 		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
 		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
 		z_t = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_motion])
+		placeholders = {
+			'image_input' : image_input,
+			'x' : x,
+			'image_class_input' : image_class_input,
+			'text_label_input' : text_label_input,
+			'z_s' : z_s,
+			'z_c' : z_c,
+			'z_t' : z_t
+		}
 		with tf.variable_scope("encoder") as scope:
 			encode = self.encoder_image(image_input, scope)
 		with tf.variable_scope("text_encoder") as scope:
@@ -239,14 +248,14 @@ class VAEGAN():
 		losses = dict()
 		with tf.variable_scope("losses"):
 			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_dash)))
-			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False)
+			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False) + self.cross_entropy(image_class_input, True)
 			losses["gen_image_classifier"] = self.cross_entropy(D_z_hat_c, True)
 			losses["disc_text_classifier"] = self.cross_entropy(D_z_t, True) + self.cross_entropy(D_z_hat_t, False)
 			losses["gen_text_classifier"] = self.cross_entropy(D_z_hat_t, True)
 			losses["disc_image_discriminator"] = self.cross_entropy(D_x_hat, False) + self.cross_entropy(D_x_dash, False) + 2*self.cross_entropy(D_x, True)
 			losses["generator_image"] = self.cross_entropy(D_x_hat, True) + self.cross_entropy(D_x_dash, True) + (self.lambda_1*losses["reconstruction"])
 			losses["encoder"] = losses["gen_image_classifier"] + losses["reconstruction"]
-			losses["text_encoder"] = losses["gen_text_classifier"]
+			losses["text_encoder"] = losses["gen_text_classifier"] + self.cross_entropy(D_x_hat, True) + (losses["reconstruction"]*self.lambda_1)
 		optimizer = dict()
 		with tf.variable_scope("optimizers"):
 			optimizer["encoder"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5, beta2=0.9).minimize(losses["encoder"])
@@ -255,7 +264,7 @@ class VAEGAN():
 			optimizer["discriminator"] = tf.train.AdamOptimizer(self.learning_rate[3],beta1=0.5, beta2=0.9).minimize(losses["disc_image_discriminator"])
 			optimizer["code_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"])
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"])
-		return optimizer, x_hat
+		return placeholders, optimizer, losses, x_hat
 
 epoch = 600
 batch_size = 64
@@ -267,7 +276,7 @@ num_class_motion = 5
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,32,3], 
 	num_class_motion=num_class_motion, num_class_image=num_class_image)
 
-optimizers, x_hat = gan.build_model()
+placeholders,optimizers, losses, x_hat = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 
 saver = tf.train.Saver()
@@ -279,19 +288,22 @@ def generate(batch_size):
 	batch_gen = np.zeros([batch_size, 32, 32,3])
 	batch_labels = np.zeros([batch_size, 13])
 	batch_labels[:,:10] += batch1_labels
+	text_labels = np.zeros([batch_size, 4])
 	for i in range(batch_size):
 		t = np.random.randint(0,2)
-		l = np.random.randint(0,256,[3]) / 255
+		l = np.random.randint(0,256,[3]).astype(float) / 255
 		batch_labels[i,10:] = l
 		if t == 0:
+			text_labels[i] = np.array([1,1,1,1])
 			for j in range(3):
 				batch[i,0:28,0:28,j] = batch1[i]*l[j]
 				batch_gen[i, 4:32,4:32,j] = batch1[i]*l[j]
 		else :
+			text_labels[i] = np.array([-1,1,-1,1])
 			for j in range(3):
 				batch[i,0:28,4:32,j] = batch1[i]*l[j]
 				batch_gen[i,4:32,0:28,j] = batch1[i]*l[j]
-	return batch, batch_gen, batch_labels
+	return batch, batch_gen, batch_labels, text_labels
 
 def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	h,w = X.shape[1], X.shape[2]
@@ -304,8 +316,67 @@ def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys
 	np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
 	scipy.misc.imsave(save_path, img)
 
+def random_label(batch_size):
+	t = np.random.choice(10, batch_size, replace=True)
+	random = np.zeros(shape=[batch_size,13])
+	for i in range(batch_size):
+		random[int(t[i])] = 1
+		random[10:] = np.random.randint(0,256,[3]).astype(float) / 255
+	return random	
+
 image_sample,image_gen,image_labels = generate(64)
 save_visualization(image_sample, save_path='../results/vae/image/sample.jpg')
 save_visualization(image_gen, save_path='../results/vae/image/sample_gen.jpg')	
-
+saver = tf.train.Saver()
 tf.global_variables_initializer().run()
+
+print("Running code: ")
+
+epoch = int(sys.argv[-1])
+diter = 5
+num_examples = 55000
+for ep in range(epoch):
+	loss_val = [0,0,0,0,0,0]
+	run = 0
+	start_time = time.time()
+	num_count = 100
+	while run < num_examples:
+		if epoch > 5 or epoch % 50 : 
+			iterD = diter
+		else :
+			iterD = 50
+		for t in range(iterD):
+			feed_list = generate(batch_size)
+			run += batch_size
+			feed_dict = {
+				placeholders['image_input'] : feed_list[0],
+				placeholders['x'] : feed_list[1],
+				placeholders['image_class_input'] : feed_list[2],
+				placeholders['text_label_input'] : feed_list[3],
+				placeholders['z_s'] : np.random.normal(0,1,shape=[batch_size, embedding_size])
+				placeholders['z_c'] : random_label(batch_size)
+				placeholders['z_t'] : np.random.normal(0,1,shape=[batch_size, num_class_motion])
+			}
+			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
+			_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
+			_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
+			if t % 10 == 0:
+				print(",".join(loss_val))
+		feed_list = generate(batch_size)
+		run += batch_size
+		feed_dict = {
+			placeholders['image_input'] : feed_list[0],
+			placeholders['x'] : feed_list[1],
+			placeholders['image_class_input'] : feed_list[2],
+			placeholders['text_label_input'] : feed_list[3],
+			placeholders['z_s'] : np.random.normal(0,1,shape=[batch_size, embedding_size])
+			placeholders['z_c'] : random_label(batch_size)
+			placeholders['z_t'] : np.random.normal(0,1,shape=[batch_size, num_class_motion])
+		}
+		_, loss_val[3] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
+		_, loss_val[4] = session.run([optimizers["text_encoder"], losses["encoder"]], feed_dict=feed_dict)
+		_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
+		if run > num_count : 
+			num_count += 100
+			print("%d : " + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
+			start_time = time.time()
