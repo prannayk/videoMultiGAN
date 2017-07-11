@@ -380,3 +380,6 @@ for ep in range(epoch):
 			num_count += 100
 			print("%d : "%(run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
 			start_time = time.time()
+	print("DOne with an Epoch")
+	images = session.run(x_hat, feed_dict=feed_dict)
+	save_visualization(images, save_path="../results/vae/image/sample_%d.jpg"%(ep+1))
