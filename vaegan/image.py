@@ -9,24 +9,25 @@ mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_dat
 class VAEGAN():
 	"""docstring for VAEGAN"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
-		dim1 = 1024, dim2 = 128, dim3 = 64, learning_rate = sys.argv[1:3],
+		dim1 = 1024, dim2 = 128, dim3 = 64, learning_rate = sys.argv[1:],
 		motion_size = 4, num_class_motion=6, num_class_image=13	):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.embedding_size = embedding_size
-		self.num_class_image = self.num_class_image
-		self.num_class_motion = self.num_class_motion
-		self.num_class = num_class_motion + num_class_image
+		self.num_class_image = num_class_image
+		self.num_class_motion = num_class_motion
+		self.num_class = num_class_image + num_class_motion
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.dim1 = dim1
 		self.dim2 = dim2
 		self.dim3 = dim3
-		self.dim4 = dim4
+		#self.dim4 = dim4
 		self.learning_rate = map(lambda x: float(x), learning_rate)
 		# self.learning_rate_1 = floor(learning_rate_1)
 		# self.learning_rate_2 = floor(lear/ning_rate_2)
 		# assumes square images
+		self.lambda_1 = 10
 		self.dim_1 = self.image_shape[0]
 		self.dim_2 = self.image_shape[0] // 2
 		self.dim_4 = self.image_shape[0] // 4
@@ -55,7 +56,7 @@ class VAEGAN():
 		softmax = tf.nn.softmax_cross_entropy_with_logits(logits =X, labels=labels)
 		return tf.reduce_mean(softmax)
 
-	def discriminate_image(self, image, zvalue, scope):;
+	def discriminate_image(self, image, zvalue, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(zvalue, [self.batch_size, 1,1,self.zdimension])
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1 , self.dim_1, self.zdimension])
@@ -86,22 +87,22 @@ class VAEGAN():
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_3")
 			h3_relu = LeakyReLU(h3)
-			h3_concat = self.normalize(tf.concat(axis=3, values=[h3_relu, yneed_2]))
+			h3_concat = self.normalize(tf.concat(axis=3, values=[h3_relu, yneed_3]))
 			h4 = tf.layers.conv2d(h3_concat, filters=64, kernel_size=[5,5],
 				strides=[1,1], padding='SAME',
 				activation=None, 
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_4")
 			h4_relu = LeakyReLU(h4)
-			h4_concat = self.normalize(tf.concat(axis=3, values=[h4_relu, yneed_2]))
-			h5 = tf.layers.conv2d(h5_concat, filters=64, kernel_size=[5,5],
+			h4_concat = self.normalize(tf.concat(axis=3, values=[h4_relu, yneed_3]))
+			h5 = tf.layers.conv2d(h4_concat, filters=64, kernel_size=[5,5],
 				strides=[2,2], padding='SAME',
 				activation=None, 
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_5")
 			h5_relu = LeakyReLU(h3)
-			h5_reshape = tf.reshape(h5, shape=[-1,self.dim_4*self.dim_4*64])
-			h5_concat = self.normalize(tf.concat(axis=1, values=[h5_relu, zvalue]))
+			h5_reshape = tf.reshape(h5, shape=[self.batch_size,self.dim_8*self.dim_8*64])
+			h5_concat = self.normalize(tf.concat(axis=1, values=[h5_reshape, zvalue]))
 			h6 = tf.layers.dense(h5_concat, units=256, 
 				activation=None,
 				kernel_initializer=self.initializer,
@@ -121,8 +122,8 @@ class VAEGAN():
 			ystack = tf.reshape(zvalue, shape=[self.batch_size, 1,1 , self.zdimension])
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_4, self.dim_4, self.zdimension])
 			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2, self.dim_2, self.zdimension])
-			embedding = tf.conat(axis=1, values=[embedding, zvalue])
-			h1 = tf.layers.dense(embedding, units=3136, activation=None,
+			embedding = tf.concat(axis=1, values=[embedding, zvalue])
+			h1 = tf.layers.dense(embedding, units=4096, activation=None,
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
 			h1_relu = tf.nn.relu(self.normalize(h1))
@@ -137,17 +138,18 @@ class VAEGAN():
 			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = 32, 
 				kernel_size=[5,5], strides=[1,1], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
-				reuse=scope.reuse,name='conv_1')
+				reuse=scope.reuse,name='conv_2')
 			h3_relu = tf.nn.relu(self.normalize(h3))
 			h3_concat = tf.concat(axis=3, values=[h3_relu, yneed_2])
-			h4 = tf.layers.conv2d_transpose(inputs=h1_concat, filters = dim_channel, 
+			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim_channel, 
 				kernel_size=[5,5], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
-				reuse=scope.reuse,name='conv_1')
+				reuse=scope.reuse,name='conv_3')
 			return tf.nn.sigmoid(h4)
 
 	def encoder_image(self, image, scope):
 		with tf.device(self.device):
+			LeakyReLU = tf.contrib.keras.layers.LeakyReLU(alpha=0.2)
 			image_proc = self.normalize(image,flag=True)
 			h1 = tf.layers.conv2d(image_proc, filters=32, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
@@ -155,20 +157,20 @@ class VAEGAN():
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_1")
 			h1_relu = self.normalize(LeakyReLU(h1))
-			h2 = tf.layers.conv2d(image_proc, filters=64, kernel_size=[4,4],
+			h2 = tf.layers.conv2d(h1_relu, filters=64, kernel_size=[4,4],
 				strides=[1,1], padding='SAME',
 				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_2")
 			h2_relu = self.normalize(LeakyReLU(h2))
-			h3 = tf.layers.conv2d(image_proc, filters=16, kernel_size=[4,4],
+			h3 = tf.layers.conv2d(h2_relu, filters=16, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_3")
 			h3_relu = self.normalize(LeakyReLU(h3))
 			h3_reshape = tf.reshape(h3_relu, shape=[self.batch_size, self.dim_4*self.dim_4*16])
-			h4 = tf.layers.dense(h3_reshape, units=zdimension+num_class_image, 
+			h4 = tf.layers.dense(h3_reshape, units=self.embedding_size+self.num_class_image, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_2',
@@ -179,8 +181,8 @@ class VAEGAN():
 			h1 = tf.layers.dense(motion_embedding, units=512,
 				activation=None, kernel_initializer=self.initializer,
 				name="dense_1", reuse=scope.reuse)
-			h1_relu = tf.nn.relu(self.normalize)
-			h2 = tf.layers.dense(h1, units=self.num_motion_class, 
+			h1_relu = tf.nn.relu(self.normalize(h1))
+			h2 = tf.layers.dense(h1, units=self.num_class_motion, 
 				activation=None, kernel_initializer=self.initializer,
 				name="dense_2", reuse=scope.reuse)
 			h2_normalize = self.normalize(h2)
@@ -189,7 +191,7 @@ class VAEGAN():
 
 	def discriminate_encode(self, input_embedding, scope):
 		h1 = tf.layers.dense(input_embedding, units=750,
-			activation=None, kernel_size=self.initializer,
+			activation=None, kernel_initializer=self.initializer,
 			name="dense_1", reuse=scope.reuse)
 		h1_relu = tf.nn.relu(self.normalize(h1))
 		h2 = tf.layers.dense(h1, units=750,
@@ -209,29 +211,30 @@ class VAEGAN():
 		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
 		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
 		z_t = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_motion])
-		with tf.varaiable_scope("encoder") as scope:
+		with tf.variable_scope("encoder") as scope:
 			encode = self.encoder_image(image_input, scope)
-		with tf.varaiable_scope("text_encoder"):
-			text_encode = self.encoder_motion(text_label_input)
-		z_hat_s = encode[:self.embedding_size]
-		z_hat_c = tf.nn.softmax(encode[self.embedding_size:])
+		with tf.variable_scope("text_encoder") as scope:
+			text_encode = self.encoder_motion(text_label_input, scope)
+		z_hat_s = encode[:,:self.embedding_size]
+		z_hat_c = tf.nn.softmax(encode[:,self.embedding_size:])
 		z_hat_t = tf.nn.softmax(text_encode)
 		z_hat_input = tf.concat(axis=1, values=[z_hat_c, z_hat_t])
-		with tf.varaiable_scope("generator") as scope:
+		with tf.variable_scope("generator") as scope:
 			x_hat = self.generate_image(z_hat_s,z_hat_input, scope)
 			scope.reuse_variables()
-			x_dash = self.generate_image(z_s, tf.concat(axis=1, values=[z_c, z_t]))
+			x_dash = self.generate_image(z_s, tf.concat(axis=1, values=[z_c, z_t]),scope)
 		with tf.variable_scope("image_discriminator") as scope:
 			D_x_hat = self.discriminate_image(x_hat, z_hat_input, scope)
 			scope.reuse_variables()
 			D_x = self.discriminate_image(x, z_hat_input, scope)
-			D_x_dash = self.discriminate_image(z_s, tf.concat(axis=1, values=[z_c, z_t]))
-		with tf.varaiable_scope("text_classifier") as scope:
+			D_x_dash = self.discriminate_image(x_dash, tf.concat(axis=1, values=[z_c, z_t]),scope)
+		with tf.variable_scope("text_classifier") as scope:
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
 			scope.reuse_variables()
 			D_z_t = self.discriminate_encode(z_hat_t, scope)
 		with tf.variable_scope("image_classifier") as scope:
 			D_z_hat_c = self.discriminate_encode(z_hat_c, scope)
+			scope.reuse_variables()
 			D_z_c = self.discriminate_encode(z_c, scope)
 		losses = dict()
 		with tf.variable_scope("losses"):
@@ -246,12 +249,12 @@ class VAEGAN():
 			losses["text_encoder"] = losses["gen_text_classifier"]
 		optimizer = dict()
 		with tf.variable_scope("optimizers"):
-			optimizer["encoder"] = tf.AdamOptimizer(self.learning_rate[0],beta1=0.5, beta2=0.9).minimize(losses["encoder"])
-			optimizer["text_encoder"] = tf.AdamOptimizer(self.learning_rate[1], beta1=0.5, beta2=0.9).minimize(losses["text_encoder"])
-			optimizer["generator"] = tf.AdamOptimizer(self.learning_rate[2],beta1=0.5,beta2=0.9).minimize(losses["generator_image"])
-			optimizer["discriminator"] = tf.AdamOptimizer(self.learning_rate[3],beta1=0.5, beta2=0.9).minimize(losses["disc_image_discriminator"])
-			optimizer["code_discriminator"] = tf.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"])
-			optimizer["text_discriminator"] = tf.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classsifier"])
+			optimizer["encoder"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5, beta2=0.9).minimize(losses["encoder"])
+			optimizer["text_encoder"] = tf.train.AdamOptimizer(self.learning_rate[1], beta1=0.5, beta2=0.9).minimize(losses["text_encoder"])
+			optimizer["generator"] = tf.train.AdamOptimizer(self.learning_rate[2],beta1=0.5,beta2=0.9).minimize(losses["generator_image"])
+			optimizer["discriminator"] = tf.train.AdamOptimizer(self.learning_rate[3],beta1=0.5, beta2=0.9).minimize(losses["disc_image_discriminator"])
+			optimizer["code_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"])
+			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"])
 		return optimizer, x_hat
 
 epoch = 600
@@ -265,7 +268,7 @@ gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[
 	num_class_motion=num_class_motion, num_class_image=num_class_image)
 
 optimizers, x_hat = gan.build_model()
-session = tf.InteractiveSession(config=tf.configProto(log_device_placement=True))
+session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 
 saver = tf.train.Saver()
 
@@ -282,12 +285,12 @@ def generate(batch_size):
 		batch_labels[i,10:] = l
 		if t == 0:
 			for j in range(3):
-				batch[i,0:28,0:28,j] = batch1*l[j]
-				batch_gen[i, 4:32,4:32,j] = batch1*l[j]
+				batch[i,0:28,0:28,j] = batch1[i]*l[j]
+				batch_gen[i, 4:32,4:32,j] = batch1[i]*l[j]
 		else :
 			for j in range(3):
-				batch[i,0:28,4:32,j] = batch1*l[j]
-				batch_gen[i,4:32,0:28,j] = batch1*l[j]
+				batch[i,0:28,4:32,j] = batch1[i]*l[j]
+				batch_gen[i,4:32,0:28,j] = batch1[i]*l[j]
 	return batch, batch_gen, batch_labels
 
 def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
