@@ -27,7 +27,7 @@ class VAEGAN():
 		# self.learning_rate_1 = floor(learning_rate_1)
 		# self.learning_rate_2 = floor(lear/ning_rate_2)
 		# assumes square images
-		self.lambda_1 = 10
+		self.lambda_1 = 1
 		self.dim_1 = self.image_shape[0]
 		self.dim_2 = self.image_shape[0] // 2
 		self.dim_4 = self.image_shape[0] // 4
@@ -198,10 +198,10 @@ class VAEGAN():
 			activation=None, kernel_initializer=self.initializer, 
 			name="dense_2", reuse=scope.reuse)
 		h2_relu = tf.nn.relu(self.normalize(h2))
-		h3 = tf.layers.dense(h2, units=1, 
+		h3 = tf.layers.dense(h2, units=10, 
 			activation=None, kernel_initializer=self.initializer,
 			name="dense_3", reuse=scope.reuse)
-		return tf.nn.sigmoid(h3)
+		return tf.nn.sigmoid(self.normalize(h3))
 
 	def build_model(self):
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_shape)
@@ -240,17 +240,17 @@ class VAEGAN():
 		with tf.variable_scope("text_classifier") as scope:
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
 			scope.reuse_variables()
-			D_z_t = self.discriminate_encode(z_hat_t, scope)
+			D_z_t = self.discriminate_encode(z_t, scope)
 		with tf.variable_scope("image_classifier") as scope:
 			D_z_hat_c = self.discriminate_encode(z_hat_c, scope)
 			scope.reuse_variables()
 			D_z_c = self.discriminate_encode(z_c, scope)
 		losses = dict()
 		with tf.variable_scope("losses"):
-			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_dash)))
+			losses["reconstruction"] = tf.sqrt(tf.reduce_sum(tf.square(x-x_dash)))
 			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False) + self.cross_entropy(image_class_input, True)
 			losses["gen_image_classifier"] = self.cross_entropy(D_z_hat_c, True)
-			losses["disc_text_classifier"] = self.cross_entropy(D_z_t, True) + self.cross_entropy(D_z_hat_t, False)
+			losses["disc_text_classifier"] = self.cross_entropy(D_z_t,True) + self.cross_entropy(D_z_hat_t, False)
 			losses["gen_text_classifier"] = self.cross_entropy(D_z_hat_t, True)
 			losses["disc_image_discriminator"] = self.cross_entropy(D_x_hat, False) + self.cross_entropy(D_x_dash, False) + 2*self.cross_entropy(D_x, True)
 			losses["generator_image"] = self.cross_entropy(D_x_hat, True) + self.cross_entropy(D_x_dash, True) + (self.lambda_1*losses["reconstruction"])
@@ -277,7 +277,7 @@ gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[
 	num_class_motion=num_class_motion, num_class_image=num_class_image)
 
 placeholders,optimizers, losses, x_hat = gan.build_model()
-session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
+session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
 
@@ -358,9 +358,9 @@ for ep in range(epoch):
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 			}
 			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
-			_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
-			_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
-			if t % 10 == 0:
+			_, loss_val[2] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
+			_, loss_val[1] = session.run([optimizers["text_discriminator"], losses["disc_text_classifier"]], feed_dict=feed_dict)
+			if t % 10 == 0 and t>0:
 				print("%d : "%(run) + " : ".join(map(lambda x: str(x), loss_val)))
 		feed_list = generate(batch_size)
 		run += batch_size
@@ -374,7 +374,7 @@ for ep in range(epoch):
 			placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 		}
 		_, loss_val[3] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
-		_, loss_val[4] = session.run([optimizers["text_encoder"], losses["encoder"]], feed_dict=feed_dict)
+		_, loss_val[4] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 		_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 		if run > num_count : 
 			num_count += 100
