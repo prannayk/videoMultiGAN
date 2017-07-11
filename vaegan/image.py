@@ -361,7 +361,7 @@ for ep in range(epoch):
 			_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
 			_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
 			if t % 10 == 0:
-				print(",".join(map(lambda x: str(x), loss_val)))
+				print("%d : "%(run) + " : ".join(map(lambda x: str(x), loss_val)))
 		feed_list = generate(batch_size)
 		run += batch_size
 		feed_dict = {
@@ -378,5 +378,5 @@ for ep in range(epoch):
 		_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 		if run > num_count : 
 			num_count += 100
-			print("%d : " + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
+			print("%d : "%(run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
 			start_time = time.time()
