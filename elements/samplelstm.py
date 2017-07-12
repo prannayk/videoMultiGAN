@@ -112,7 +112,6 @@ class DCGAN():
 		class_embedding = tf.reshape(tf.concat(values=[return_class_f, return_class_b],axis=2),shape=[self.batch_size*self.frames, self.num_class])
 		assert map(lambda x: int(x), class_embedding.get_shape()) == [self.batch_size*self.frames, self.num_class]
 		return self.normalize(class_embedding,local=True)
-				
 
 	def discriminate(self, image, classes, scope):
 		with tf.device(self.device):
