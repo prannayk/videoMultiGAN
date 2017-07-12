@@ -333,7 +333,7 @@ tf.global_variables_initializer().run()
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
-diter = 2
+diter = 5
 num_examples = 64000
 for ep in range(epoch):
 	loss_val = [0,0,0,0,0,0]
@@ -342,9 +342,9 @@ for ep in range(epoch):
 	num_count = 100
 	while run < num_examples:
 		if ep < 5 or ep % 50 == 0 : 
-			iterD = 10
+			iterD = 20
 		else :
-			iterD = 2
+			iterD = diter
 		for t in range(iterD):
 			feed_list = generate(batch_size)
 			run += batch_size
@@ -364,18 +364,19 @@ for ep in range(epoch):
 			_, loss_val[4] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 			if t % 10 == 0 and t>0:
 				print("%d : "%(run) + " : ".join(map(lambda x: str(x), loss_val)))
-		feed_list = generate(batch_size)
-		run += batch_size
-		feed_dict = {
-			placeholders['image_input'] : feed_list[0],
-			placeholders['x'] : feed_list[1],
-			placeholders['image_class_input'] : feed_list[2],
-			placeholders['text_label_input'] : feed_list[3],
-			placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
-			placeholders['z_c'] : random_label(batch_size),
-			placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
-		}
-		_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
+		for t in range(diter):
+			feed_list = generate(batch_size)
+			run += batch_size
+			feed_dict = {
+				placeholders['image_input'] : feed_list[0],
+				placeholders['x'] : feed_list[1],
+				placeholders['image_class_input'] : feed_list[2],
+				placeholders['text_label_input'] : feed_list[3],
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+			}
+			_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 		if run > num_count : 
 			num_count = run + 640
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
