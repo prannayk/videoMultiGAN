@@ -342,6 +342,7 @@ for ep in range(epoch):
 	num_count = 100
 	while run < num_examples:
 		if ep > 5 or ep % 50 != 0 : 
+			print(ep)
 			iterD = diter
 		else :
 			iterD = 50
