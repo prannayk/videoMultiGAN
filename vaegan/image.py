@@ -377,7 +377,7 @@ for ep in range(epoch):
 		}
 		_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 		if run > num_count : 
-			num_count = run + 128
+			num_count = run + 640
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
 			start_time = time.time()
 	print("DOne with an Epoch")
