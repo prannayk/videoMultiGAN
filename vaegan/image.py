@@ -342,7 +342,6 @@ for ep in range(epoch):
 	num_count = 100
 	while run < num_examples:
 		if ep < 5 or ep % 50 == 0 : 
-			print(ep)
 			iterD = 50
 		else :
 			iterD = diter
@@ -379,7 +378,7 @@ for ep in range(epoch):
 		_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 		if run > num_count : 
 			num_count += 100
-			print("%d : "%(run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
+			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
 			start_time = time.time()
 	print("DOne with an Epoch")
 	images = session.run(x_hat, feed_dict=feed_dict)
