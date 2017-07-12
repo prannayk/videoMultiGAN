@@ -363,7 +363,7 @@ for ep in range(epoch):
 				_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_text_classifier"]], feed_dict=feed_dict)
 				_, loss_val[4] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 			if t % 10 == 0 and t>0:
-				print("%d : "%(run) + " : ".join(map(lambda x: str(x), loss_val)))
+				print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x: str(x), loss_val)))
 		for t in range(diter):
 			feed_list = generate(batch_size)
 			run += batch_size
