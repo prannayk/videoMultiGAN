@@ -334,7 +334,7 @@ print("Running code: ")
 
 epoch = int(sys.argv[-1])
 diter = 5
-num_examples = 55000
+num_examples = 64000
 for ep in range(epoch):
 	loss_val = [0,0,0,0,0,0]
 	run = 0
