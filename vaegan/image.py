@@ -343,9 +343,9 @@ for ep in range(epoch):
 	while run < num_examples:
 		if ep < 5 or ep % 50 == 0 : 
 			print(ep)
-			iterD = diter
-		else :
 			iterD = 50
+		else :
+			iterD = diter
 		for t in range(iterD):
 			feed_list = generate(batch_size)
 			run += batch_size
