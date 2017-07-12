@@ -357,10 +357,10 @@ for ep in range(epoch):
 				placeholders['z_c'] : random_label(batch_size),
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 			}
-			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
+			if ep > 5: 
+				_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
 			_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
 			_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_text_classifier"]], feed_dict=feed_dict)
-			_, loss_val[3] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
 			_, loss_val[4] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 			if t % 10 == 0 and t>0:
 				print("%d : "%(run) + " : ".join(map(lambda x: str(x), loss_val)))
@@ -376,7 +376,9 @@ for ep in range(epoch):
 				placeholders['z_c'] : random_label(batch_size),
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 			}
-			_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
+			_, loss_val[3] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
+			if ep > 5 :
+				_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 		if run > num_count : 
 			num_count = run + 640
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
