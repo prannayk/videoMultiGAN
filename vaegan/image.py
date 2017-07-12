@@ -341,8 +341,8 @@ for ep in range(epoch):
 	start_time = time.time()
 	num_count = 100
 	while run < num_examples:
-		if ep < 5 or ep % 50 == 0 : 
-			iterD = 20
+		if ep < 3 or ep % 50 == 0 : 
+			iterD = 50
 		else :
 			iterD = diter
 		for t in range(iterD):
