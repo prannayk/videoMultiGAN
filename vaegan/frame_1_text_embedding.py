@@ -335,6 +335,7 @@ def random_label(batch_size):
 
 def train_epoch(flag=False, initial=True):
 	diter = 5
+	count =  0
 	large_iter =  100
 	if flag  :
 		final_iter = large_iter
@@ -380,7 +381,9 @@ def train_epoch(flag=False, initial=True):
 				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 			_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
 			_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
-		print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
+		count += 1
+		if count % 10 or flag:
+			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
 		start_time = time.time() 
 
 image_sample,image_gen,image_labels, text_labels = generate(64)
