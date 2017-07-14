@@ -16,7 +16,7 @@ class VAEGAN():
 		self.num_class_image = num_class_image
 		self.num_class_motion = num_class_motion
 		self.num_class = num_class_image
-		self.embedding_size = embedding_size + self.num_class_motion
+		self.embedding_size = embedding_size 
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.dim1 = dim1
@@ -251,7 +251,7 @@ class VAEGAN():
 			D_z_s = self.discriminate_encode(z_s, scope)
 		losses = dict()
 		with tf.variable_scope("losses"):
-			losses["reconstruction"] = tf.sqrt(tf.reduce_sum(tf.square(x-x_dash)))
+			losses["reconstruction"] = tf.sqrt(tf.reduce_sum(tf.square(x-x_dash))) / 64
 			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False) + self.cross_entropy(image_class_input, True)
 			losses["gen_image_classifier"] = self.cross_entropy(D_z_hat_c, True)
 			losses["disc_text_classifier"] = self.cross_entropy(D_z_t,True) + self.cross_entropy(D_z_hat_t, False)
@@ -340,7 +340,9 @@ def train_epoch(flag=False, initial=True):
 		final_iter = large_iter
 	else:
 		final_iter = diter
+	run=0
 	start_time = time.time()
+	loss_val = [0,0,0,0,0,0,0]
 	while run <= num_examples:
 		for t in range(final_iter):
 			feed_list = generate(batch_size)
@@ -398,5 +400,15 @@ for ep in range(epoch):
 	else:
 		train_epoch()
 	print("Saving image")
+	feed_list = generate(batch_size)
+	feed_dict = {
+				placeholders['image_input'] : feed_list[0],
+				placeholders['x'] : feed_list[1],
+				placeholders['image_class_input'] : feed_list[2],
+				placeholders['text_label_input'] : feed_list[3],
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(images, save_path="../results/vae/32/frame_1_text_embedding/sample_%d.jpg"%(ep+1))
