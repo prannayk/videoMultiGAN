@@ -264,14 +264,15 @@ class VAEGAN():
 			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
 		optimizer = dict()
 		with tf.variable_scope("optimizers"):
-			optimizer["encoder"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5, beta2=0.9).minimize(losses["encoder"])
+			encoder_adam = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9)
+			optimizer["encoder"] = encoder_adam.minimize(losses["encoder"])
 			optimizer["text_encoder"] = tf.train.AdamOptimizer(self.learning_rate[1], beta1=0.5, beta2=0.9).minimize(losses["text_encoder"])
-			optimizer["generator"] = tf.train.AdamOptimizer(self.learning_rate[2],beta1=0.5,beta2=0.9).minimize(losses["generator_image"])
+			optimizer["generator"] = encoder_adam.minimize(losses["generator_image"])
+			optimizer["generator_reconstruction"] = encoder_adam.minimize(self.lambda_1*losses["reconstruction"])
 			optimizer["discriminator"] = tf.train.AdamOptimizer(self.learning_rate[3],beta1=0.5, beta2=0.9).minimize(losses["disc_image_discriminator"])
 			optimizer["code_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"])
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"])
 			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"])
-			optimizer["style_generator"] = tf.train.AdamOptimizer(self.learning_rate[7],beta1=0.5, beta2=0.9).minimize(losses["gen_style_classifier"])
 		return placeholders, optimizer, losses, x_hat
 
 epoch = 600
@@ -332,9 +333,57 @@ def random_label(batch_size):
 		random[i, 10:] = np.random.randint(0,256,[3]).astype(float) / 255
 	return random	
 
+def train_epoch(flag=False, initial=True):
+	diter = 5
+	large_iter =  100
+	if flag  :
+		final_iter = large_iter
+	else:
+		final_iter = diter
+	start_time = time.time()
+	while run <= num_examples:
+		for t in range(final_iter):
+			feed_list = generate(batch_size)
+			run += batch_size
+			feed_dict = {
+				placeholders['image_input'] : feed_list[0],
+				placeholders['x'] : feed_list[1],
+				placeholders['image_class_input'] : feed_list[2],
+				placeholders['text_label_input'] : feed_list[3],
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+			}
+			if not initial:
+				_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
+			_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
+			_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_text_classifier"]], feed_dict=feed_dict)
+			_, loss_val[3] = session.run([optimizers["style_discriminator"], losses["disc_style_classifier"]], feed_dict=feed_dict)
+
+		for _ in range(diter):
+			feed_list = generate(batch_size)
+			run += batch_size
+			feed_dict = {
+				placeholders['image_input'] : feed_list[0],
+				placeholders['x'] : feed_list[1],
+				placeholders['image_class_input'] : feed_list[2],
+				placeholders['text_label_input'] : feed_list[3],
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+			}
+			if not initial :
+				_, loss_val[6] = session.run([optimizers["generator_reconstruction"],losses["reconstruction"]], feed_dict=feed_dict)
+			else:
+				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
+			_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
+			_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
+		print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
+		start_time = time.time() 
+
 image_sample,image_gen,image_labels, text_labels = generate(64)
-save_visualization(image_sample, save_path='../results/vae/image/sample.jpg')
-save_visualization(image_gen, save_path='../results/vae/image/sample_gen.jpg')	
+save_visualization(image_sample, save_path='../results/vae/32/frame_1_text_embedding/sample.jpg')
+save_visualization(image_gen, save_path='../results/vae/32/frame_1_text_embedding/sample_gen.jpg')	
 saver = tf.train.Saver()
 tf.global_variables_initializer().run()
 
@@ -344,53 +393,10 @@ epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
 for ep in range(epoch):
-	loss_val = [0,0,0,0,0,0]
-	run = 0
-	start_time = time.time()
-	num_count = 100
-	while run < num_examples:
-		if ep < 3 or ep % 50 == 0 : 
-			iterD = 50
-		else :
-			iterD = diter
-		for t in range(iterD):
-			feed_list = generate(batch_size)
-			run += batch_size
-			feed_dict = {
-				placeholders['image_input'] : feed_list[0],
-				placeholders['x'] : feed_list[1],
-				placeholders['image_class_input'] : feed_list[2],
-				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
-			}
-			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
-			if ep > 10: 
-				_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
-				_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_text_classifier"]], feed_dict=feed_dict)
-				_, loss_val[4] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
-			if t % 10 == 0 and t>0:
-				print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x: str(x), loss_val)))
-		for t in range(diter):
-			feed_list = generate(batch_size)
-			run += batch_size
-			feed_dict = {
-				placeholders['image_input'] : feed_list[0],
-				placeholders['x'] : feed_list[1],
-				placeholders['image_class_input'] : feed_list[2],
-				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
-			}
-			if ep > 10 :
-				_, loss_val[3] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
-			_, loss_val[5] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
-		if run > num_count : 
-			num_count = run + 640
-			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
-			start_time = time.time()
-	print("DOne with an Epoch")
+	if ep % 50 == 0 or ep < 5:
+		train_epoch(flag=True)
+	else:
+		train_epoch()
+	print("Saving image")
 	images = session.run(x_hat, feed_dict=feed_dict)
-	save_visualization(images, save_path="../results/vae/image/sample_%d.jpg"%(ep+1))
+	save_visualization(images, save_path="../results/vae/32/frame_1_text_embedding/sample_%d.jpg"%(ep+1))
