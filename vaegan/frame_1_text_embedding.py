@@ -382,7 +382,7 @@ def train_epoch(flag=False, initial=True):
 			_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
 			_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 		count += 1
-		if count % 10 or flag:
+		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
 		start_time = time.time() 
 
