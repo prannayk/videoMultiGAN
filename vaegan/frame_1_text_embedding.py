@@ -123,6 +123,7 @@ class VAEGAN():
 			ystack = tf.reshape(zvalue, shape=[self.batch_size, 1,1 , self.zdimension])
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_4, self.dim_4, self.zdimension])
 			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2, self.dim_2, self.zdimension])
+			# yneed_3 = ystack*tf.ones([self.batch_size, self.dim_8, self.dim_8, self.zdimension])
 			embedding = tf.concat(axis=1, values=[embedding, zvalue])
 			h1 = tf.layers.dense(embedding, units=4096, activation=None,
 				kernel_initializer=self.initializer, 
@@ -230,7 +231,7 @@ class VAEGAN():
 		z_hat_t = tf.nn.softmax(text_encode)
 		z_hat_input = tf.concat(axis=1, values=[z_hat_s, z_hat_t])
 		with tf.variable_scope("generator") as scope:
-			x_hat = self.generate_image(z_hat_input, z_hat_c, scope)
+			x_hat = self.generate_image(z_hat_input, image_class_input, scope)
 			scope.reuse_variables()
 			x_dash = self.generate_image(tf.concat(axis=1, values=[z_s, z_t]),z_c,scope)
 			x_gen = self.generate_image(z_hat_input,image_class_input, scope)
@@ -255,7 +256,7 @@ class VAEGAN():
 			D_z_s = self.discriminate_encode(z_s, scope)
 		losses = dict()
 		with tf.variable_scope("losses"):
-			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_dash)))
+			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_hat)))
 			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False) + self.cross_entropy(D_z_real, True)
 			losses["gen_image_classifier"] = self.cross_entropy(D_z_hat_c, True)
 			losses["disc_text_classifier"] = self.cross_entropy(D_z_t,True) + self.cross_entropy(D_z_hat_t, False)
