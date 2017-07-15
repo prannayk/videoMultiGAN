@@ -369,11 +369,13 @@ def train_epoch(flag=False, initial=True):
 				placeholders['z_c'] : random_label(batch_size),
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 			}
-			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
 			if initial:
+				_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
 				_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
 				_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_text_classifier"]], feed_dict=feed_dict)
 				_, loss_val[3] = session.run([optimizers["style_discriminator"], losses["disc_style_classifier"]], feed_dict=feed_dict)
+			else:
+				_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
 
 		for _ in range(2*diter):
 			feed_list = generate(batch_size)
@@ -387,10 +389,13 @@ def train_epoch(flag=False, initial=True):
 				placeholders['z_c'] : random_label(batch_size),
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 			}
-			_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 			if initial :
-				_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
+				_, loss_val[6] = session.run([optimizers["generator_reconstruction"], losses["reconstruction"]], feed_dict=feed_dict)
+				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 				_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
+			else:
+				_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
+
 		# z_c = session.run(z_hat_c, feed_dict=feed_dict)
 		count += 1
 		if count % 10 == 0 or flag:
