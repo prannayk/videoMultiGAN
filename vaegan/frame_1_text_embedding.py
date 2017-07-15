@@ -27,7 +27,7 @@ class VAEGAN():
 		# self.learning_rate_1 = floor(learning_rate_1)
 		# self.learning_rate_2 = floor(lear/ning_rate_2)
 		# assumes square images
-		self.lambda_1 = 1
+		self.lambda_1 = 10
 		self.dim_1 = self.image_shape[0]
 		self.dim_2 = self.image_shape[0] // 2
 		self.dim_4 = self.image_shape[0] // 4
@@ -233,10 +233,11 @@ class VAEGAN():
 			x_hat = self.generate_image(z_hat_input, z_hat_c, scope)
 			scope.reuse_variables()
 			x_dash = self.generate_image(tf.concat(axis=1, values=[z_s, z_t]),z_c,scope)
+			x_gen = self.generate_image(z_hat_input,image_input, scope)
 		with tf.variable_scope("image_discriminator") as scope:
 			D_x_hat = self.discriminate_image(x_hat, z_hat_c, scope)
 			scope.reuse_variables()
-			D_x = self.discriminate_image(x, z_hat_c, scope)
+			D_x = self.discriminate_image(x, image_input, scope)
 			D_x_dash = self.discriminate_image(x_dash, z_c,scope)
 		with tf.variable_scope("text_classifier") as scope:
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
@@ -282,7 +283,7 @@ class VAEGAN():
 			optimizer["code_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"], var_list=variable_dict["image_class"])
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"], var_list=variable_dict["text_class"])
 			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"], var_list=variable_dict["style_class"])
-		return placeholders, optimizer, losses, x_hat
+		return placeholders, optimizer, losses, x_gen
 
 epoch = 600
 batch_size = 64
