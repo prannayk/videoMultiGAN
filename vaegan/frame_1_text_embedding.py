@@ -260,8 +260,8 @@ class VAEGAN():
 			losses["gen_image_classifier"] = self.cross_entropy(D_z_hat_c, True)
 			losses["disc_text_classifier"] = self.cross_entropy(D_z_t,True) + self.cross_entropy(D_z_hat_t, False)
 			losses["gen_text_classifier"] = self.cross_entropy(D_z_hat_t, True)
-			losses["disc_image_discriminator"] = self.cross_entropy(D_x_hat, False) + self.cross_entropy(D_x_dash, False) + 3*self.cross_entropy(D_x, True) + self.cross_entropy(D_x_gen,False)
-			losses["generator_image"] = self.cross_entropy(D_x_hat, True) + self.cross_entropy(D_x_dash, True) + self.cross_entropy(D_x_gen, True) + (self.lambda_1*losses["reconstruction"])
+			losses["disc_image_discriminator"] = self.cross_entropy(D_x_gen,False) + self.cross_entropy(D_x,True) # + self.cross_entropy(D_x_hat, False) + self.cross_entropy(D_x_dash, False) + 2*self.cross_entropy(D_x, True)
+			losses["generator_image"] = self.cross_entropy(D_x_gen, True) + (self.lambda_1*losses["reconstruction"]) # + self.cross_entropy(D_x_hat, True) + self.cross_entropy(D_x_dash, True) 
 			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1)
 			losses["disc_style_classifier"] = self.cross_entropy(D_z_hat_s,False) + self.cross_entropy(D_z_s, True)
 			losses["gen_style_classifier"] = self.cross_entropy(D_z_hat_s, True)
@@ -375,7 +375,7 @@ def train_epoch(flag=False, initial=True):
 				_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_text_classifier"]], feed_dict=feed_dict)
 				_, loss_val[3] = session.run([optimizers["style_discriminator"], losses["disc_style_classifier"]], feed_dict=feed_dict)
 
-		for _ in range(diter):
+		for _ in range(2*diter):
 			feed_list = generate(batch_size)
 			run += batch_size
 			feed_dict = {
@@ -410,7 +410,7 @@ epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
 for ep in range(epoch):
-	if ep % 50 == 0 or ep < 15:
+	if ep % 50 == 0 or ep < 8:
 		if ep > 5:
 			train_epoch(flag=True)
 		else :
