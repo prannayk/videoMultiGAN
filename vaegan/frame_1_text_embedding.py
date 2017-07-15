@@ -391,7 +391,7 @@ def train_epoch(flag=False, initial=True):
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 			}
 			if initial :
-				_, loss_val[6] = session.run([optimizers["generator_reconstruction"], losses["reconstruction"]], feed_dict=feed_dict)
+				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
 				_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
 				_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 			else:
