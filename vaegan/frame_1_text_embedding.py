@@ -116,7 +116,7 @@ class VAEGAN():
 				kernel_initializer=self.initializer,
 				name='dense_2',
 				reuse=scope.reuse)
-			return LeakyReLU(self.normalize(h5, name="last_normalize", reuse=scope.reuse))
+			return tf.nn.sigmoid(LeakyReLU(self.normalize(h5, name="last_normalize", reuse=scope.reuse)))
 
 	def generate_image(self, embedding, zvalue, scope):
 		with tf.device(self.device):
