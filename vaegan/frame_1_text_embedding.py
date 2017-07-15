@@ -233,11 +233,11 @@ class VAEGAN():
 			x_hat = self.generate_image(z_hat_input, z_hat_c, scope)
 			scope.reuse_variables()
 			x_dash = self.generate_image(tf.concat(axis=1, values=[z_s, z_t]),z_c,scope)
-			x_gen = self.generate_image(z_hat_input,image_input, scope)
+			x_gen = self.generate_image(z_hat_input,image_class_input, scope)
 		with tf.variable_scope("image_discriminator") as scope:
 			D_x_hat = self.discriminate_image(x_hat, z_hat_c, scope)
 			scope.reuse_variables()
-			D_x = self.discriminate_image(x, image_input, scope)
+			D_x = self.discriminate_image(x, image_class_input, scope)
 			D_x_dash = self.discriminate_image(x_dash, z_c,scope)
 		with tf.variable_scope("text_classifier") as scope:
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
@@ -284,7 +284,7 @@ class VAEGAN():
 			optimizer["code_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"], var_list=variable_dict["image_class"])
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"], var_list=variable_dict["text_class"])
 			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"], var_list=variable_dict["style_class"])
-		return placeholders, optimizer, losses, x_gen
+		return placeholders, optimizer, losses, x_gen, z_hat_c
 
 epoch = 600
 batch_size = 64
@@ -296,7 +296,7 @@ num_class_motion = 5
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,32,3], 
 	num_class_motion=num_class_motion, num_class_image=num_class_image)
 
-placeholders,optimizers, losses, x_hat = gan.build_model()
+placeholders,optimizers, losses, x_hat,z_hat_c = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
@@ -390,7 +390,7 @@ def train_epoch(flag=False, initial=True):
 			if initial :
 				_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
 				_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
-		z_c = session.run(z_c, feed_dict=feed_dict)
+		z_c = session.run(z_hat_c, feed_dict=feed_dict)
 		count += 1
 		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
