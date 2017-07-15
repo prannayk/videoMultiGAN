@@ -55,7 +55,7 @@ class VAEGAN():
 		else :
 			softmax = tf.log(1 - X)
 		# softmax = tf.nn.softmax_cross_entropy_with_logits(logits =X, labels=labels)
-		return tf.reduce_mean(softmax)
+		return -tf.reduce_mean(softmax)
 
 	def discriminate_image(self, image, zvalue, scope):
 		with tf.device(self.device):
@@ -116,7 +116,7 @@ class VAEGAN():
 				kernel_initializer=self.initializer,
 				name='dense_2',
 				reuse=scope.reuse)
-			return LeakyReLU(self.normalize(h5, name="last_normalize", reuse=scope.reuse))
+			return tf.nn.sigmoid(LeakyReLU(self.normalize(h5, name="last_normalize", reuse=scope.reuse)))
 
 	def generate_image(self, embedding, zvalue, scope):
 		with tf.device(self.device):
