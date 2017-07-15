@@ -237,7 +237,7 @@ class VAEGAN():
 		with tf.variable_scope("image_discriminator") as scope:
 			D_x_hat = self.discriminate_image(x_hat, z_hat_c, scope)
 			scope.reuse_variables()
-			D_x = self.discriminate_image(x, image_input, scope)
+			D_x = self.discriminate_image(x, image_class_input, scope)
 			D_x_dash = self.discriminate_image(x_dash, z_c,scope)
 		with tf.variable_scope("text_classifier") as scope:
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
