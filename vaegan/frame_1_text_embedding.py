@@ -55,7 +55,7 @@ class VAEGAN():
 		else :
 			softmax = tf.log(1 - X)
 		# softmax = tf.nn.softmax_cross_entropy_with_logits(logits =X, labels=labels)
-		return tf.reduce_mean(softmax)
+		return -tf.reduce_mean(softmax)
 
 	def discriminate_image(self, image, zvalue, scope):
 		with tf.device(self.device):
