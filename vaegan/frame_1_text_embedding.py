@@ -50,10 +50,11 @@ class VAEGAN():
 
 	def cross_entropy(self, X, flag=True):
 		if flag :
-			labels = tf.ones_like(X)
+			# labels = tf.ones_like(X)
+			softmax = tf.log(X)
 		else :
-			labels = tf.zeros_like(X)
-		softmax = tf.nn.softmax_cross_entropy_with_logits(logits =X, labels=labels)
+			softmax = tf.log(1 - X)
+		# softmax = tf.nn.softmax_cross_entropy_with_logits(logits =X, labels=labels)
 		return tf.reduce_mean(softmax)
 
 	def discriminate_image(self, image, zvalue, scope):
@@ -110,7 +111,7 @@ class VAEGAN():
 				reuse=scope.reuse)
 			h6_relu = LeakyReLU(h6)
 			h6_concat = self.normalize(tf.concat(axis=1, values=[h6_relu, zvalue]))
-			h7 = tf.layers.dense(h6_concat, units=self.num_class, 
+			h7 = tf.layers.dense(h6_concat, units=1, 
 				activation=None,
 				kernel_initializer=self.initializer,
 				name='dense_2',
@@ -198,7 +199,7 @@ class VAEGAN():
 			activation=None, kernel_initializer=self.initializer, 
 			name="dense_2", reuse=scope.reuse)
 		h2_relu = tf.nn.relu(self.normalize(h2))
-		h3 = tf.layers.dense(h2, units=10, 
+		h3 = tf.layers.dense(h2, units=1, 
 			activation=None, kernel_initializer=self.initializer,
 			name="dense_3", reuse=scope.reuse)
 		return tf.nn.sigmoid(self.normalize(h3))
@@ -251,7 +252,7 @@ class VAEGAN():
 			D_z_s = self.discriminate_encode(z_s, scope)
 		losses = dict()
 		with tf.variable_scope("losses"):
-			losses["reconstruction"] = tf.sqrt(tf.reduce_sum(tf.square(x-x_dash))) / 64
+			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_dash)))
 			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False) + self.cross_entropy(image_class_input, True)
 			losses["gen_image_classifier"] = self.cross_entropy(D_z_hat_c, True)
 			losses["disc_text_classifier"] = self.cross_entropy(D_z_t,True) + self.cross_entropy(D_z_hat_t, False)
