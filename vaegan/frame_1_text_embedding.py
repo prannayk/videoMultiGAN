@@ -295,7 +295,7 @@ num_class_motion = 5
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,32,3], 
 	num_class_motion=num_class_motion, num_class_image=num_class_image)
 
-placeholders,optimizers, losses, x_hat = gan.build_model()
+placeholders,optimizers, losses, x_hat,z_hat_c = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
@@ -389,7 +389,7 @@ def train_epoch(flag=False, initial=True):
 			if initial :
 				_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
 				_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
-		z_c = session.run(z_c, feed_dict=feed_dict)
+		z_c = session.run(z_hat_c, feed_dict=feed_dict)
 		count += 1
 		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
