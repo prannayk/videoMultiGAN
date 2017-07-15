@@ -404,7 +404,7 @@ epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
 for ep in range(epoch):
-	if ep % 50 == 0 or ep < 5:
+	if ep % 50 == 0 or ep < 25:
 		train_epoch(flag=True)
 	else:
 		train_epoch()
