@@ -231,16 +231,16 @@ class VAEGAN():
 		z_hat_t = tf.nn.softmax(text_encode)
 		z_hat_input = tf.concat(axis=1, values=[z_hat_s, z_hat_t])
 		with tf.variable_scope("generator") as scope:
-			x_hat = self.generate_image(z_hat_input, image_class_input, scope)
+			x_hat = self.generate_image(z_hat_input, z_hat_c, scope)
 			scope.reuse_variables()
 			x_dash = self.generate_image(tf.concat(axis=1, values=[z_s, z_t]),z_c,scope)
-			x_gen = self.generate_image(z_hat_input,image_class_input, scope)
+			x_gen = self.generate_image(z_hat_input,z_hat_c, scope)
 		with tf.variable_scope("image_discriminator") as scope:
 			D_x_hat = self.discriminate_image(x_hat, z_hat_c, scope)
 			scope.reuse_variables()
 			D_x = self.discriminate_image(x, image_class_input, scope)
 			D_x_dash = self.discriminate_image(x_dash, z_c,scope)
-			D_x_gen = self.discriminate_image(x_gen, image_class_input, scope)
+			D_x_gen = self.discriminate_image(x_gen, z_hat_c, scope)
 		with tf.variable_scope("text_classifier") as scope:
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
 			scope.reuse_variables()
@@ -405,8 +405,8 @@ def train_epoch(flag=False, initial=True):
 		start_time = time.time() 
 
 image_sample,image_gen,image_labels, text_labels = generate(64)
-save_visualization(image_sample, save_path='../results/vae/32/frame_1_text_embedding/sample.jpg')
-save_visualization(image_gen, save_path='../results/vae/32/frame_1_text_embedding/sample_gen.jpg')	
+save_visualization(image_sample, save_path='../results/vae/32/frame_alt_1_text_embedding/sample.jpg')
+save_visualization(image_gen, save_path='../results/vae/32/frame_alt_1_text_embedding/sample_gen.jpg')	
 saver = tf.train.Saver()
 tf.global_variables_initializer().run()
 
@@ -435,4 +435,4 @@ for ep in range(epoch):
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
-	save_visualization(images, save_path="../results/vae/32/frame_1_text_embedding/sample_%d.jpg"%(ep+1))
+	save_visualization(images, save_path="../results/vae/32/frame_alt_1_text_embedding/sample_%d.jpg"%(ep+1))
