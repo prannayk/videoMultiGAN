@@ -262,17 +262,25 @@ class VAEGAN():
 			losses["disc_style_classifier"] = self.cross_entropy(D_z_hat_s,False) + self.cross_entropy(D_z_s, True)
 			losses["gen_style_classifier"] = self.cross_entropy(D_z_hat_s, True)
 			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
+		variable_dict = dict()
+		variable_dict["encoder"] = [i for i in filter(lambda x: x.name.startswith("encoder"), tf.trainable_variables())]
+		variable_dict["text_encoder"] = [i for i in filter(lambda x: x.name.startswith("text_encoder"), tf.trainable_variables())]
+		variable_dict["generator"] = [i for i in filter(lambda x: x.name.startswith("generator"), tf.trainable_variables())]
+		variable_dict["image_disc"] = [i for i in filter(lambda x: x.name.startswith("image_disc"), tf.trainable_variables())]
+		variable_dict["image_class"] = [i for i in filter(lambda x: x.name.startswith("image_class"), tf.trainable_variables())]
+		variable_dict["text_class"] = [i for i in filter(lambda x: x.name.startswith("text_class"), tf.trainable_variables())]
+		variable_dict["style_class"] = [i for i in filter(lambda x: x.name.startswith("style_class"), tf.trainable_variables())]
 		optimizer = dict()
 		with tf.variable_scope("optimizers"):
 			encoder_adam = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9)
-			optimizer["encoder"] = encoder_adam.minimize(losses["encoder"])
-			optimizer["text_encoder"] = tf.train.AdamOptimizer(self.learning_rate[1], beta1=0.5, beta2=0.9).minimize(losses["text_encoder"])
-			optimizer["generator"] = encoder_adam.minimize(losses["generator_image"])
-			optimizer["generator_reconstruction"] = encoder_adam.minimize(self.lambda_1*losses["reconstruction"])
-			optimizer["discriminator"] = tf.train.AdamOptimizer(self.learning_rate[3],beta1=0.5, beta2=0.9).minimize(losses["disc_image_discriminator"])
-			optimizer["code_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"])
-			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"])
-			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"])
+			optimizer["encoder"] = encoder_adam.minimize(losses["encoder"], var_list=variable_dict["encoder"])
+			optimizer["text_encoder"] = tf.train.AdamOptimizer(self.learning_rate[1], beta1=0.5, beta2=0.9).minimize(losses["text_encoder"], var_list=variable_dict["text_encoder"])
+			optimizer["generator"] = encoder_adam.minimize(losses["generator_image"], var_list=variable_dict["generator"])
+			optimizer["generator_reconstruction"] = encoder_adam.minimize(self.lambda_1*losses["reconstruction"], var_list=variable_dict["generator"])
+			optimizer["discriminator"] = tf.train.AdamOptimizer(self.learning_rate[3],beta1=0.5, beta2=0.9).minimize(losses["disc_image_discriminator"], var_list=variable_dict["image_disc"])
+			optimizer["code_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"], var_list=variable_dict["image_class"])
+			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"], var_list=variable_dict["text_class"])
+			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"], var_list=variable_dict["style_class"])
 		return placeholders, optimizer, losses, x_hat
 
 epoch = 600
