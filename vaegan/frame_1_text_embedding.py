@@ -233,7 +233,7 @@ class VAEGAN():
 			x_hat = self.generate_image(z_hat_input, z_hat_c, scope)
 			scope.reuse_variables()
 			x_dash = self.generate_image(tf.concat(axis=1, values=[z_s, z_t]),z_c,scope)
-			x_gen = self.generate_image(z_hat_input,image_input, scope)
+			x_gen = self.generate_image(z_hat_input,image_class_input, scope)
 		with tf.variable_scope("image_discriminator") as scope:
 			D_x_hat = self.discriminate_image(x_hat, z_hat_c, scope)
 			scope.reuse_variables()
