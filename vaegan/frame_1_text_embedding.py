@@ -247,6 +247,7 @@ class VAEGAN():
 			D_z_hat_c = self.discriminate_encode(z_hat_c, scope)
 			scope.reuse_variables()
 			D_z_c = self.discriminate_encode(z_c, scope)
+			D_z_real = self.discriminate_encode(image_class_input, scope)
 		with tf.variable_scope("style_classifier") as scope:
 			D_z_hat_s = self.discriminate_encode(z_hat_s, scope)
 			scope.reuse_variables()
@@ -254,7 +255,7 @@ class VAEGAN():
 		losses = dict()
 		with tf.variable_scope("losses"):
 			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_dash)))
-			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False) + self.cross_entropy(image_class_input, True)
+			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False) + self.cross_entropy(D_z_real, True)
 			losses["gen_image_classifier"] = self.cross_entropy(D_z_hat_c, True)
 			losses["disc_text_classifier"] = self.cross_entropy(D_z_t,True) + self.cross_entropy(D_z_hat_t, False)
 			losses["gen_text_classifier"] = self.cross_entropy(D_z_hat_t, True)
