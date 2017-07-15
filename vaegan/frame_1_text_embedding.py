@@ -394,7 +394,7 @@ def train_epoch(flag=False, initial=True):
 				_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
 				_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 			else:
-				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
+				_, loss_val[6] = session.run([optimizers["generator_gan"], losses["generator_image"]], feed_dict=feed_dict)
 
 		# z_c = session.run(z_hat_c, feed_dict=feed_dict)
 		count += 1
