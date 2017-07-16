@@ -382,7 +382,6 @@ def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys
 		j = (n // nh_nw[1]) * 2
 		i = n % nh_nw[1]
 		img[j*h:j*h+h, i*w:i*w+w, :] = x[:,:,:3]
-		img[t*h+j*h:t*h+j*h+h, i*w:i*w+w, :] = x[:,:,:3]
 	np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
 	scipy.misc.imsave(save_path, img)
 
