@@ -9,29 +9,26 @@ mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_dat
 class VAEGAN():
 	"""docstring for VAEGAN"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
-		dim1 = 1024, dim2 = 128, dim3 = 64, learning_rate = sys.argv[1:],
-		motion_size = 4, num_class_motion=6, num_class_image=13	):
+			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
+			num_class_image=13, frames=2):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
+		self.image_input_shape = image_shape
+		self.frames = frames
+		self.image_input_shape[-1] *= self.frames
 		self.num_class_image = num_class_image
 		self.num_class_motion = num_class_motion
 		self.num_class = num_class_image
 		self.embedding_size = embedding_size 
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
-		self.dim1 = dim1
-		self.dim2 = dim2
-		self.dim3 = dim3
-		#self.dim4 = dim4
 		self.learning_rate = map(lambda x: float(x), learning_rate)
-		# self.learning_rate_1 = floor(learning_rate_1)
-		# self.learning_rate_2 = floor(lear/ning_rate_2)
-		# assumes square images
 		self.lambda_1 = 10
 		self.dim_1 = self.image_shape[0]
 		self.dim_2 = self.image_shape[0] // 2
 		self.dim_4 = self.image_shape[0] // 4
 		self.dim_8 = self.image_shape[0] // 8
+		self.dim_16 = self.image_shape[0] // 16
 		self.dim_channel = self.image_shape[-1]
 		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
@@ -48,13 +45,11 @@ class VAEGAN():
 		return tf.nn.batch_normalization(X, mean, vari, offset=None, 
 			scale=None, variance_epsilon=1e-6, name=name)
 
-	def cross_entropy(self, X, flag=True):
+	def gan_loss(self, X, flag=True):
 		if flag :
-			# labels = tf.ones_like(X)
 			softmax = tf.log(X)
 		else :
 			softmax = tf.log(1 - X)
-		# softmax = tf.nn.softmax_cross_entropy_with_logits(logits =X, labels=labels)
 		return -tf.reduce_mean(softmax)
 
 	def discriminate_image(self, image, zvalue, scope):
@@ -63,6 +58,7 @@ class VAEGAN():
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1 , self.dim_1, self.zdimension])
 			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2, self.dim_2, self.zdimension])
 			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_4, self.dim_4, self.zdimension])
+			yneed_4 = ystack*tf.ones([self.batch_size, self.dim_8, self.dim_8, self.zdimension])
 			
 			LeakyReLU = tf.contrib.keras.layers.LeakyReLU(alpha=0.2)
 
@@ -90,19 +86,19 @@ class VAEGAN():
 			h3_relu = LeakyReLU(h3)
 			h3_concat = self.normalize(tf.concat(axis=3, values=[h3_relu, yneed_3]))
 			h4 = tf.layers.conv2d(h3_concat, filters=64, kernel_size=[5,5],
-				strides=[1,1], padding='SAME',
+				strides=[2,2], padding='SAME',
 				activation=None, 
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_4")
 			h4_relu = LeakyReLU(h4)
-			h4_concat = self.normalize(tf.concat(axis=3, values=[h4_relu, yneed_3]))
+			h4_concat = self.normalize(tf.concat(axis=3, values=[h4_relu, yneed_4]))
 			h5 = tf.layers.conv2d(h4_concat, filters=64, kernel_size=[5,5],
 				strides=[2,2], padding='SAME',
 				activation=None, 
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_5")
 			h5_relu = LeakyReLU(h3)
-			h5_reshape = tf.reshape(h5, shape=[self.batch_size,self.dim_8*self.dim_8*64])
+			h5_reshape = tf.reshape(h5, shape=[self.batch_size,self.dim_16*self.dim_16*64])
 			h5_concat = self.normalize(tf.concat(axis=1, values=[h5_reshape, zvalue]))
 			h6 = tf.layers.dense(h5_concat, units=256, 
 				activation=None,
@@ -117,28 +113,27 @@ class VAEGAN():
 				name='dense_2',
 				reuse=scope.reuse)
 			return tf.nn.sigmoid(LeakyReLU(self.normalize(h5, name="last_normalize", reuse=scope.reuse)))
-
 	def generate_image(self, embedding, zvalue, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(zvalue, shape=[self.batch_size, 1,1 , self.zdimension])
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_4, self.dim_4, self.zdimension])
 			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2, self.dim_2, self.zdimension])
-			# yneed_3 = ystack*tf.ones([self.batch_size, self.dim_8, self.dim_8, self.zdimension])
+			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_8, self.dim_8, self.zdimension])
 			embedding = tf.concat(axis=1, values=[embedding, zvalue])
 			h1 = tf.layers.dense(embedding, units=4096, activation=None,
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
 			h1_relu = tf.nn.relu(self.normalize(h1))
-			h1_reshape = tf.reshape(h1_relu, shape=[self.batch_size, self.dim_4, self.dim_4, 64])
-			h1_concat = tf.concat(axis=3, values=[h1_reshape,yneed_1])
+			h1_reshape = tf.reshape(h1_relu, shape=[self.batch_size, self.dim_8, self.dim_8, 64])
+			h1_concat = tf.concat(axis=3, values=[h1_reshape,yneed_3])
 			h2 = tf.layers.conv2d_transpose(inputs=h1_concat, filters = 64, 
 				kernel_size=[5,5], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name='conv_1')
 			h2_relu = tf.nn.relu(self.normalize(h2))
-			h2_concat = tf.concat(axis=3, values=[h2_relu, yneed_2])
+			h2_concat = tf.concat(axis=3, values=[h2_relu, yneed_1])
 			h3 = tf.layers.conv2d_transpose(inputs=h2_concat, filters = 32, 
-				kernel_size=[5,5], strides=[1,1], padding='SAME', activation=None,
+				kernel_size=[5,5], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name='conv_2')
 			h3_relu = tf.nn.relu(self.normalize(h3))
@@ -148,19 +143,18 @@ class VAEGAN():
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name='conv_3')
 			return tf.nn.sigmoid(h4)
-
 	def encoder_image(self, image, scope):
 		with tf.device(self.device):
 			LeakyReLU = tf.contrib.keras.layers.LeakyReLU(alpha=0.2)
 			image_proc = self.normalize(image,flag=True)
-			h1 = tf.layers.conv2d(image_proc, filters=32, kernel_size=[4,4],
+			h1 = tf.layers.conv2d(image_proc, filters=48, kernel_size=[4,4],
 				strides=[2,2], padding='SAME',
 				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_1")
 			h1_relu = self.normalize(LeakyReLU(h1))
 			h2 = tf.layers.conv2d(h1_relu, filters=64, kernel_size=[4,4],
-				strides=[1,1], padding='SAME',
+				strides=[2,2], padding='SAME',
 				activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_2")
@@ -171,7 +165,7 @@ class VAEGAN():
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_3")
 			h3_relu = self.normalize(LeakyReLU(h3))
-			h3_reshape = tf.reshape(h3_relu, shape=[self.batch_size, self.dim_4*self.dim_4*16])
+			h3_reshape = tf.reshape(h3_relu, shape=[self.batch_size, self.dim_8*self.dim_8*16])
 			h4 = tf.layers.dense(h3_reshape, units=self.embedding_size+self.num_class_image, 
 				activation=None,
 				kernel_initializer=self.initializer,
@@ -190,7 +184,6 @@ class VAEGAN():
 			h2_normalize = self.normalize(h2)
 			h3 = tf.nn.softmax(h2)
 			return h3
-
 	def discriminate_encode(self, input_embedding, scope):
 		h1 = tf.layers.dense(input_embedding, units=750,
 			activation=None, kernel_initializer=self.initializer,
@@ -204,24 +197,7 @@ class VAEGAN():
 			activation=None, kernel_initializer=self.initializer,
 			name="dense_3", reuse=scope.reuse)
 		return tf.nn.sigmoid(self.normalize(h3))
-
-	def build_model(self):
-		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_shape)
-		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_shape)
-		z_s = tf.placeholder(tf.float32, shape=[self.batch_size, self.embedding_size])
-		z_c = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
-		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
-		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
-		z_t = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_motion])
-		placeholders = {
-			'image_input' : image_input,
-			'x' : x,
-			'image_class_input' : image_class_input,
-			'text_label_input' : text_label_input,
-			'z_s' : z_s,
-			'z_c' : z_c,
-			'z_t' : z_t
-		}
+	def create_frames(self, image_input, x, z_s, z_c, image_class_input, text_label_input, z_t):
 		with tf.variable_scope("encoder") as scope:
 			encode = self.encoder_image(image_input, scope)
 		with tf.variable_scope("text_encoder") as scope:
@@ -254,19 +230,56 @@ class VAEGAN():
 			D_z_hat_s = self.discriminate_encode(z_hat_s, scope)
 			scope.reuse_variables()
 			D_z_s = self.discriminate_encode(z_s, scope)
+		return x_hat, x_gen, D_x_hat, D_x, D_x_dash, D_x_gen, D_z_hat_c, D_z_c, D_z_real, D_z_hat_s, D_z_s, D_z_hat_t, D_z_t
+	def build_model(self):
+		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
+		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_input_shape)
+		z_s = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.embedding_size])
+		z_c = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.num_class_image])
+		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
+		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
+		z_t = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.num_class_motion])
+		placeholders = {
+			'image_input' : image_input,
+			'x' : x,
+			'image_class_input' : image_class_input,
+			'text_label_input' : text_label_input,
+			'z_s' : z_s,
+			'z_c' : z_c,
+			'z_t' : z_t
+		}
+		x_1_hat, x_1_gen, D_1_x_hat, D_1_x, D_1_x_dash, D_1_x_gen, D_1_z_hat_c, D_1_z_c, D_1_z_real, D_1_z_hat_s, D_1_z_s, D_1_z_hat_t, D_1_z_t = self.create_frames(image_input, x[:,:,:,:3], 
+			z_s[:self.batch_size], z_c[:self.batch_size], image_class_input, text_label_input, z_t[:self.batch_size])
+		second_image_input = tf.concat(axis=3, values=[image_input[:,:,:,3:],x_1_hat])
+		x_2_hat, x_2_gen, D_2_x_hat, D_2_x, D_2_x_dash, D_2_x_gen, D_2_z_hat_c, D_2_z_c, D_2_z_real, D_2_z_hat_s, D_2_z_s,  D_2_z_hat_t, D_2_z_t = self.create_frames(second_image_input, x[:,:,:,3:], 
+			z_s[self.batch_size:], z_c[self.batch_size:], image_class_input, text_label_input, z_t[self.batch_size:])
+		x_hat = tf.concat(axis=3, values=[x_1_hat, x_2_hat])
+		x_gen = tf.concat(axis=3, values=[x_1_gen, x_2_gen])
+		D_x_hat = tf.concat(axis=0, values=[D_1_x_hat, D_2_x_hat])
+		D_x_gen = tf.concat(axis=0, values=[D_1_x_gen, D_2_x_gen])
+		D_x = tf.concat(axis=0, values=[D_1_x, D_2_x])
+		D_x_dash = tf.concat(axis=0, values=[D_1_x_dash, D_2_x_dash])
+		D_z_hat_c = tf.concat(axis=0, values=[D_1_z_hat_c, D_2_z_hat_c])
+		D_z_c = tf.concat(axis=0, values=[D_1_z_c, D_2_z_c])
+		D_z_real = tf.concat(axis=0, values=[D_1_z_real, D_2_z_real])
+		D_z_hat_s = tf.concat(axis=0, values=[D_1_z_hat_s, D_2_z_hat_s])
+		D_z_s = tf.concat(axis=0, values=[D_1_z_s, D_2_z_s])
+		D_z_hat_t = tf.concat(axis=0, values=[D_1_z_hat_t, D_2_z_hat_t])
+		D_z_t = tf.concat(axis=0, values=[D_1_z_t, D_2_z_t])
+		
 		losses = dict()
 		with tf.variable_scope("losses"):
 			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_hat)))
-			losses["disc_image_classifier"] = self.cross_entropy(D_z_c, True) + self.cross_entropy(D_z_hat_c,False) + self.cross_entropy(D_z_real, True)
-			losses["gen_image_classifier"] = self.cross_entropy(D_z_hat_c, True)
-			losses["disc_text_classifier"] = self.cross_entropy(D_z_t,True) + self.cross_entropy(D_z_hat_t, False)
-			losses["gen_text_classifier"] = self.cross_entropy(D_z_hat_t, True)
-			losses["disc_image_discriminator"] = self.cross_entropy(D_x_gen,False) + self.cross_entropy(D_x,True) # + self.cross_entropy(D_x_hat, False) + self.cross_entropy(D_x_dash, False) + 2*self.cross_entropy(D_x, True)
-			losses["generator_image"] = self.cross_entropy(D_x_gen, True) + (self.lambda_1*losses["reconstruction"]) # + self.cross_entropy(D_x_hat, True) + self.cross_entropy(D_x_dash, True) 
-			losses["generator_image_gan"] = self.cross_entropy(D_x_gen, True) # + (self.lambda_1*losses["reconstruction"]) # + self.cross_entropy(D_x_hat, True) + self.cross_entropy(D_x_dash, True) 
+			losses["disc_image_classifier"] = self.gan_loss(D_z_c, True) + self.gan_loss(D_z_hat_c,False) + self.gan_loss(D_z_real, True)
+			losses["gen_image_classifier"] = self.gan_loss(D_z_hat_c, True)
+			losses["disc_text_classifier"] = self.gan_loss(D_z_t,True) + self.gan_loss(D_z_hat_t, False)
+			losses["gen_text_classifier"] = self.gan_loss(D_z_hat_t, True)
+			losses["disc_image_discriminator"] = self.gan_loss(D_x_gen,False) + self.gan_loss(D_x,True) + self.gan_loss(D_x_hat, False) + self.gan_loss(D_x_dash, False) + 2*self.gan_loss(D_x, True)
+			losses["generator_image"] = self.gan_loss(D_x_gen, True) + (self.lambda_1*losses["reconstruction"])  + self.gan_loss(D_x_hat, True) + self.gan_loss(D_x_dash, True) 
+			losses["generator_image_gan"] = self.gan_loss(D_x_gen, True) + (self.lambda_1*losses["reconstruction"])  + self.gan_loss(D_x_hat, True) + self.gan_loss(D_x_dash, True) 
 			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1)
-			losses["disc_style_classifier"] = self.cross_entropy(D_z_hat_s,False) + self.cross_entropy(D_z_s, True)
-			losses["gen_style_classifier"] = self.cross_entropy(D_z_hat_s, True)
+			losses["disc_style_classifier"] = self.gan_loss(D_z_hat_s,False) + self.gan_loss(D_z_s, True)
+			losses["gen_style_classifier"] = self.gan_loss(D_z_hat_s, True)
 			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
 		variable_dict = dict()
 		variable_dict["encoder"] = [i for i in filter(lambda x: x.name.startswith("encoder"), tf.trainable_variables())]
@@ -291,13 +304,13 @@ class VAEGAN():
 		return placeholders, optimizer, losses, x_gen, z_hat_c
 
 epoch = 600
-batch_size = 64
+batch_size = 32
 embedding_size =128
 motion_size=4
 num_class_image=13
 num_class_motion = 5
 
-gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,32,3], 
+gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], 
 	num_class_motion=num_class_motion, num_class_image=num_class_image)
 
 placeholders,optimizers, losses, x_hat,z_hat_c = gan.build_model()
@@ -308,25 +321,39 @@ saver = tf.train.Saver()
 def generate(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28,28])
-	batch = np.zeros([batch_size, 32, 32,3])
-	batch_gen = np.zeros([batch_size, 32, 32,3])
+	batch = np.zeros([batch_size, 64, 64,6])
+	batch_gen = np.zeros([batch_size, 64, 64,6])
 	batch_labels = np.zeros([batch_size, 13])
 	batch_labels[:,:10] += batch1_labels
 	text_labels = np.zeros([batch_size, 4])
 	for i in range(batch_size):
-		t = np.random.randint(0,2)
+		t = np.random.randint(0,4)
 		l = np.random.randint(0,256,[3]).astype(float) / 255
 		batch_labels[i,10:] = l
 		if t == 0:
-			text_labels[i] = np.array([1,1,1,1])
-			for j in range(3):
-				batch[i,0:28,0:28,j] = batch1[i]*l[j]
-				batch_gen[i, 4:32,4:32,j] = batch1[i]*l[j]
+			text_labels[i] = np.array([-1,1,1,-1])
+			for r in range(2):
+				for j in range(3):
+					batch[i,2+(4*r):30+(4*r),2+(4*r):30+(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch_gen[i, 10+(4*r):38+(4*r),10+(4*r):38+(4*r),j+(3*r)] = batch1[i]*l[j]
+		elif t==1 :
+			text_labels[i] = np.array([1,-1,-1,1])
+			for r in range(2):
+				for j in range(3):
+					batch[i,34-(4*r):62-(4*r),34-(4*r):62-(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch_gen[i, 26-(4*r):36-(4*r),26-(4*r):36-(4*r),j+(3*r)] = batch1[i]*l[j]
+		elif t==2 :
+			text_labels[i] = np.array([-1,-1,1,1])
+			for r in range(2):
+				for j in range(3):
+					batch[i,34-(4*r):62-(4*r),2+(4*r):30+(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch_gen[i, 26-(4*r):36-(4*r),10+(4*r):38+(4*r),j+(3*r)] = batch1[i]*l[j]
 		else :
-			text_labels[i] = np.array([-1,1,-1,1])
-			for j in range(3):
-				batch[i,0:28,4:32,j] = batch1[i]*l[j]
-				batch_gen[i,4:32,0:28,j] = batch1[i]*l[j]
+			text_labels[i] = np.array([1,1,-1,-1])
+			for r in range(2):
+				for j in range(3):
+					batch[i,2+(4*r):30+(4*r),34-(4*r):62-(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch_gen[i, 10+(4*r):38+(4*r),26-(4*r):36-(4*r),j+(3*r)] = batch1[i]*l[j]
 	return batch, batch_gen, batch_labels, text_labels
 
 def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
