@@ -461,7 +461,7 @@ def train_epoch(flag=False, initial=True):
 		start_time = time.time() 
 
 image_sample,image_gen,image_labels, text_labels = generate(64)
-save_visualization(np.concatenate(values=[image_sample,image_gen],axis=3), save_path='../results/vae/32/frame_2_text_embedding/sample.jpg')
+save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/vae/32/frame_2_text_embedding/sample.jpg')
 # save_visualization(image_gen, save_path='../results/vae/32/frame_2_text_embedding/sample_gen.jpg')	
 saver = tf.train.Saver()
 tf.global_variables_initializer().run()
