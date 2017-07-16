@@ -33,6 +33,7 @@ class VAEGAN():
 		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
+		self.first_time = True
 
 	def learningR(self):
 		return self.learning_rate
@@ -199,37 +200,52 @@ class VAEGAN():
 		return tf.nn.sigmoid(self.normalize(h3))
 	def create_frames(self, image_input, x, z_s, z_c, image_class_input, text_label_input, z_t):
 		with tf.variable_scope("encoder") as scope:
+			if not self.first_time :
+				scope.reuse_variables()
 			encode = self.encoder_image(image_input, scope)
 		with tf.variable_scope("text_encoder") as scope:
+			if not self.first_time :
+				scope.reuse_variables()
 			text_encode = self.encoder_motion(text_label_input, scope)
 		z_hat_s = encode[:,:self.embedding_size]
 		z_hat_c = tf.nn.softmax(encode[:,self.embedding_size:])
 		z_hat_t = tf.nn.softmax(text_encode)
 		z_hat_input = tf.concat(axis=1, values=[z_hat_s, z_hat_t])
 		with tf.variable_scope("generator") as scope:
+			if not self.first_time :
+				scope.reuse_variables()
 			x_hat = self.generate_image(z_hat_input, z_hat_c, scope)
 			scope.reuse_variables()
 			x_dash = self.generate_image(tf.concat(axis=1, values=[z_s, z_t]),z_c,scope)
 			x_gen = self.generate_image(z_hat_input,z_hat_c, scope)
 		with tf.variable_scope("image_discriminator") as scope:
+			if not self.first_time :
+				scope.reuse_variables()
 			D_x_hat = self.discriminate_image(x_hat, z_hat_c, scope)
 			scope.reuse_variables()
 			D_x = self.discriminate_image(x, image_class_input, scope)
 			D_x_dash = self.discriminate_image(x_dash, z_c,scope)
 			D_x_gen = self.discriminate_image(x_gen, z_hat_c, scope)
 		with tf.variable_scope("text_classifier") as scope:
+			if not self.first_time :
+				scope.reuse_variables()
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
 			scope.reuse_variables()
 			D_z_t = self.discriminate_encode(z_t, scope)
 		with tf.variable_scope("image_classifier") as scope:
+			if not self.first_time :
+				scope.reuse_variables()
 			D_z_hat_c = self.discriminate_encode(z_hat_c, scope)
 			scope.reuse_variables()
 			D_z_c = self.discriminate_encode(z_c, scope)
 			D_z_real = self.discriminate_encode(image_class_input, scope)
 		with tf.variable_scope("style_classifier") as scope:
+			if not self.first_time :
+				scope.reuse_variables()
 			D_z_hat_s = self.discriminate_encode(z_hat_s, scope)
 			scope.reuse_variables()
 			D_z_s = self.discriminate_encode(z_s, scope)
+		self.first_time = False
 		return x_hat, x_gen, D_x_hat, D_x, D_x_dash, D_x_gen, D_z_hat_c, D_z_c, D_z_real, D_z_hat_s, D_z_s, D_z_hat_t, D_z_t
 	def build_model(self):
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
