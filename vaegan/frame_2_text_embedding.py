@@ -379,7 +379,7 @@ def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys
 	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 	
 	for n,x in enumerate(X):
-		j = (n // nh_nw[1]) * 2
+		j = n // nh_nw[1]
 		i = n % nh_nw[1]
 		img[j*h:j*h+h, i*w:i*w+w, :] = x[:,:,:3]
 	np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
