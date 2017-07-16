@@ -15,9 +15,9 @@ class VAEGAN():
 		self.image_shape = image_shape
 		self.num_class_image = num_class_image
 		self.num_class_motion = num_class_motion
-		self.num_class = num_class_image + num_class_motion
+		self.num_class = num_class_image
 		self.embedding_size = embedding_size 
-		self.zdimension = self.num_class + self.num_class_motion
+		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.dim1 = dim1
 		self.dim2 = dim2
@@ -229,18 +229,18 @@ class VAEGAN():
 		z_hat_s = encode[:,:self.embedding_size]
 		z_hat_c = tf.nn.softmax(encode[:,self.embedding_size:])
 		z_hat_t = tf.nn.softmax(text_encode)
-		z_hat_input = tf.concat(axis=1, values=[z_hat_t, z_hat_c])
+		z_hat_input = tf.concat(axis=1, values=[z_hat_s, z_hat_t])
 		with tf.variable_scope("generator") as scope:
-			x_hat = self.generate_image(z_hat_s, z_hat_input, scope)
+			x_hat = self.generate_image(z_hat_input, z_hat_c, scope)
 			scope.reuse_variables()
-			x_dash = self.generate_image(z_s, tf.concat(axis=1, values=[z_t, z_c]),scope)
-			x_gen = self.generate_image(z_hat_s,z_hat_input, scope)
+			x_dash = self.generate_image(tf.concat(axis=1, values=[z_s, z_t]),z_c,scope)
+			x_gen = self.generate_image(z_hat_input,z_hat_c, scope)
 		with tf.variable_scope("image_discriminator") as scope:
-			D_x_hat = self.discriminate_image(x_hat,z_hat_input, scope)
+			D_x_hat = self.discriminate_image(x_hat, z_hat_c, scope)
 			scope.reuse_variables()
-			D_x = self.discriminate_image(x, tf.concat(values=[z_hat_t, image_class_input],axis=1), scope)
-			D_x_dash = self.discriminate_image(x_dash, tf.concat(axis=1, values=[z_t, z_c]),scope)
-			D_x_gen = self.discriminate_image(x_gen, z_hat_input, scope)
+			D_x = self.discriminate_image(x, image_class_input, scope)
+			D_x_dash = self.discriminate_image(x_dash, z_c,scope)
+			D_x_gen = self.discriminate_image(x_gen, z_hat_c, scope)
 		with tf.variable_scope("text_classifier") as scope:
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
 			scope.reuse_variables()
