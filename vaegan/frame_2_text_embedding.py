@@ -324,10 +324,11 @@ batch_size = 32
 embedding_size =128
 motion_size=4
 num_class_image=13
+frames=2
 num_class_motion = 5
 
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], 
-	num_class_motion=num_class_motion, num_class_image=num_class_image)
+	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames)
 
 placeholders,optimizers, losses, x_hat = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
@@ -373,9 +374,10 @@ def generate(batch_size):
 	return batch, batch_gen, batch_labels, text_labels
 
 def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+	X = morph(X)
 	h,w = X.shape[1], X.shape[2]
 	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
-	t = nh_nw[0] // 2
+	
 	for n,x in enumerate(X):
 		j = (n // nh_nw[1]) * 2
 		i = n % nh_nw[1]
@@ -383,6 +385,16 @@ def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys
 		img[t*h+j*h:t*h+j*h+h, i*w:i*w+w, :] = x[:,:,:3]
 	np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
 	scipy.misc.imsave(save_path, img)
+
+def morph(X):
+	batch_size = int(X.shape[0])
+	dim_channel = int(X.shape[-1]) // frames*2
+	h,w = X.shape[1:3].astype(int)
+	img = np.zeros([2*frames*batch_size,h,w,dim_channel])
+	for i in range(batch_size):
+		for t in range(frames*2):
+			img[i*frames*2 + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
+	return img
 
 def random_label(batch_size):
 	t = np.random.choice(10, batch_size, replace=True)
@@ -449,8 +461,8 @@ def train_epoch(flag=False, initial=True):
 		start_time = time.time() 
 
 image_sample,image_gen,image_labels, text_labels = generate(64)
-save_visualization(image_sample, save_path='../results/vae/32/frame_2_text_embedding/sample.jpg')
-save_visualization(image_gen, save_path='../results/vae/32/frame_2_text_embedding/sample_gen.jpg')	
+save_visualization(np.concatenate(value=[image_sample,image_gen],axis=3), save_path='../results/vae/32/frame_2_text_embedding/sample.jpg')
+# save_visualization(image_gen, save_path='../results/vae/32/frame_2_text_embedding/sample_gen.jpg')	
 saver = tf.train.Saver()
 tf.global_variables_initializer().run()
 
@@ -479,4 +491,4 @@ for ep in range(epoch):
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
-	save_visualization(images, save_path="../results/vae/32/frame_2_text_embedding/sample_%d.jpg"%(ep+1))
+	save_visualization(np.concatenate(values=[images,image_gen],axis=3), save_path="../results/vae/32/frame_2_text_embedding/sample_%d.jpg"%(ep+1))
