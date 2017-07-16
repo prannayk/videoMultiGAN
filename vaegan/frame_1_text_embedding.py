@@ -17,7 +17,7 @@ class VAEGAN():
 		self.num_class_motion = num_class_motion
 		self.num_class = num_class_image + num_class_motion
 		self.embedding_size = embedding_size 
-		self.zdimension = self.num_class + self.num_class_motion
+		self.zdimension = self.num_class 
 		self.motion_size = motion_size
 		self.dim1 = dim1
 		self.dim2 = dim2
