@@ -373,7 +373,7 @@ def generate(batch_size):
 					batch_gen[i, 10+(4*r):38+(4*r),26-(4*r):54-(4*r),j+(3*r)] = batch1[i]*l[j]
 	return batch, batch_gen, batch_labels, text_labels
 
-def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(8,16), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
 	h,w = X.shape[1], X.shape[2]
 	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
