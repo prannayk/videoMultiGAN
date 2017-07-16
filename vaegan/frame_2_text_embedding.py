@@ -372,14 +372,15 @@ def generate(batch_size):
 					batch_gen[i, 10+(4*r):38+(4*r),26-(4*r):54-(4*r),j+(3*r)] = batch1[i]*l[j]
 	return batch, batch_gen, batch_labels, text_labels
 
-def save_visualization(X, nh_nw=(8,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(4,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	h,w = X.shape[1], X.shape[2]
-	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
+	img = np.zeros((2*h * nh_nw[0], w * nh_nw[1], 3))
 
 	for n,x in enumerate(X):
 		j = n // nh_nw[1]
 		i = n % nh_nw[1]
-		img[j*h:j*h+h, i*w:i*w+w, :] = x
+		img[2*j*h:(2*j*h)+h, i*w:i*w+w, :] = x[:3]
+		img[(2*j*h)+h:(2*j*h)+(2*h), i*w:i*w+w, :] = x[3:]
 	np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
 	scipy.misc.imsave(save_path, img)
 
