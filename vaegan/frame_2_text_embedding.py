@@ -485,9 +485,9 @@ for ep in range(epoch):
 				placeholders['x'] : image_gen,
 				placeholders['image_class_input'] : image_labels,
 				placeholders['text_label_input'] : text_labels,
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size*2, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size*2),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size*2, num_class_motion])
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate(values=[images,image_gen],axis=3), save_path="../results/vae/64/frame_2_text_embedding/sample_%d.jpg"%(ep+1))
