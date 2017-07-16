@@ -329,7 +329,7 @@ num_class_motion = 5
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], 
 	num_class_motion=num_class_motion, num_class_image=num_class_image)
 
-placeholders,optimizers, losses, x_hat,z_hat_c = gan.build_model()
+placeholders,optimizers, losses, x_hat = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
