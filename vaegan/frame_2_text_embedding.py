@@ -423,9 +423,9 @@ def train_epoch(flag=False, initial=True):
 				placeholders['x'] : feed_list[1],
 				placeholders['image_class_input'] : feed_list[2],
 				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size*2, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size*2),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size*2, num_class_motion])
 			}
 			if initial:
 				_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
@@ -441,9 +441,9 @@ def train_epoch(flag=False, initial=True):
 				placeholders['x'] : feed_list[1],
 				placeholders['image_class_input'] : feed_list[2],
 				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size*2, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size*2),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size*2, num_class_motion])
 			}
 			if initial :
 				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
