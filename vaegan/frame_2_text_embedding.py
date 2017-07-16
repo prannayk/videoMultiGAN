@@ -459,7 +459,7 @@ def train_epoch(flag=False, initial=True):
 			# print(z_c)
 		start_time = time.time() 
 
-image_sample,image_gen,image_labels, text_labels = generate(64)
+image_sample,image_gen,image_labels, text_labels = generate(32)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/vae/64/frame_2_text_embedding/sample.jpg')
 # save_visualization(image_gen, save_path='../results/vae/64/frame_2_text_embedding/sample_gen.jpg')	
 saver = tf.train.Saver()
