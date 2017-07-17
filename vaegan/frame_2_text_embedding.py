@@ -490,4 +490,4 @@ for ep in range(epoch):
 				placeholders['z_t'] : np.random.normal(0,1,[batch_size*2, num_class_motion])
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
-	save_visualization(np.concatenate([images,image_gen],axis=3), save_path="../results/vae/64/frame_2_text_embedding/sample_%d.jpg"%(ep+1))
+	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/vae/64/frame_2_text_embedding/sample_%d.jpg"%(ep+1))
