@@ -250,11 +250,11 @@ class VAEGAN():
 	def build_model(self):
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
 		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_input_shape)
-		z_s = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.embedding_size])
-		z_c = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.num_class_image])
+		z_s = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.embedding_size])
+		z_c = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.num_class_image])
 		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
 		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size]),[],[],[],[],[],[],[],[],[]
-		z_t = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.num_class_motion])
+		z_t = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.num_class_motion])
 		placeholders = {
 			'image_input' : image_input,
 			'x' : x,
