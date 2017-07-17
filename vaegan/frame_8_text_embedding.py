@@ -253,7 +253,7 @@ class VAEGAN():
 		z_s = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.embedding_size])
 		z_c = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.num_class_image])
 		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
-		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
+		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size]),[],[],[],[],[],[],[],[],[]
 		z_t = tf.placeholder(tf.float32, shape=[self.batch_size*2, self.num_class_motion])
 		placeholders = {
 			'image_input' : image_input,
@@ -264,24 +264,32 @@ class VAEGAN():
 			'z_c' : z_c,
 			'z_t' : z_t
 		}
-		x_1_hat, x_1_gen, D_1_x_hat, D_1_x, D_1_x_dash, D_1_x_gen, D_1_z_hat_c, D_1_z_c, D_1_z_real, D_1_z_hat_s, D_1_z_s, D_1_z_hat_t, D_1_z_t = self.create_frames(image_input, x[:,:,:,:3], 
-			z_s[:self.batch_size], z_c[:self.batch_size], image_class_input, text_label_input, z_t[:self.batch_size])
-		second_image_input = tf.concat(axis=3, values=[image_input[:,:,:,3:],x_1_hat])
-		x_2_hat, x_2_gen, D_2_x_hat, D_2_x, D_2_x_dash, D_2_x_gen, D_2_z_hat_c, D_2_z_c, D_2_z_real, D_2_z_hat_s, D_2_z_s,  D_2_z_hat_t, D_2_z_t = self.create_frames(second_image_input, x[:,:,:,3:], 
-			z_s[self.batch_size:], z_c[self.batch_size:], image_class_input, text_label_input, z_t[self.batch_size:])
-		x_hat = tf.concat(axis=3, values=[x_1_hat, x_2_hat])
-		x_gen = tf.concat(axis=3, values=[x_1_gen, x_2_gen])
-		D_x_hat = tf.concat(axis=0, values=[D_1_x_hat, D_2_x_hat])
-		D_x_gen = tf.concat(axis=0, values=[D_1_x_gen, D_2_x_gen])
-		D_x = tf.concat(axis=0, values=[D_1_x, D_2_x])
-		D_x_dash = tf.concat(axis=0, values=[D_1_x_dash, D_2_x_dash])
-		D_z_hat_c = tf.concat(axis=0, values=[D_1_z_hat_c, D_2_z_hat_c])
-		D_z_c = tf.concat(axis=0, values=[D_1_z_c, D_2_z_c])
-		D_z_real = tf.concat(axis=0, values=[D_1_z_real, D_2_z_real])
-		D_z_hat_s = tf.concat(axis=0, values=[D_1_z_hat_s, D_2_z_hat_s])
-		D_z_s = tf.concat(axis=0, values=[D_1_z_s, D_2_z_s])
-		D_z_hat_t = tf.concat(axis=0, values=[D_1_z_hat_t, D_2_z_hat_t])
-		D_z_t = tf.concat(axis=0, values=[D_1_z_t, D_2_z_t])
+		list_values = [[],[],[],[],[],[],[],[],[],[],[],[],[]]
+		next_image_input = image_input
+		for i in range(frames_created):
+			list_return = self.create_frames(next_image_input, x[:,:,:,3*i:3*i+3], 
+				z_s[self.batch_size*i:self.batch_size*i+self.batch_size], z_c[self.batch_size*i:self.batch_size*i+self.batch_size], 
+				image_class_input, text_label_input, z_t[self.batch_size*i:self.batch_size*i+self.batch_size])
+			for count,item in enumerate(list_return):
+				list_values[count].append(item)
+			next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,3:], list_return[0]])
+
+		# second_image_input = tf.concat(axis=3, values=[image_input[:,:,:,3:],x_1_hat])
+		# x_2_hat, x_2_gen, D_2_x_hat, D_2_x, D_2_x_dash, D_2_x_gen, D_2_z_hat_c, D_2_z_c, D_2_z_real, D_2_z_hat_s, D_2_z_s,  D_2_z_hat_t, D_2_z_t = self.create_frames(second_image_input, x[:,:,:,3:], 
+			# z_s[self.batch_size:], z_c[self.batch_size:], image_class_input, text_label_input, z_t[self.batch_size:])
+		x_hat = tf.concat(axis=3, values=list_values[0])
+		x_gen = tf.concat(axis=3, values=list_values[1])
+		D_x_hat = tf.concat(axis=0, values=list_values[2])
+		D_x_gen = tf.concat(axis=0, values=list_values[5])
+		D_x = tf.concat(axis=0, values=list_values[3])
+		D_x_dash = tf.concat(axis=0, values=list_values[4])
+		D_z_hat_c = tf.concat(axis=0, values=list_values[6])
+		D_z_c = tf.concat(axis=0, values=list_values[7])
+		D_z_real = tf.concat(axis=0, values=list_values[8])
+		D_z_hat_s = tf.concat(axis=0, values=list_values[9])
+		D_z_s = tf.concat(axis=0, values=list_values[10])
+		D_z_hat_t = tf.concat(axis=0, values=list_values[11])
+		D_z_t = tf.concat(axis=0, values=list_values[12])
 		
 		losses = dict()
 		with tf.variable_scope("losses"):
@@ -320,11 +328,11 @@ class VAEGAN():
 		return placeholders, optimizer, losses, x_hat
 
 epoch = 600
-batch_size = 32
+batch_size = 16
 embedding_size =128
 motion_size=4
 num_class_image=13
-frames=2
+frames=6
 num_class_motion = 5
 
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], 
@@ -349,31 +357,40 @@ def generate(batch_size):
 		batch_labels[i,10:] = l
 		if t == 0:
 			text_labels[i] = np.array([-1,1,1,-1])
+			img_ref = batch1[i]*l[j]
 			for r in range(2):
 				for j in range(3):
-					batch[i,2+(4*r):30+(4*r),2+(4*r):30+(4*r),j+(3*r)] = batch1[i]*l[j]
-					batch_gen[i, 10+(4*r):38+(4*r),10+(4*r):38+(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch[i,2+(4*r):30+(4*r),2+(4*r):30+(4*r),j+(3*r)] = img_ref
+			for r in range(frames):
+				for j in range(3):
+					batch_gen[i, 10+(4*r):38+(4*r),10+(4*r):38+(4*r),j+(3*r)] = img_ref
 		elif t==1 :
 			text_labels[i] = np.array([1,-1,-1,1])
 			for r in range(2):
 				for j in range(3):
-					batch[i,34-(4*r):62-(4*r),34-(4*r):62-(4*r),j+(3*r)] = batch1[i]*l[j]
-					batch_gen[i, 26-(4*r):54-(4*r),26-(4*r):54-(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch[i,34-(4*r):62-(4*r),34-(4*r):62-(4*r),j+(3*r)] = img_ref
+			for r in range(frames):
+				for j in range(3):
+					batch_gen[i, 26-(4*r):54-(4*r),26-(4*r):54-(4*r),j+(3*r)] = img_ref
 		elif t==2 :
 			text_labels[i] = np.array([-1,-1,1,1])
 			for r in range(2):
 				for j in range(3):
-					batch[i,34-(4*r):62-(4*r),2+(4*r):30+(4*r),j+(3*r)] = batch1[i]*l[j]
-					batch_gen[i, 26-(4*r):54-(4*r),10+(4*r):38+(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch[i,34-(4*r):62-(4*r),2+(4*r):30+(4*r),j+(3*r)] = img_ref
+			for r in range(frames):
+				for j in range(3):
+					batch_gen[i, 26-(4*r):54-(4*r),10+(4*r):38+(4*r),j+(3*r)] = img_ref
 		else :
 			text_labels[i] = np.array([1,1,-1,-1])
 			for r in range(2):
 				for j in range(3):
-					batch[i,2+(4*r):30+(4*r),34-(4*r):62-(4*r),j+(3*r)] = batch1[i]*l[j]
-					batch_gen[i, 10+(4*r):38+(4*r),26-(4*r):54-(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch[i,2+(4*r):30+(4*r),34-(4*r):62-(4*r),j+(3*r)] = img_ref
+			for r in range(frames):
+				for j in range(3):
+					batch_gen[i, 10+(4*r):38+(4*r),26-(4*r):54-(4*r),j+(3*r)] = img_ref
 	return batch, batch_gen, batch_labels, text_labels
 
-def save_visualization(X, nh_nw=(16,16), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(16,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
 	h,w = X.shape[1], X.shape[2]
 	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
@@ -423,9 +440,9 @@ def train_epoch(flag=False, initial=True):
 				placeholders['x'] : feed_list[1],
 				placeholders['image_class_input'] : feed_list[2],
 				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size*2, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size*2),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size*2, num_class_motion])
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size*frames),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
 			}
 			if initial:
 				_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
@@ -441,9 +458,9 @@ def train_epoch(flag=False, initial=True):
 				placeholders['x'] : feed_list[1],
 				placeholders['image_class_input'] : feed_list[2],
 				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size*2, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size*2),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size*2, num_class_motion])
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size*frames),
+				placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
 			}
 			if initial :
 				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
@@ -485,9 +502,9 @@ for ep in range(epoch):
 		placeholders['x'] : image_gen,
 		placeholders['image_class_input'] : image_labels,
 		placeholders['text_label_input'] : text_labels,
-		placeholders['z_s'] : np.random.normal(0,1,[batch_size*2, embedding_size]),
-		placeholders['z_c'] : random_label(batch_size*2),
-		placeholders['z_t'] : np.random.normal(0,1,[batch_size*2, num_class_motion])
+		placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
+		placeholders['z_c'] : random_label(batch_size*frames),
+		placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/vae/64/frame_2_text_embedding/sample_%d.jpg"%(ep+1))
