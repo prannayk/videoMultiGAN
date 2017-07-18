@@ -356,14 +356,6 @@ num_class_image=13
 frames=6
 num_class_motion = 5
 
-gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], 
-	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames)
-
-placeholders,optimizers, losses, x_hat = gan.build_model()
-session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
-
-saver = tf.train.Saver()
-
 def generate(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28,28])
@@ -499,6 +491,12 @@ def train_epoch(flag=False, initial=True):
 image_sample,image_gen,image_labels, text_labels = generate(32)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/vae/64/frame_2_text_embedding/sample.jpg')
 # save_visualization(image_gen, save_path='../results/vae/64/frame_2_text_embedding/sample_gen.jpg')	
+gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], 
+	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames)
+
+placeholders,optimizers, losses, x_hat = gan.build_model()
+session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
+
 saver = tf.train.Saver()
 tf.global_variables_initializer().run()
 
