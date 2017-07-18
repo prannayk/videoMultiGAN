@@ -417,7 +417,6 @@ def save_visualization(X, nh_nw=(16,8), save_path='../results/%s/sample.jpg'%(sy
 
 def morph(X):
 	batch_size = int(X.shape[0])
-	print(batch_size)
 	dim_channel = int(X.shape[-1]) // (frames+2)
 	h,w = map(lambda x: int(x), X.shape[1:3])
 	img = np.zeros([(2+frames)*batch_size,h,w,dim_channel])
