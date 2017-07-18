@@ -331,6 +331,7 @@ class VAEGAN():
 		optimizer = dict()
 		with tf.variable_scope("optimizers"):
 			# encoder_adam = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9)
+			print("encoder")
 			optimizer["encoder"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9).minimize(losses["encoder"], var_list=variable_dict["encoder"])
 			optimizer["text_encoder"] = tf.train.AdamOptimizer(self.learning_rate[1], beta1=0.5, beta2=0.9).minimize(losses["text_encoder"], var_list=variable_dict["text_encoder"])
 			optimizer["generator"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9).minimize(losses["generator_image"], var_list=variable_dict["generator"])
