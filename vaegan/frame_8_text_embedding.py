@@ -404,6 +404,7 @@ def generate(batch_size):
 
 def save_visualization(X, nh_nw=(16,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
+	print(X.shape)
 	h,w = X.shape[1], X.shape[2]
 	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 	
