@@ -15,7 +15,7 @@ class VAEGAN():
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
 		self.image_create_shape = list(image_shape)
-		self.frames = frames_input
+		self.frames_input = frames_input
 		self.frames = frames
 		self.image_input_shape[-1] *= self.frames_input
 		self.image_create_shape[-1] *= self.frames
