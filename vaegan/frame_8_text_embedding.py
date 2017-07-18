@@ -249,7 +249,7 @@ class VAEGAN():
 		return x_hat, x_gen, D_x_hat, D_x, D_x_dash, D_x_gen, D_z_hat_c, D_z_c, D_z_real, D_z_hat_s, D_z_s, D_z_hat_t, D_z_t
 	def build_model(self):
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
-		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_input_shape)
+		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_create_shape)
 		z_s = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.embedding_size])
 		z_c = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.num_class_image])
 		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
