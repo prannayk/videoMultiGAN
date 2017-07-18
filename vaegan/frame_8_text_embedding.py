@@ -358,7 +358,6 @@ def generate(batch_size):
 		batch_labels[i,10:] = l
 		if t == 0:
 			text_labels[i] = np.array([-1,1,1,-1])
-			img_ref = batch1[i]*l[j]
 			for r in range(2):
 				for j in range(3):
 					batch[i,2+(4*r):30+(4*r),2+(4*r):30+(4*r),j+(3*r)] = img_ref
