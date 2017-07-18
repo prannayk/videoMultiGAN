@@ -267,6 +267,7 @@ class VAEGAN():
 		list_values = [[],[],[],[],[],[],[],[],[],[],[],[],[]]
 		next_image_input = image_input
 		for i in range(self.frames):
+			print(i) 
 			list_return = self.create_frames(next_image_input, x[:,:,:,3*i:3*i+3], 
 				z_s[self.batch_size*i:self.batch_size*i+self.batch_size], z_c[self.batch_size*i:self.batch_size*i+self.batch_size], 
 				image_class_input, text_label_input, z_t[self.batch_size*i:self.batch_size*i+self.batch_size])
