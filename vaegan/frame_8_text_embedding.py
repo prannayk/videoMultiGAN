@@ -360,34 +360,34 @@ def generate(batch_size):
 			text_labels[i] = np.array([-1,1,1,-1])
 			for r in range(2):
 				for j in range(3):
-					batch[i,2+(4*r):30+(4*r),2+(4*r):30+(4*r),j+(3*r)] = img_ref
+					batch[i,2+(4*r):30+(4*r),2+(4*r):30+(4*r),j+(3*r)] = batch1[i]*l[j]
 			for r in range(frames):
 				for j in range(3):
-					batch_gen[i, 10+(4*r):38+(4*r),10+(4*r):38+(4*r),j+(3*r)] = img_ref
+					batch_gen[i, 10+(4*r):38+(4*r),10+(4*r):38+(4*r),j+(3*r)] = batch1[i]*l[j]
 		elif t==1 :
 			text_labels[i] = np.array([1,-1,-1,1])
 			for r in range(2):
 				for j in range(3):
-					batch[i,34-(4*r):62-(4*r),34-(4*r):62-(4*r),j+(3*r)] = img_ref
+					batch[i,34-(4*r):62-(4*r),34-(4*r):62-(4*r),j+(3*r)] = batch1[i]*l[j]
 			for r in range(frames):
 				for j in range(3):
-					batch_gen[i, 26-(4*r):54-(4*r),26-(4*r):54-(4*r),j+(3*r)] = img_ref
+					batch_gen[i, 26-(4*r):54-(4*r),26-(4*r):54-(4*r),j+(3*r)] = batch1[i]*l[j]
 		elif t==2 :
 			text_labels[i] = np.array([-1,-1,1,1])
 			for r in range(2):
 				for j in range(3):
-					batch[i,34-(4*r):62-(4*r),2+(4*r):30+(4*r),j+(3*r)] = img_ref
+					batch[i,34-(4*r):62-(4*r),2+(4*r):30+(4*r),j+(3*r)] = batch1[i]*l[j]
 			for r in range(frames):
 				for j in range(3):
-					batch_gen[i, 26-(4*r):54-(4*r),10+(4*r):38+(4*r),j+(3*r)] = img_ref
+					batch_gen[i, 26-(4*r):54-(4*r),10+(4*r):38+(4*r),j+(3*r)] = batch1[i]*l[j]
 		else :
 			text_labels[i] = np.array([1,1,-1,-1])
 			for r in range(2):
 				for j in range(3):
-					batch[i,2+(4*r):30+(4*r),34-(4*r):62-(4*r),j+(3*r)] = img_ref
+					batch[i,2+(4*r):30+(4*r),34-(4*r):62-(4*r),j+(3*r)] = batch1[i]*l[j]
 			for r in range(frames):
 				for j in range(3):
-					batch_gen[i, 10+(4*r):38+(4*r),26-(4*r):54-(4*r),j+(3*r)] = img_ref
+					batch_gen[i, 10+(4*r):38+(4*r),26-(4*r):54-(4*r),j+(3*r)] = batch1[i]*l[j]
 	return batch, batch_gen, batch_labels, text_labels
 
 def save_visualization(X, nh_nw=(16,8), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
