@@ -327,6 +327,7 @@ class VAEGAN():
 		variable_dict["image_class"] = [i for i in filter(lambda x: x.name.startswith("image_class"), tf.trainable_variables())]
 		variable_dict["text_class"] = [i for i in filter(lambda x: x.name.startswith("text_class"), tf.trainable_variables())]
 		variable_dict["style_class"] = [i for i in filter(lambda x: x.name.startswith("style_class"), tf.trainable_variables())]
+		print("Completed weights")
 		optimizer = dict()
 		with tf.variable_scope("optimizers"):
 			# encoder_adam = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9)
