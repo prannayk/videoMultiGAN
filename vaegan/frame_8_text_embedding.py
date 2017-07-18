@@ -318,6 +318,7 @@ class VAEGAN():
 			losses["disc_style_classifier"] = self.gan_loss(D_z_hat_s,False) + self.gan_loss(D_z_s, True)
 			losses["gen_style_classifier"] = self.gan_loss(D_z_hat_s, True)
 			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
+		print("Completed losses")
 		variable_dict = dict()
 		variable_dict["encoder"] = [i for i in filter(lambda x: x.name.startswith("encoder"), tf.trainable_variables())]
 		variable_dict["text_encoder"] = [i for i in filter(lambda x: x.name.startswith("text_encoder"), tf.trainable_variables())]
