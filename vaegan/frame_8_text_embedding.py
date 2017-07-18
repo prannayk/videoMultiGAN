@@ -14,6 +14,7 @@ class VAEGAN():
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
+		self.image_create_shape = list(image_shape)
 		self.frames = frames
 		self.image_input_shape[-1] *= self.frames
 		self.num_class_image = num_class_image
