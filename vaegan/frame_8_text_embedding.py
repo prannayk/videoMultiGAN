@@ -279,6 +279,7 @@ class VAEGAN():
 		# x_2_hat, x_2_gen, D_2_x_hat, D_2_x, D_2_x_dash, D_2_x_gen, D_2_z_hat_c, D_2_z_c, D_2_z_real, D_2_z_hat_s, D_2_z_s,  D_2_z_hat_t, D_2_z_t = self.create_frames(second_image_input, x[:,:,:,3:], 
 			# z_s[self.batch_size:], z_c[self.batch_size:], image_class_input, text_label_input, z_t[self.batch_size:])
 		x_hat = tf.concat(axis=3, values=list_values[0])
+		print("Completed concat")
 		x_gen = tf.concat(axis=3, values=list_values[1])
 		D_x_hat = tf.concat(axis=0, values=list_values[2])
 		D_x_gen = tf.concat(axis=0, values=list_values[5])
