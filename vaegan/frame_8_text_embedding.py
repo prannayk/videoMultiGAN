@@ -356,7 +356,7 @@ batch_size = 16
 embedding_size =128
 motion_size=4
 num_class_image=13
-frames=4
+frames=2
 num_class_motion = 5
 
 def generate(batch_size):
