@@ -363,7 +363,7 @@ def generate(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28,28])
 	batch = np.zeros([batch_size, 64, 64,6])
-	batch_gen = np.zeros([batch_size, 64, 64,6])
+	batch_gen = np.zeros([batch_size, 64, 64,3*frames])
 	batch_labels = np.zeros([batch_size, 13])
 	batch_labels[:,:10] += batch1_labels
 	text_labels = np.zeros([batch_size, 4])
