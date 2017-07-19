@@ -530,3 +530,4 @@ for ep in range(epoch):
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/vae/64/frame_8_text_embedding/sample_%d.jpg"%(ep+1))
+saver.save(session, "/media/hdd/hdd/frame_2_generator_vae.ckpt")
