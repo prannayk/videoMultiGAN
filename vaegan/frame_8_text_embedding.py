@@ -408,7 +408,7 @@ def generate(batch_size):
 	batch_labels[:,:10] += batch1_labels
 	text_labels = np.zeros([batch_size, 4])
 	for i in range(batch_size):
-		t = np.random.randint(0,4)
+		t = np.random.randint(0,32 // (frames+2) + 1)
 		l = np.random.randint(0,256,[3]).astype(float) / 255
 		batch_labels[i,10:] = l
 		random = np.random.randint(0,5)
