@@ -494,7 +494,7 @@ def train_epoch(flag=False, initial=True):
 	loss_val = [0,0,0,0,0,0,0]
 	while run <= num_examples:
 		for t in range(final_iter):
-			feed_list = self.generate_batch()
+			feed_list = gan.generate_batch()
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
@@ -512,7 +512,7 @@ def train_epoch(flag=False, initial=True):
 			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
 
 		for _ in range(2*diter):
-			feed_list = self.generate_batch()
+			feed_list = gan.generate_batch()
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
