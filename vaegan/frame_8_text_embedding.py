@@ -90,7 +90,7 @@ class VAEGAN():
 		list_output.append(self.dataset["image_gen"][self.iter:self.iter + self.batch_size])
 		list_output.append(self.dataset["image_labels"][self.iter:self.iter + self.batch_size])
 		list_output.append(self.dataset["image_motion_labels"][self.iter:self.iter + self.batch_size])
-		self.iter = (self.iter + self.batch_size) % self.total_batch_size
+		self.iter = (self.iter + self.batch_size) % self.total_size
 		return list_output
 	def discriminate_image(self, image, zvalue, scope):
 		with tf.device(self.device):
