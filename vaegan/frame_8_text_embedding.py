@@ -13,7 +13,7 @@ class VAEGAN():
 	"""docstring for VAEGAN"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
 			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
-			num_class_image=13, frames=2, frames_input=2, total_size = 64000):
+			num_class_image=13, frames=2, frames_input=2, total_size = 64000, video_create=False):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
@@ -43,6 +43,7 @@ class VAEGAN():
 		self.total_size = total_size
 		self.batch_size = batch_size
 		self.create_dataset()
+		self.video_create = video_create
 	def learningR(self):
 		return self.learning_rate
 
@@ -312,7 +313,10 @@ class VAEGAN():
 				image_class_input, text_label_input, z_t[self.batch_size*i:self.batch_size*i+self.batch_size])
 			for count,item in enumerate(list_return):
 				list_values[count].append(item)
-			next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,3:], list_return[0]])
+			if self.video_create :
+				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,3:], x[:,:,:,3*i:3*i+3]])
+			else :
+				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,3:], list_output[0]])
 
 		# second_image_input = tf.concat(axis=3, values=[image_input[:,:,:,3:],x_1_hat])
 		# x_2_hat, x_2_gen, D_2_x_hat, D_2_x, D_2_x_dash, D_2_x_gen, D_2_z_hat_c, D_2_z_c, D_2_z_real, D_2_z_hat_s, D_2_z_s,  D_2_z_hat_t, D_2_z_t = self.create_frames(second_image_input, x[:,:,:,3:], 
