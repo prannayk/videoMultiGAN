@@ -545,7 +545,7 @@ image_sample,image_gen,image_labels, text_labels = generate(batch_size)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/vae/64/frame_8_text_embedding/sample.jpg')
 # save_visualization(image_gen, save_path='../results/vae/64/frame_8_text_embedding/sample_gen.jpg')
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], 
-	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames)
+	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True)
 
 placeholders,optimizers, losses, x_hat = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
