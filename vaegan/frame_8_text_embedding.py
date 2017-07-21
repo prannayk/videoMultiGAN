@@ -392,7 +392,7 @@ class VAEGAN():
 		return placeholders, optimizer, losses, x_hat
 
 epoch = 600
-batch_size = 16
+ # batch_size = 16
 embedding_size =128
 motion_size=4
 num_class_image=13
