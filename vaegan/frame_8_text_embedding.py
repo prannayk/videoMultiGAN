@@ -563,7 +563,7 @@ for ep in range(epoch):
 	else:
 		train_epoch()
 	print("Saving image")
-	feed_list = self.generate_batch()
+	feed_list = gan.generate_batch()
 	feed_dict = {
 		placeholders['image_input'] : image_sample,
 		placeholders['x'] : image_gen,
