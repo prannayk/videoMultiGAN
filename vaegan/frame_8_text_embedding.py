@@ -6,11 +6,14 @@ import time
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
+total_size = 64000
+batch_size = 16
+
 class VAEGAN():
 	"""docstring for VAEGAN"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
 			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
-			num_class_image=13, frames=2, frames_input=2):
+			num_class_image=13, frames=2, frames_input=2, total_size = 64000, batch_size=32):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
@@ -37,7 +40,9 @@ class VAEGAN():
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		self.first_time = True
-
+		self.total_size = total_size
+		self.batch_size = batch_size
+		self.create_dataset()
 	def learningR(self):
 		return self.learning_rate
 
@@ -56,6 +61,37 @@ class VAEGAN():
 			softmax = tf.log(1 - X)
 		return -tf.reduce_mean(softmax)
 
+	def create_dataset(self):
+		total_size = self.total_size
+		batch_size = self.batch_size
+		image_start = np.zeros(shape=[total_size] + self.image_input_shape)
+		image_gen = np.zeros(shape=[total_size] + self.image_create_shape)
+		image_labels = np.zeros(shape=[total_size, 13])
+		image_motion_labels = np.zeros(shape=[total_size, 4])
+		for i in range(total_size // batch_size):
+			if t % 10 == 0:
+				print(t)
+			output_list = generate(batch_size)
+			image_start[i*batch_size : i*batch_size + batch_size] = output_list[0]
+			image_gen[i*batch_size:i*batch_size + batch_size] = output_list[1]
+			image_labels[i*batch_size:i*batch_size + batch_size] = output_list[2]
+			image_motion_labels[i*batch_size:i*batch_size + batch_size] = output_list[3]
+		dataset = {
+			"image_start" : image_start,
+			"image_gen" : image_gen,
+			"image_labels" : image_labels,
+			"image_motion_labels" : image_motion_labels
+		}
+		self.dataset = dataset
+		self.iter=0
+	def generate_batch(self):
+		list_output= []
+		list_output.append(self.dataset["image_start"][self.iter:self.iter + self.batch_size])
+		list_output.append(self.dataset["image_gen"][self.iter:self.iter + self.batch_size])
+		list_output.append(self.dataset["image_labels"][self.iter:self.iter + self.batch_size])
+		list_output.append(self.dataset["image_motion_labels"][self.iter:self.iter + self.batch_size])
+		self.iter = (self.iter + self.batch_size) % self.total_batch_size
+		return list_output
 	def discriminate_image(self, image, zvalue, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(zvalue, [self.batch_size, 1,1,self.zdimension])
@@ -371,38 +407,47 @@ def generate(batch_size):
 		t = np.random.randint(0,4)
 		l = np.random.randint(0,256,[3]).astype(float) / 255
 		batch_labels[i,10:] = l
+		random = np.random.randint(0,5)
 		if t == 0:
 			text_labels[i] = np.array([-1,1,1,-1])
+			text_labels[i][-1] *= random
+			text_labels[i][-2] *= random
 			for r in range(2):
 				for j in range(3):
-					batch[i,2+(4*r):30+(4*r),2+(4*r):30+(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)] = batch1[i]*l[j]
 			for r in range(frames):
 				for j in range(3):
-					batch_gen[i, 10+(4*r):38+(4*r),10+(4*r):38+(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch_gen[i, 10+(random*r):38+(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch1[i]*l[j]
 		elif t==1 :
 			text_labels[i] = np.array([1,-1,-1,1])
+			text_labels[i][-1] *= random
+			text_labels[i][-2] *= random
 			for r in range(2):
 				for j in range(3):
-					batch[i,34-(4*r):62-(4*r),34-(4*r):62-(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch[i,34-(random*r):62-(random*r),34-(random*r):62-(random*r),j+(3*r)] = batch1[i]*l[j]
 			for r in range(frames):
 				for j in range(3):
-					batch_gen[i, 26-(4*r):54-(4*r),26-(4*r):54-(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch_gen[i, 26-(random*r):54-(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch1[i]*l[j]
 		elif t==2 :
 			text_labels[i] = np.array([-1,-1,1,1])
+			text_labels[i][-1] *= random
+			text_labels[i][-2] *= random
 			for r in range(2):
 				for j in range(3):
-					batch[i,34-(4*r):62-(4*r),2+(4*r):30+(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch[i,34-(random*r):62-(random*r),2+(random*r):30+(random*r),j+(3*r)] = batch1[i]*l[j]
 			for r in range(frames):
 				for j in range(3):
-					batch_gen[i, 26-(4*r):54-(4*r),10+(4*r):38+(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch_gen[i, 26-(random*r):54-(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch1[i]*l[j]
 		else :
 			text_labels[i] = np.array([1,1,-1,-1])
+			text_labels[i][-1] *= random
+			text_labels[i][-2] *= random
 			for r in range(2):
 				for j in range(3):
-					batch[i,2+(4*r):30+(4*r),34-(4*r):62-(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch[i,2+(random*r):30+(random*r),34-(random*r):62-(random*r),j+(3*r)] = batch1[i]*l[j]
 			for r in range(frames):
 				for j in range(3):
-					batch_gen[i, 10+(4*r):38+(4*r),26-(4*r):54-(4*r),j+(3*r)] = batch1[i]*l[j]
+					batch_gen[i, 10+(random*r):38+(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch1[i]*l[j]
 	return batch, batch_gen, batch_labels, text_labels
 
 def save_visualization(X, nh_nw=(16,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
@@ -449,7 +494,7 @@ def train_epoch(flag=False, initial=True):
 	loss_val = [0,0,0,0,0,0,0]
 	while run <= num_examples:
 		for t in range(final_iter):
-			feed_list = generate(batch_size)
+			feed_list = self.generate_batch()
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
@@ -467,7 +512,7 @@ def train_epoch(flag=False, initial=True):
 			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
 
 		for _ in range(2*diter):
-			feed_list = generate(batch_size)
+			feed_list = self.generate_batch()
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
@@ -494,7 +539,7 @@ def train_epoch(flag=False, initial=True):
 
 image_sample,image_gen,image_labels, text_labels = generate(batch_size)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/vae/64/frame_8_text_embedding/sample.jpg')
-# save_visualization(image_gen, save_path='../results/vae/64/frame_8_text_embedding/sample_gen.jpg')	
+# save_visualization(image_gen, save_path='../results/vae/64/frame_8_text_embedding/sample_gen.jpg')
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], 
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames)
 
@@ -518,7 +563,7 @@ for ep in range(epoch):
 	else:
 		train_epoch()
 	print("Saving image")
-	feed_list = generate(batch_size)
+	feed_list = self.generate_batch()
 	feed_dict = {
 		placeholders['image_input'] : image_sample,
 		placeholders['x'] : image_gen,
