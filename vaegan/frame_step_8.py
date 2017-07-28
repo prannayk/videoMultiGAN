@@ -8,7 +8,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
 total_size = 64000
-batch_size = 16
+batch_size = 8
 
 class VAEGAN():
 	"""docstring for VAEGAN"""
@@ -397,7 +397,7 @@ epoch = 600
 embedding_size =128
 motion_size=4
 num_class_image=13
-frames=4
+frames=6
 num_class_motion = 5
 
 def save_visualization(X, nh_nw=(16,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
