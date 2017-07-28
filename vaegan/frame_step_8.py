@@ -400,61 +400,6 @@ num_class_image=13
 frames=4
 num_class_motion = 5
 
-def generate(batch_size):
-	batch1, batch1_labels = mnist.train.next_batch(batch_size)
-	batch1 = batch1.reshape([batch_size, 28,28])
-	batch = np.zeros([batch_size, 64, 64,6])
-	batch_gen = np.zeros([batch_size, 64, 64,3*frames])
-	batch_labels = np.zeros([batch_size, 13])
-	batch_labels[:,:10] += batch1_labels
-	text_labels = np.zeros([batch_size, 4])
-	for i in range(batch_size):
-		t = np.random.randint(0,32 // (frames+2) + 1)
-		l = np.random.randint(0,256,[3]).astype(float) / 255
-		batch_labels[i,10:] = l
-		random = np.random.randint(0,5)
-		if t == 0:
-			text_labels[i] = np.array([-1,1,1,-1])
-			text_labels[i][-1] *= random
-			text_labels[i][-2] *= random
-			for r in range(2):
-				for j in range(3):
-					batch[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)] = batch1[i]*l[j]
-			for r in range(frames):
-				for j in range(3):
-					batch_gen[i, 10+(random*r):38+(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch1[i]*l[j]
-		elif t==1 :
-			text_labels[i] = np.array([1,-1,-1,1])
-			text_labels[i][-1] *= random
-			text_labels[i][-2] *= random
-			for r in range(2):
-				for j in range(3):
-					batch[i,34-(random*r):62-(random*r),34-(random*r):62-(random*r),j+(3*r)] = batch1[i]*l[j]
-			for r in range(frames):
-				for j in range(3):
-					batch_gen[i, 26-(random*r):54-(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch1[i]*l[j]
-		elif t==2 :
-			text_labels[i] = np.array([-1,-1,1,1])
-			text_labels[i][-1] *= random
-			text_labels[i][-2] *= random
-			for r in range(2):
-				for j in range(3):
-					batch[i,34-(random*r):62-(random*r),2+(random*r):30+(random*r),j+(3*r)] = batch1[i]*l[j]
-			for r in range(frames):
-				for j in range(3):
-					batch_gen[i, 26-(random*r):54-(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch1[i]*l[j]
-		else :
-			text_labels[i] = np.array([1,1,-1,-1])
-			text_labels[i][-1] *= random
-			text_labels[i][-2] *= random
-			for r in range(2):
-				for j in range(3):
-					batch[i,2+(random*r):30+(random*r),34-(random*r):62-(random*r),j+(3*r)] = batch1[i]*l[j]
-			for r in range(frames):
-				for j in range(3):
-					batch_gen[i, 10+(random*r):38+(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch1[i]*l[j]
-	return batch, batch_gen, batch_labels, text_labels
-
 def save_visualization(X, nh_nw=(16,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
 	print(X.shape)
