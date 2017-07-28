@@ -2,7 +2,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 from PIL import Image
 import numpy as np
-def rot_generator(batch_size):
+def rot_generator(batch_size, frames):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28,28])
 	batch = np.zeros([batch_size, 64, 64,6])
