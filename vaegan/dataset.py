@@ -30,7 +30,7 @@ def create_dataset(batch_size, total_size, image_input_shape, image_create_shape
         "image_motion_labels" : image_motion_labels
     }
     return dataset
-frames=2
-dataset = create_dataset(batch_size=8, total_size=6400, image_input_shape=[64,64,6], image_create_shape=[64,64,3*frames], frames=frames)
+frames=8
+dataset = create_dataset(batch_size=8, total_size=64000, image_input_shape=[64,64,6], image_create_shape=[64,64,3*frames], frames=frames)
 
 np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_%d_%d_%d_2_%d.npy"%(64, total_size, batch_size, frames), dataset)
