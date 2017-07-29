@@ -31,9 +31,9 @@ def create_dataset(batch_size, total_size, image_input_shape, image_create_shape
     }
     return dataset
 frames=4
-dataset = create_dataset(batch_size=16, total_size=64000, image_input_shape=[64,64,6], image_create_shape=[64,64,3*frames], frames=frames)
+dataset = create_dataset(batch_size=64 // frames, total_size=64000, image_input_shape=[64,64,6], image_create_shape=[64,64,3*frames], frames=frames)
 
-np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_start_%d_%d_%d_2_%d.npy"%(64, 64000,16, frames), dataset["image_start"])
-np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_gen_%d_%d_%d_2_%d.npy"%(64, 64000,16, frames), dataset["image_gen"])
-np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_labels_%d_%d_%d_2_%d.npy"%(64, 64000,16, frames), dataset["image_labels"])
-np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_motion_labels_%d_%d_%d_2_%d.npy"%(64, 64000,16, frames), dataset["image_motion_labels"])
+np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_start_%d_%d_%d_2_%d.npy"%(64, 64000,64 // frames, frames), dataset["image_start"])
+np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_gen_%d_%d_%d_2_%d.npy"%(64, 64000,64 // frames, frames), dataset["image_gen"])
+np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_labels_%d_%d_%d_2_%d.npy"%(64, 64000,64 // frames, frames), dataset["image_labels"])
+np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_motion_labels_%d_%d_%d_2_%d.npy"%(64, 64000,64 // frames, frames), dataset["image_motion_labels"])
