@@ -36,4 +36,4 @@ dataset = create_dataset(batch_size=8, total_size=64000, image_input_shape=[64,6
 np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_start_%d_%d_%d_2_%d.npy"%(64, 64000, 8, frames), dataset["image_start"])
 np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_gen_%d_%d_%d_2_%d.npy"%(64, 64000, 8, frames), dataset["image_start"])
 np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_labels_%d_%d_%d_2_%d.npy"%(64, 64000, 8, frames), dataset["image_start"])
-np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_start_%d_%d_%d_2_%d.npy"%(64, 64000, 8, frames), dataset["image_start"])
+np.save("/media/hdd/hdd/prannayk/mnist_data/dataset_image_motion_labels_%d_%d_%d_2_%d.npy"%(64, 64000, 8, frames), dataset["image_start"])
