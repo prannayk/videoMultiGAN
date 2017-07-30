@@ -531,7 +531,7 @@ for ep in range(epoch):
 		placeholders['text_label_input'] : text_labels,
 		placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 		placeholders['z_c'] : random_label(batch_size*frames),
-		placeholders['z_t'] : random_label(batch_size*frames, num_class_motion)
+		placeholders['z_t'] : random_label_motion(batch_size*frames, num_class_motion)
 #		placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
