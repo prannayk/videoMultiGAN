@@ -14,7 +14,7 @@ class VAEGAN():
 	"""docstring for VAEGAN"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
 			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
-			num_class_image=13, frames=2, frames_input=2, total_size = 64000, video_create=False):
+			num_class_image=13, frames=2, frames_input=3, total_size = 64000, video_create=False):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
