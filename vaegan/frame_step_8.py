@@ -397,7 +397,7 @@ epoch = 600
 embedding_size =128
 motion_size=4
 num_class_image=13
-frames=6
+frames=4
 num_class_motion = 5
 
 def save_visualization(X, nh_nw=(16,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
