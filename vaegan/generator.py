@@ -3,8 +3,9 @@ mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_dat
 from PIL import Image
 import numpy as np
 def rot_generator(batch_size, frames):
-	batch1, batch1_labels = mnist.train.next_batch(batch_size)
-	batch1 = batch1.reshape([batch_size, 28,28])
+	batch1in, batch1_labels = mnist.train.next_batch(batch_size)
+	batch1 = batch1in.reshape([batch_size, 28,28])
+	batch2 = batch1in.reshape([batch_size, 28,28])
 	batch = np.zeros([batch_size, 64, 64,9])
 	batch_gen = np.zeros([batch_size, 64, 64,3*frames])
 	batch_labels = np.zeros([batch_size, 13])
