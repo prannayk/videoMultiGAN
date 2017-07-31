@@ -94,13 +94,13 @@ def sentence_proc(one_hot, rot):
 		9 : "nine"
 	}
 	for i in range(10):
-	if int(one_hot[i]) == i : 
-		string1 = num_dict[i]
+		if int(one_hot[i]) == i : 
+			string1 = num_dict[i]
 	if rot > 0 : 
 		string2 = "clockwise"
 	else :
 		string2 = "anti-clockwise"
-return string1, string2
+	return string1, string2
 
 def convert_embedding(sentence):
 	global dictionary
