@@ -122,7 +122,7 @@ def rot_text_generator(batch_size, frames):
 		random = np.random.randint(0,4)
 		rot = np.random.normal(0,5)
 		if t == 0:
-			sentence = "The digit %s is moving to the left downwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
+			sentence = "the digit %s is moving to the left downwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
 			text_labels[i] = convert_embedding(sentence)
 			# text_labels[i] = np.array([rot,-1,1,1,-1])
 			# text_labels[i][-1] *= random
