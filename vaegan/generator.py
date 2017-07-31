@@ -78,7 +78,7 @@ def rot_generator(batch_size, frames):
 					batch_gen[i, 10+(random*r):38+(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch2[i]*l[j]
 	return batch, batch_gen, batch_labels, # text_labels
 
-word_len = 13
+word_len = 14
 
 def sentence_proc(one_hot, rot):
 	num_dict = {
