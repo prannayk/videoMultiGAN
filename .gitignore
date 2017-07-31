@@ -2,6 +2,6 @@ MNIST_*
 gif_*
 *.npy
 *.swp
-*.png
+.png
 *.ckpt.*
 checkpoint
