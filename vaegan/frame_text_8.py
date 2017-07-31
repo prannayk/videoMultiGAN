@@ -17,7 +17,7 @@ batch_size = 16
 class VAEGAN():
 	"""docstring for VAEGAN"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
-			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
+			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, word_len = 13, 
 			num_class_image=13, frames=2, frames_input=2, total_size = 64000, video_create=False):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
@@ -28,6 +28,7 @@ class VAEGAN():
 		self.image_input_shape[-1] *= self.frames_input
 		self.image_create_shape[-1] *= self.frames
 		self.num_class_image = num_class_image
+		self.word_len = word_len
 		self.num_class_motion = num_class_motion
 		self.num_class = num_class_image
 		self.embedding_size = embedding_size 
@@ -73,7 +74,7 @@ class VAEGAN():
 		image_start = np.zeros(shape=[total_size] + self.image_input_shape)
 		image_gen = np.zeros(shape=[total_size] + self.image_create_shape)
 		image_labels = np.zeros(shape=[total_size, 13])
-		image_motion_labels = np.zeros(shape=[total_size, 4])
+		image_motion_labels = np.zeros(shape=[total_size, word_len, 300])
 		for i in range(total_size // batch_size):
 			if i % 1000 == 0:
 				print(i)
@@ -292,13 +293,27 @@ class VAEGAN():
 			D_z_s = self.discriminate_encode(z_s, scope)
 		self.first_time = False
 		return x_hat, x_gen, D_x_hat, D_x, D_x_dash, D_x_gen, D_z_hat_c, D_z_c, D_z_real, D_z_hat_s, D_z_s, D_z_hat_t, D_z_t
+	def label_embedding(self, text_label_embedding):
+		with tf.variable_scope("attention_layer") as scope:
+			attention_1 = tf.layers.dense(text_label_embedding, units = 64, activation=tf.tanh, 
+				use_bias = True, kernel_initializer=self.initializer, name="attention_layer_1")
+			attention_y = tf.layers.dense(attention_1, units=1, activation=tf.tanh, 
+				use_bias = True, kernel_initializer=self.initializer, name="attention_layer_2")
+			attention_reshape = tf.reshape(attention_y, shape=[self.batch_size, self.word_len])
+			softmax = tf.nn.softmax(attention_reshape)
+			softmax_input = tf.reshape(softmax, shape=[self.batch_size,1, self.word_len])
+		final_label = tf.matmul(softmax_input, text_label_embedding)
+		label_big = tf.reshape(final_label, shape=[self.batch_size, 300,1,1])
+#       label_small = tf.small(label_big, pool_size=[4,1], strides=[4,1], padding='same',name="subsizing")
+		return label_big 
 	def build_model(self):
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
 		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_create_shape)
 		z_s = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.embedding_size])
 		z_c = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.num_class_image])
 		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
-		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
+		text_label_embedding = tf.placeholder(tf.float32, shape=[self.batch_size, self_motion_size])
+		text_label_input = self.label_embedding(text_label_embedding)
 		z_t = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.num_class_motion])
 		placeholders = {
 			'image_input' : image_input,
@@ -397,12 +412,11 @@ class VAEGAN():
 		return placeholders, optimizer, losses, x_hat
 
 epoch = 600
- # batch_size = 16
 embedding_size =128
 motion_size=4
 num_class_image=13
 frames=4
-num_class_motion = 5
+num_class_motion = 12
 
 def save_visualization(X, nh_nw=(16,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
@@ -435,6 +449,14 @@ def random_label(batch_size):
 		random[i, 10:] = np.random.randint(0,256,[3]).astype(float) / 255
 	return random	
 
+def random_motion_label(batch_size, num_class_motion):
+    assert type(num_class_motion) == int
+    t = np.random.choice(num_class_motion, batch_size, replace=True)
+    random = np.zeros(shape=[batch_size, num_class_motion])
+    for i in range(batch_size):
+        random[i, int(t[i])] = 1
+    return random
+
 def train_epoch(flag=False, initial=True):
 	diter = 5
 	count =  0
@@ -457,7 +479,8 @@ def train_epoch(flag=False, initial=True):
 				placeholders['text_label_input'] : feed_list[3],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 				placeholders['z_c'] : random_label(batch_size*frames),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
+				placeholders['z_t'] : random_motion_label(batch_size*frames, num_class_motion)
+				# placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
 			}
 			if initial:
 				_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
@@ -475,7 +498,8 @@ def train_epoch(flag=False, initial=True):
 				placeholders['text_label_input'] : feed_list[3],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 				placeholders['z_c'] : random_label(batch_size*frames),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
+				placeholders['z_t'] : random_motion_label(batch_size*frames, num_class_motion)
+				# placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
 			}
 			if initial :
 				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
@@ -525,7 +549,8 @@ for ep in range(epoch):
 		placeholders['text_label_input'] : text_labels,
 		placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 		placeholders['z_c'] : random_label(batch_size*frames),
-		placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
+		placeholders['z_t'] : random_motion_label(batch_size*frames, num_class_motion)
+		# placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/vae/64/frame_8_text_embedding/sample_%d.jpg"%(ep+1))
