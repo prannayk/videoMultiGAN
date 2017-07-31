@@ -102,7 +102,8 @@ def sentence_proc(one_hot, rot):
 
 def convert_embedding(sentence):
 	global dictionary
-	return np.array(map(lambda x: dictionary[x], sentence.split()))
+	embed = np.array(map(lambda x: dictionary[x], sentence.split()))
+	t = np.zeros([word_len,300])
 
 
 def rot_text_generator(batch_size, frames):
