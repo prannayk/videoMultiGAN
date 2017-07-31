@@ -320,7 +320,7 @@ class VAEGAN():
 			'image_input' : image_input,
 			'x' : x,
 			'image_class_input' : image_class_input,
-			'text_label_input' : text_label_input,
+			'text_label_input' : text_label_embedding,
 			'z_s' : z_s,
 			'z_c' : z_c,
 			'z_t' : z_t
