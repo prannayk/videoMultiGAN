@@ -450,12 +450,12 @@ def random_label(batch_size):
 	return random	
 
 def random_motion_label(batch_size, num_class_motion):
-    assert type(num_class_motion) == int
-    t = np.random.choice(num_class_motion, batch_size, replace=True)
-    random = np.zeros(shape=[batch_size, num_class_motion])
-    for i in range(batch_size):
-        random[i, int(t[i])] = 1
-    return random
+	assert type(num_class_motion) == int
+	t = np.random.choice(num_class_motion, batch_size, replace=True)
+	random = np.zeros(shape=[batch_size, num_class_motion])
+	for i in range(batch_size):
+	    random[i, int(t[i])] = 1
+	return random
 
 def train_epoch(flag=False, initial=True):
 	diter = 5

@@ -8,8 +8,8 @@ with open("/media/hdd/hdd/data_backup/prannayk/temp.vec") as fil:
 	lines = fil.readlines()
 dictionary = dict()
 for line in lines:
-    t = line.split()
-    dictionary.update({t[0] : np.array(map(lambda x: int(x), t[1:])) })
+	t = line.split()
+ 	dictionary.update({t[0] : np.array(map(lambda x: int(x), t[1:])) })
 print("Loaded and created word dictionary")
 
 
@@ -81,30 +81,30 @@ def rot_generator(batch_size, frames):
 word_len = 13
 
 def sentence_proc(one_hot, rot):
-    num_dict = {
-        0 : "zero",
-        1 : "one",
-        2 : "two",
-        3 : "three",
-        4 : "four",
-        5 : "five",
-        6 : "six",
-        7 : "seven",
-        8 : "eight",
-        9 : "nine"
-    }
-    for i in range(10):
-        if int(one_hot[i]) == i : 
-            string1 = num_dict[i]
-    if rot > 0 : 
-        string2 = "clockwise"
-    else :
-        string2 = "anti-clockwise"
-    return string1, string2
+	num_dict = {
+		0 : "zero",
+		1 : "one",
+		2 : "two",
+		3 : "three",
+		4 : "four",
+		5 : "five",
+		6 : "six",
+		7 : "seven",
+		8 : "eight",
+		9 : "nine"
+	}
+	for i in range(10):
+	if int(one_hot[i]) == i : 
+		string1 = num_dict[i]
+	if rot > 0 : 
+		string2 = "clockwise"
+	else :
+		string2 = "anti-clockwise"
+return string1, string2
 
 def convert_embedding(sentence):
-    global dictionary
-    return np.array(map(lambda x: dictionary[x], sentence))
+	global dictionary
+	return np.array(map(lambda x: dictionary[x], sentence))
 
 
 def rot_text_generator(batch_size, frames):
@@ -124,8 +124,8 @@ def rot_text_generator(batch_size, frames):
 		random = np.random.randint(0,4)
 		rot = np.random.normal(0,5)
 		if t == 0:
-            sentence = "The digit %s is moving to the left downwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
-            text_labels[i] = convert_embedding(sentence)
+			sentence = "The digit %s is moving to the left downwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
+			text_labels[i] = convert_embedding(sentence)
 			# text_labels[i] = np.array([rot,-1,1,1,-1])
 			# text_labels[i][-1] *= random
 			# text_labels[i][-2] *= random
@@ -138,8 +138,8 @@ def rot_text_generator(batch_size, frames):
 				for j in range(3):
 					batch_gen[i, 10+(random*r):38+(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
 		elif t==1 :
-            sentence = "The digit %s is moving to the right downwards while it rotates %s"%(sentence_proc(t, rot))
-            text_labels[i] = convert_embedding(sentence)
+			sentence = "The digit %s is moving to the right downwards while it rotates %s"%(sentence_proc(t, rot))
+			text_labels[i] = convert_embedding(sentence)
 			# text_labels[i] = np.array([rot, 1,-1,-1,1])
 			# text_labels[i][-1] *= random
 			# text_labels[i][-2] *= random
@@ -152,8 +152,8 @@ def rot_text_generator(batch_size, frames):
 				for j in range(3):
 					batch_gen[i, 26-(random*r):54-(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch2[i]*l[j]
 		elif t==2 :
-            sentence = "The digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(t, rot))
-            text_labels[i] = convert_embedding(sentence)
+			sentence = "The digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(t, rot))
+			text_labels[i] = convert_embedding(sentence)
 			# text_labels[i] = np.array([rot, -1,-1,1,1])
 			# text_labels[i][-1] *= random
 			# text_labels[i][-2] *= random
@@ -166,8 +166,8 @@ def rot_text_generator(batch_size, frames):
 				for j in range(3):
 					batch_gen[i, 26-(random*r):54-(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
 		else :
-            sentence = "The digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(t, rot))
-            text_labels[i] = convert_embedding(sentence)
+			sentence = "The digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(t, rot))
+			text_labels[i] = convert_embedding(sentence)
 			# text_labels[i] = np.array([rot, 1,1,-1,-1])
 			# text_labels[i][-1] *= random
 			# text_labels[i][-2] *= random
