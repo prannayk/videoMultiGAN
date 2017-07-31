@@ -17,7 +17,7 @@ for folder in folders[:1] :
 		os.system("mv %s/%s-* %s/"%(path, filename, filename))
 		print("Done with %s"%(filename))
 		path_file = direc + folder + "/" + filename
-		images =[f for f in os.listdir(path_file) if isflie(join(path_file, f))]
+		images =[f for f in os.listdir(path_file) if isfile(join(path_file, f))]
 		images = images[:30]
 		frames = np.zeros([30, 84, 64])
 		for i,img in enumerate(images) : 
