@@ -9,7 +9,7 @@ with open("/media/hdd/hdd/prannayk/temp.vec") as fil:
 dictionary = dict()
 for line in lines:
 	t = line.split()
- 	dictionary.update({t[0] : np.array(map(lambda x: int(x), t[1:])) })
+ 	dictionary.update({t[0] : np.array(map(lambda x: float(x), t[1:])) })
 print("Loaded and created word dictionary")
 
 
