@@ -108,7 +108,7 @@ def convert_embedding(sentence):
 
 
 def rot_text_generator(batch_size, frames):
-    global word_len
+	global word_len
 	batch1in, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1in.reshape([batch_size, 28,28])
 	batch2 = batch1in.reshape([batch_size, 28,28])
