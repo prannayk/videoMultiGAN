@@ -23,3 +23,4 @@ for folder in folders[:1] :
 		for i,img in enumerate(images) : 
 			im = (np.array(Image("%s/%s"%(path, filename)).getdata()) / 255. ).resize([84,64, 3])
 			frames[i] = im
+		np.save("%s/%s/video.npy"%(path, filename))
