@@ -78,7 +78,7 @@ class VAEGAN():
 		for i in range(total_size // batch_size):
 			if i % 1000 == 0:
 				print(i)
-			output_list = generate(batch_size)
+			output_list = generate(self.batch_size, self.frames)
 			image_start[i*batch_size : i*batch_size + batch_size] = output_list[0]
 			image_gen[i*batch_size:i*batch_size + batch_size] = output_list[1]
 			image_labels[i*batch_size:i*batch_size + batch_size] = output_list[2]
