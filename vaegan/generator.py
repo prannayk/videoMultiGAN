@@ -97,7 +97,7 @@ def sentence_proc(one_hot, rot):
 	if rot > 0 : 
 		string2 = "clockwise"
 	else :
-		string2 = "anti-clockwise"
+		string2 = "anti clockwise"
 	return string1, string2
 
 def convert_embedding(sentence):
