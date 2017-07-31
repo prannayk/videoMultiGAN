@@ -105,6 +105,7 @@ def convert_embedding(sentence):
 	embed = np.array(map(lambda x: dictionary[x], sentence.split()))
 	t = np.zeros([word_len,300])
 	t[:len(embed)] = embed
+	del embed
 	return t
 
 
