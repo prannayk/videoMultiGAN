@@ -93,10 +93,7 @@ def sentence_proc(one_hot, rot):
 		8 : "eight",
 		9 : "nine"
 	}
-	for i in range(10):
-		print(one_hot)
-		if one_hot[i] == 1 : 
-			string1 = num_dict[i]
+	string1 = num_dict[one_hot]
 	if rot > 0 : 
 		string2 = "clockwise"
 	else :
@@ -111,7 +108,6 @@ def convert_embedding(sentence):
 def rot_text_generator(batch_size, frames):
 	global word_len
 	batch1in, batch1_labels = mnist.train.next_batch(batch_size)
-	print(batch1_labels.shape)
 	batch1 = batch1in.reshape([batch_size, 28,28])
 	batch2 = batch1in.reshape([batch_size, 28,28])
 	batch = np.zeros([batch_size, 64, 64,9])
