@@ -306,7 +306,7 @@ class VAEGAN():
 		final_label = tf.matmul(softmax_input, text_label_embedding)
 		label_big = tf.reshape(final_label, shape=[self.batch_size, 300,1,1])
 #       label_small = tf.small(label_big, pool_size=[4,1], strides=[4,1], padding='same',name="subsizing")
-		return label_big 
+		return tf.reshape(label_big,shape=[self.batch_size, 300]) 
 	def build_model(self):
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
 		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_create_shape)
