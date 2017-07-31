@@ -94,6 +94,9 @@ def sentence_proc(one_hot, rot):
 		9 : "nine"
 	}
 	print(type(one_hot))
+	for i in range(len(one_hot)):
+		if one_hot[i] == 1:
+			string1 = num_dict[i]
 	string1 = num_dict[int(one_hot)]
 	if rot > 0 : 
 		string2 = "clockwise"
