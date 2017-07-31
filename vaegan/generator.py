@@ -141,7 +141,7 @@ def rot_text_generator(batch_size, frames):
 				for j in range(3):
 					batch_gen[i, 10+(random*r):38+(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
 		elif t==1 :
-			sentence = "the digit %s is moving to the right downwards while it rotates %s"%(sentence_proc(t, rot))
+			sentence = "the digit %s is moving to the right downwards while it rotates %s"%(sentence_proc((sentence_proc(batch1_labels[i], rot))
 			text_labels[i] = convert_embedding(sentence)
 			# text_labels[i] = np.array([rot, 1,-1,-1,1])
 			# text_labels[i][-1] *= random
@@ -155,7 +155,7 @@ def rot_text_generator(batch_size, frames):
 				for j in range(3):
 					batch_gen[i, 26-(random*r):54-(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch2[i]*l[j]
 		elif t==2 :
-			sentence = "the digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(t, rot))
+			sentence = "the digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(sentence_proc(batch1_labels[i], rot))
 			text_labels[i] = convert_embedding(sentence)
 			# text_labels[i] = np.array([rot, -1,-1,1,1])
 			# text_labels[i][-1] *= random
@@ -169,7 +169,7 @@ def rot_text_generator(batch_size, frames):
 				for j in range(3):
 					batch_gen[i, 26-(random*r):54-(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
 		else :
-			sentence = "the digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(t, rot))
+			sentence = "the digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(sentence_proc(batch1_labels[i], rot))
 			text_labels[i] = convert_embedding(sentence)
 			# text_labels[i] = np.array([rot, 1,1,-1,-1])
 			# text_labels[i][-1] *= random
