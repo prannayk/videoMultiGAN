@@ -93,6 +93,7 @@ def sentence_proc(one_hot, rot):
 		8 : "eight",
 		9 : "nine"
 	}
+	print(one_hot.shape)
 	string1 = num_dict[int(one_hot)]
 	if rot > 0 : 
 		string2 = "clockwise"
