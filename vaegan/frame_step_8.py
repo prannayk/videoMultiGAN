@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import scipy.misc
 import sys
-from generator import rot_generator as generate
+from generator import rot_text_generator as generate
 import time
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
