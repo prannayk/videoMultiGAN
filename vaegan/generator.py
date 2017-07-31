@@ -64,8 +64,8 @@ def rot_generator(batch_size, frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch_gen[i, 26-(random*r):54-(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
-		else :
-    	    text_labels[i] = np.array([rot, 1,1,-1,-1])
+        else :
+            text_labels[i] = np.array([rot, 1,1,-1,-1])
 			text_labels[i][-1] *= random
 			text_labels[i][-2] *= random
 			for r in range(3):
