@@ -94,7 +94,7 @@ def sentence_proc(one_hot, rot):
 		9 : "nine"
 	}
 	for i in range(10):
-		print(one_hot[i])
+		print(one_hot)
 		if one_hot[i] == 1 : 
 			string1 = num_dict[i]
 	if rot > 0 : 
