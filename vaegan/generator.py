@@ -8,7 +8,7 @@ with open("/media/hdd/hdd/data_backup/prannayk/temp.vec") as fil:
 	lines = fil.readlines()
 dictionary = dict()
 for line in lines:
-	t = line.split()
+    t = line.split()
     dictionary.update({t[0] : np.array(map(lambda x: int(x), t[1:])) })
 print("Loaded and created word dictionary")
 
