@@ -183,7 +183,7 @@ def rot_text_generator(batch_size, frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch_gen[i, 10+(random*r):38+(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch2[i]*l[j]
-	return batch, batch_gen, batch_labels, # text_labels
+	return batch, batch_gen, batch_labels, text_labels
 def text_generator(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28,28])
