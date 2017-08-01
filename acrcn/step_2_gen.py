@@ -31,11 +31,11 @@ class VAEGAN():
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate)
 		self.lambda_1 = 10
-		self.dim_1 = self.image_shape[0]
-		self.dim_2 = self.image_shape[0] // 2
-		self.dim_4 = self.image_shape[0] // 4
-		self.dim_8 = self.image_shape[0] // 8
-		self.dim_16 = self.image_shape[0] // 16
+		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
+		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
+		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
+		self.dim_8 = [self.image_shape[0] // 8, self.image_shape[1] // 8]
+		self.dim_16 = [self.image_shape[0] // 16, self.image_shape[1] // 8]
 		self.dim_channel = self.image_shape[-1]
 		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
