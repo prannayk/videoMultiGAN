@@ -401,7 +401,7 @@ num_class_image=25
 frames=2
 num_class_motion = 6
 
-def save_visualization(X, nh_nw=(16,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(batch_size,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
 	print(X.shape)
 	h,w = X.shape[1], X.shape[2]
