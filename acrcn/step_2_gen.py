@@ -429,7 +429,6 @@ def random_label(batch_size, size):
 	random = np.zeros(shape=[batch_size, size])
 	for i in range(batch_size):
 		random[i, int(t[i])] = 1
-		random[i, 10:] = np.random.randint(0,256,[3]).astype(float) / 255
 	return random	
 
 def train_epoch(flag=False, initial=True):
