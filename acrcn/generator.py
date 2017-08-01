@@ -16,14 +16,14 @@ def video_next_batch(batch_size, frames):
 		video_loader()
 	path = "/media/hdd/hdd/prannayk/action_reaction/"
 	file_list = np.random.choice(lf, batch_size , replace=True)
-	video_list = np.zeros([batch_size, 30, 40, 32, 3])
+	video_list = np.zeros([batch_size, 30, 32, 40, 3])
 	for i,fil in enumerate(file_list):
 		complete_path = path + fil
 		videonpy = np.load(complete_path)
 		video_list[i] = videonpy
 	start_num = [i for i in range(30-(frames+2))]
 	start_list = np.random.choice(start_num, batch_size, replace=True)
-	video_batch = np.zeros([batch_size, 40, 32, frames + 2])
+	video_batch = np.zeros([batch_size, 32, 40, frames + 2])
 	motion_class = []
 	person_class = []
 	style_class = []
