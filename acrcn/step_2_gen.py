@@ -63,37 +63,37 @@ class VAEGAN():
 			softmax = tf.log(1 - X)
 		return -tf.reduce_mean(softmax)
 
-	def create_dataset(self):
-		total_size = self.total_size
-		batch_size = self.batch_size
-		image_start = np.zeros(shape=[total_size] + self.image_input_shape)
-		image_gen = np.zeros(shape=[total_size] + self.image_create_shape)
-		image_labels = np.zeros(shape=[total_size, 25])
-		image_motion_labels = np.zeros(shape=[total_size, 6])
-		for i in range(total_size // batch_size):
-			if i % 1000 == 0:
-				print(i)
-			output_list = generate(self.batch_size,self.frames)
-			image_start[i*batch_size : i*batch_size + batch_size] = output_list[0]
-			image_gen[i*batch_size:i*batch_size + batch_size] = output_list[1]
-			image_labels[i*batch_size:i*batch_size + batch_size] = output_list[2]
-			image_motion_labels[i*batch_size:i*batch_size + batch_size] = output_list[3]
-		dataset = {
-			"image_start" : image_start,
-			"image_gen" : image_gen,
-			"image_labels" : image_labels,
-			"image_motion_labels" : image_motion_labels
-		}
-		self.dataset = dataset
-		self.iter=0
+	# def create_dataset(self):
+		# total_size = self.total_size
+		# batch_size = self.batch_size
+		# image_start = np.zeros(shape=[total_size] + self.image_input_shape)
+		# image_gen = np.zeros(shape=[total_size] + self.image_create_shape)
+		# image_labels = np.zeros(shape=[total_size, 25])
+		# image_motion_labels = np.zeros(shape=[total_size, 6])
+		# for i in range(total_size // batch_size):
+			# if i % 1000 == 0:
+				# print(i)
+			# output_list = generate(self.batch_size,self.frames)
+			# image_start[i*batch_size : i*batch_size + batch_size] = output_list[0]
+			# image_gen[i*batch_size:i*batch_size + batch_size] = output_list[1]
+			# image_labels[i*batch_size:i*batch_size + batch_size] = output_list[2]
+			# image_motion_labels[i*batch_size:i*batch_size + batch_size] = output_list[3]
+		# dataset = {
+			# "image_start" : image_start,
+			# "image_gen" : image_gen,
+			# "image_labels" : image_labels,
+			# "image_motion_labels" : image_motion_labels
+		# }
+		# self.dataset = dataset
+		# self.iter=0
 	def generate_batch(self):
-		list_output= []
-		list_output.append(self.dataset["image_start"][self.iter:self.iter + self.batch_size])
-		list_output.append(self.dataset["image_gen"][self.iter:self.iter + self.batch_size])
-		list_output.append(self.dataset["image_labels"][self.iter:self.iter + self.batch_size])
-		list_output.append(self.dataset["image_motion_labels"][self.iter:self.iter + self.batch_size])
-		self.iter = (self.iter + self.batch_size) % self.total_size
-		return list_output
+		# list_output= []
+		# list_output.append(self.dataset["image_start"][self.iter:self.iter + self.batch_size])
+		# list_output.append(self.dataset["image_gen"][self.iter:self.iter + self.batch_size])
+		# list_output.append(self.dataset["image_labels"][self.iter:self.iter + self.batch_size])
+		# list_output.append(self.dataset["image_motion_labels"][self.iter:self.iter + self.batch_size])
+		# self.iter = (self.iter + self.batch_size) % self.total_size
+		return generate(self.batch_size, self.frames)
 	def discriminate_image(self, image, zvalue, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(zvalue, [self.batch_size, 1,1,self.zdimension])
