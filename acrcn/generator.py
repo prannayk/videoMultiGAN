@@ -51,7 +51,7 @@ def video_next_batch(batch_size, frames):
 
 
 def rot_generator(batch_size, frames):
-	return video_next_batch(batch_size)
+	return video_next_batch(batch_size, frames)
 
 word_len = 14
 
