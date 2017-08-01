@@ -129,19 +129,19 @@ class VAEGAN():
 			h3_relu = LeakyReLU(h3)
 			h3_concat = self.normalize(tf.concat(axis=3, values=[h3_relu, yneed_3]))
 			h4 = tf.layers.conv2d(h3_concat, filters=64, kernel_size=[5,5],
-				strides=[2,2], padding='SAME',
+				strides=[1,1], padding='SAME',
 				activation=None, 
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_4")
 			h4_relu = LeakyReLU(h4)
-			h4_concat = self.normalize(tf.concat(axis=3, values=[h4_relu, yneed_4]))
+			h4_concat = self.normalize(tf.concat(axis=3, values=[h4_relu, yneed_3]))
 			h5 = tf.layers.conv2d(h4_concat, filters=64, kernel_size=[5,5],
 				strides=[2,2], padding='SAME',
 				activation=None, 
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_5")
 			h5_relu = LeakyReLU(h3)
-			h5_reshape = tf.reshape(h5, shape=[self.batch_size,self.dim_16*self.dim_16*64])
+			h5_reshape = tf.reshape(h5, shape=[self.batch_size,self.dim_8[1]*self.dim_8[0]*64])
 			h5_concat = self.normalize(tf.concat(axis=1, values=[h5_reshape, zvalue]))
 			h6 = tf.layers.dense(h5_concat, units=256, 
 				activation=None,
