@@ -20,11 +20,11 @@ for folder in folders :
 		path_file = direc + folder + "/" + filename
 		images =[f for f in os.listdir(path_file) if isfile(join(path_file, f))]
 		images = images[:30]
-		frames = np.zeros([30, 84, 64, 3])
+		frames = np.zeros([30, 40, 32, 3])
 		for i,img in enumerate(images) : 
 			im = np.array(Image.open("%s/%s/%s"%(path, filename, img)).getdata())
 			print(im.shape)
-			im = (im / 255. ).reshape([84,64, 3])
+			im = (im / 255. ).reshape([40,32, 3])
 			print(im)
 			frames[i] = im
 		np.save("%s/video_%s.npy"%(direc, filename), frames)
