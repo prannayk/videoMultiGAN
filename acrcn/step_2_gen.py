@@ -63,7 +63,8 @@ class VAEGAN():
 			softmax = tf.log(1 - X)
 		return -tf.reduce_mean(softmax)
 
-	# def create_dataset(self):
+	def create_dataset(self):
+		print("rolling")
 		# total_size = self.total_size
 		# batch_size = self.batch_size
 		# image_start = np.zeros(shape=[total_size] + self.image_input_shape)
