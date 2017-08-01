@@ -7,7 +7,7 @@ lf = list()
 def video_loader():
 	global lf
 	path = "/media/hdd/hdd/prannayk/action_reaction/"
-	files = [f for f in os.listdir(path) if os.isfile(os.join(path, f))]
+	files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
 	lf = files
 
 def video_next_batch(batch_size, frames):
