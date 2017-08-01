@@ -28,4 +28,4 @@ for folder in folders[:1] :
 			print(im)
 			frames[i] = im
 		np.save("%s/video_%s.npy"%(direc, filename), frames)
-		# os.system("rm -rf %s/%s")
+		os.system("rm -rf %s/%s")
