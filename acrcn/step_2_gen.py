@@ -163,7 +163,7 @@ class VAEGAN():
 			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2[0], self.dim_2[1], self.zdimension])
 			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_8[0], self.dim_8[1], self.zdimension])
 			embedding = tf.concat(axis=1, values=[embedding, zvalue])
-			h1 = tf.layers.dense(embedding, units=4096, activation=None,
+			h1 = tf.layers.dense(embedding, units=1280, activation=None,
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
 			h1_relu = tf.nn.relu(self.normalize(h1))
