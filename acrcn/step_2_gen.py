@@ -310,13 +310,13 @@ class VAEGAN():
 		next_image_input = image_input
 		for i in range(self.frames):
 			print(i) 
-			list_return = self.create_frames(next_image_input, x[:,:,:,3*i:3*i+3], 
+			list_return = self.create_frames(next_image_input, x[:,:,:,dim_channel*i:dim_channel*i+dim_channel], 
 				z_s[self.batch_size*i:self.batch_size*i+self.batch_size], z_c[self.batch_size*i:self.batch_size*i+self.batch_size], 
 				image_class_input, text_label_input, z_t[self.batch_size*i:self.batch_size*i+self.batch_size])
 			for count,item in enumerate(list_return):
 				list_values[count].append(item)
 			if self.video_create :
-				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,3:], x[:,:,:,3*i:3*i+3]])
+				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,dim_channel:], x[:,:,:,dim_channel*i:dim_channel*i+dim_channel]])
 			else :
 				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,3:], list_output[0]])
 
