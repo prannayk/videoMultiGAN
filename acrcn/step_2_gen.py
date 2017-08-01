@@ -318,7 +318,7 @@ class VAEGAN():
 			if self.video_create :
 				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,dim_channel:], x[:,:,:,dim_channel*i:dim_channel*i+dim_channel]])
 			else :
-				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,3:], list_output[0]])
+				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,dim_channel:], list_output[0]])
 
 		# second_image_input = tf.concat(axis=3, values=[image_input[:,:,:,3:],x_1_hat])
 		# x_2_hat, x_2_gen, D_2_x_hat, D_2_x, D_2_x_dash, D_2_x_gen, D_2_z_hat_c, D_2_z_c, D_2_z_real, D_2_z_hat_s, D_2_z_s,  D_2_z_hat_t, D_2_z_t = self.create_frames(second_image_input, x[:,:,:,3:], 
