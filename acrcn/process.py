@@ -24,7 +24,7 @@ for folder in folders[:1] :
 		for i,img in enumerate(images) : 
 			im = np.array(Image.open("%s/%s/%s"%(path, filename, img)).getdata())
 			print(im.shape)
-			im = (im / 255. ).reshape([40,32, 3])
+			im = (im / 255. ).reshape([32,40, 3])
 			print(im)
 			frames[i] = im
 		np.save("%s/video_%s.npy"%(direc, filename), frames)
