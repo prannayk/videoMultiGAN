@@ -208,7 +208,7 @@ class VAEGAN():
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse, name="conv_3")
 			h3_relu = self.normalize(LeakyReLU(h3))
-			h3_reshape = tf.reshape(h3_relu, shape=[self.batch_size, self.dim_8*self.dim_8*16])
+			h3_reshape = tf.reshape(h3_relu, shape=[self.batch_size, self.dim_8[0]*self.dim_8[1]*16])
 			h4 = tf.layers.dense(h3_reshape, units=self.embedding_size+self.num_class_image, 
 				activation=None,
 				kernel_initializer=self.initializer,
