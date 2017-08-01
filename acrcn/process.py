@@ -20,7 +20,7 @@ for folder in folders[:1] :
 		path_file = direc + folder + "/" + filename
 		images =[f for f in os.listdir(path_file) if isfile(join(path_file, f))]
 		images = images[:30]
-		frames = np.zeros([30, 40, 32, 3])
+		frames = np.zeros([30, 32, 40, 3])
 		for i,img in enumerate(images) : 
 			im = np.array(Image.open("%s/%s/%s"%(path, filename, img)).getdata())
 			print(im.shape)
