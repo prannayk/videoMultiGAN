@@ -97,10 +97,10 @@ class VAEGAN():
 	def discriminate_image(self, image, zvalue, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(zvalue, [self.batch_size, 1,1,self.zdimension])
-			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1 , self.dim_1, self.zdimension])
-			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2, self.dim_2, self.zdimension])
-			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_4, self.dim_4, self.zdimension])
-			yneed_4 = ystack*tf.ones([self.batch_size, self.dim_8, self.dim_8, self.zdimension])
+			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1[0] , self.dim_1[1], self.zdimension])
+			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2[0], self.dim_2[1], self.zdimension])
+			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_4[0], self.dim_4[1], self.zdimension])
+			yneed_4 = ystack*tf.ones([self.batch_size, self.dim_8[0], self.dim_8[1], self.zdimension])
 			
 			LeakyReLU = tf.contrib.keras.layers.LeakyReLU(alpha=0.2)
 
@@ -158,15 +158,15 @@ class VAEGAN():
 	def generate_image(self, embedding, zvalue, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(zvalue, shape=[self.batch_size, 1,1 , self.zdimension])
-			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_4, self.dim_4, self.zdimension])
-			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2, self.dim_2, self.zdimension])
-			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_8, self.dim_8, self.zdimension])
+			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_4[0], self.dim_4[1], self.zdimension])
+			yneed_2 = ystack*tf.ones([self.batch_size, self.dim_2[0], self.dim_2[1], self.zdimension])
+			yneed_3 = ystack*tf.ones([self.batch_size, self.dim_8[0], self.dim_8[1], self.zdimension])
 			embedding = tf.concat(axis=1, values=[embedding, zvalue])
 			h1 = tf.layers.dense(embedding, units=4096, activation=None,
 				kernel_initializer=self.initializer, 
 				name='dense_1', reuse=scope.reuse)
 			h1_relu = tf.nn.relu(self.normalize(h1))
-			h1_reshape = tf.reshape(h1_relu, shape=[self.batch_size, self.dim_8, self.dim_8, 64])
+			h1_reshape = tf.reshape(h1_relu, shape=[self.batch_size, self.dim_8[0], self.dim_8[1], 64])
 			h1_concat = tf.concat(axis=3, values=[h1_reshape,yneed_3])
 			h2 = tf.layers.conv2d_transpose(inputs=h1_concat, filters = 64, 
 				kernel_size=[5,5], strides=[2,2], padding='SAME', activation=None,
