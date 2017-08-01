@@ -1,6 +1,6 @@
 from PIL import Image
 import numpy as np
-
+import os
 
 lf = list()
 
@@ -12,6 +12,8 @@ def video_loader():
 
 def video_next_batch(batch_size, frames):
 	global lf
+	if len(lf) == 0 :
+		video_loader()
 	path = "/media/hdd/hdd/prannayk/action_reaction/"
 	file_list = np.random.choice(lf, batch_size , replace=True)
 	video_list = np.zeros([batch_size, 30, 84, 64, 3])
