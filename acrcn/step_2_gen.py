@@ -68,8 +68,8 @@ class VAEGAN():
 		batch_size = self.batch_size
 		image_start = np.zeros(shape=[total_size] + self.image_input_shape)
 		image_gen = np.zeros(shape=[total_size] + self.image_create_shape)
-		image_labels = np.zeros(shape=[total_size, 13])
-		image_motion_labels = np.zeros(shape=[total_size, 4])
+		image_labels = np.zeros(shape=[total_size, 25])
+		image_motion_labels = np.zeros(shape=[total_size, 6])
 		for i in range(total_size // batch_size):
 			if i % 1000 == 0:
 				print(i)
