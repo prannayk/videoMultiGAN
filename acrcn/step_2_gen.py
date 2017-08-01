@@ -424,9 +424,9 @@ def morph(X):
 			img[i*(frames+2) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
 	return img
 
-def random_label(batch_size):
+def random_label(batch_size, size):
 	t = np.random.choice(10, batch_size, replace=True)
-	random = np.zeros(shape=[batch_size,13])
+	random = np.zeros(shape=[batch_size, size])
 	for i in range(batch_size):
 		random[i, int(t[i])] = 1
 		random[i, 10:] = np.random.randint(0,256,[3]).astype(float) / 255
