@@ -524,5 +524,5 @@ for ep in range(epoch):
 		placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
-	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(ep+1, sys.argv[-2]))
+	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 saver.save(session, "/media/hdd/hdd/frame_2_generator_vae.ckpt")
