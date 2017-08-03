@@ -292,7 +292,7 @@ class VAEGAN():
 		return x_hat, x_gen, D_x_hat, D_x, D_x_dash, D_x_gen, D_z_hat_c, D_z_c, D_z_real, D_z_hat_s, D_z_s, D_z_hat_t, D_z_t
 	def build_model(self):
 		lambda_1_tensor = tf.constant(self.lambda_1)
-		lambda_var = tf.Variable(tf.random_uniform(shape=[1], dtype=tf.int32))
+		lambda_var = tf.Variable(tf.random_uniform(shape=[1], maxval=10, dtype=tf.int32))
 		set_lambda = tf.assign(lambda_var, lambda_1_tensor, name="lambda_var_assignment")
 		anneal = tf.assign(lambda_var, set_lambda_var*(1-self.eta_1))
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
