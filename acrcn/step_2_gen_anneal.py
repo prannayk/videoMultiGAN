@@ -14,7 +14,7 @@ class VAEGAN():
 	"""docstring for VAEGAN"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
 			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
-			num_class_image=13, frames=2, frames_input=2, total_size = 64000, video_create=False):
+			num_class_image=13, frames=2, frames_input=2, total_size = 64000, video_create=False, eta_1 = 0.1):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
@@ -31,7 +31,7 @@ class VAEGAN():
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
 		self.lambda_1 = 100
-		self.eta_1 = max(0.05, self.eta_1)
+		self.eta_1 = max(0.05, eta_1)
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -395,7 +395,7 @@ class VAEGAN():
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"], var_list=variable_dict["text_class"])
 			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"], var_list=variable_dict["style_class"])
 		print("Completed optimizers")
-		return placeholders, optimizer, losses, x_hat
+		return placeholders, optimizer, losses, x_hat, set_lambda, anneal
 
 epoch = 600
  # batch_size = 16
@@ -404,6 +404,7 @@ motion_size=6
 num_class_image=25
 frames=2
 num_class_motion = 6
+eta_1 = 0.05
 
 def save_visualization(X, nh_nw=(batch_size,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
@@ -495,9 +496,9 @@ image_sample,image_gen,image_labels, text_labels, _ = generate(batch_size, frame
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 # save_visualization(image_gen, save_path='../results/acrcn/32/frame_8_text_embedding/sample_gen.jpg')
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
-	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True)
+	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, eta_1 = eta_1)
 
-placeholders,optimizers, losses, x_hat = gan.build_model()
+placeholders,optimizers, losses, x_hat, set_lambda, anneal = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
@@ -508,6 +509,7 @@ print("Running code: ")
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
+session.run(set_lambda)
 for ep in range(epoch):
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
@@ -529,4 +531,5 @@ for ep in range(epoch):
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
+	session.run(anneal)
 saver.save(session, "/media/hdd/hdd/frame_2_generator_vae.ckpt")
