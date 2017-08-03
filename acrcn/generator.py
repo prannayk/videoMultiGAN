@@ -32,7 +32,7 @@ def video_next_batch(batch_size, frames):
 	for i in range(batch_size):
 		for j in range(frames+2):
 			video_batch[i,:,:,j] = video_list[i,start_list[i]+j:start_list[i]+j+1,:,:,0] / 255.
-		list_feat = file_list[i].split(".")[0].split("_")[1:4]
+		list_feat = file_list[i].split(".")[0].split("_")[1:5]
 		if len(list_feat) < 3 : 
 			print(list_feat)
 		if list_feat[2] == "walking" :
