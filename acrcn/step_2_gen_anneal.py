@@ -402,10 +402,10 @@ class VAEGAN():
 epoch = 600
  # batch_size = 16
 embedding_size =128
-motion_size=6
+motion_size=7
 num_class_image=25
 frames=2
-num_class_motion = 7
+num_class_motion = 6
 eta_1 = 0.05
 
 def save_visualization(X, nh_nw=(batch_size,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
