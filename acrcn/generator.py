@@ -34,20 +34,20 @@ def video_next_batch(batch_size, frames):
 		list_feat = file_list[i].split(".")[0].split("_")[1:4]
 		if len(list_feat) < 3 : 
 			print(list_feat)
-		if list_feat[1] == "walking" :
+		if list_feat[2] == "walking" :
 			motion_class.append(5)
-		elif list_feat[1] == "running" :
+		elif list_feat[2] == "running" :
 			motion_class.append(4)
-		elif list_feat[1] == "jogging" :
+		elif list_feat[2] == "jogging" :
 			motion_class.append(3)
-		elif list_feat[1] == "handclapping" : 
+		elif list_feat[2] == "handclapping" : 
 			motion_class.append(2)
-		elif list_feat[1] == "handwaving" : 
+		elif list_feat[2] == "handwaving" : 
 			motion_class.append(1)
 		else:
 			motion_class.append(0)
-		person_class.append(int(list_feat[0][6:]) - 1)
-		style_class.append([int(list_feat[2][1:]) - 1, list_feat[0]])
+		person_class.append(int(list_feat[1][6:]) - 1)
+		style_class.append([int(list_feat[3][1:]) - 1, list_feat[0]])
 	person_hot = np.zeros([batch_size, 25])
 	style_hot = np.zeros([batch_size, 4])
 	motion_hot = np.zeros([batch_size, 6])
