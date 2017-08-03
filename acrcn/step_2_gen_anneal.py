@@ -294,7 +294,7 @@ class VAEGAN():
 		lambda_1_tensor = tf.constant(self.lambda_1)
 		lambda_var = tf.Variable(lambda_1_tensor)
 		set_lambda = tf.assign(lambda_var, lambda_1_tensor, name="lambda_var_assignment")
-		anneal = tf.assign(lambda_var, set_lambda_var*(1-self.eta_1))
+		anneal = tf.assign(lambda_var, lambda_var*(1-self.eta_1))
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
 		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_create_shape)
 		z_s = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.embedding_size])
