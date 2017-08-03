@@ -28,6 +28,7 @@ def video_next_batch(batch_size, frames):
 	motion_class = []
 	person_class = []
 	style_class = []
+	frame_speed = []
 	for i in range(batch_size):
 		for j in range(frames+2):
 			video_batch[i,:,:,j] = video_list[i,start_list[i]+j:start_list[i]+j+1,:,:,0] / 255.
@@ -48,6 +49,7 @@ def video_next_batch(batch_size, frames):
 			motion_class.append(0)
 		person_class.append(int(list_feat[1][6:]) - 1)
 		style_class.append(int(list_feat[3][1:]) - 1)
+		frame_speed.append(list_feat[0])
 	person_hot = np.zeros([batch_size, 25])
 	style_hot = np.zeros([batch_size, 4])
 	motion_hot = np.zeros([batch_size, 7])
