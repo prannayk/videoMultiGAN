@@ -50,7 +50,7 @@ def video_next_batch(batch_size, frames):
 		style_class.append(int(list_feat[3][1:]) - 1)
 	person_hot = np.zeros([batch_size, 25])
 	style_hot = np.zeros([batch_size, 4])
-	motion_hot = np.zeros([batch_size, 6])
+	motion_hot = np.zeros([batch_size, 7])
 	person_hot[np.arange(batch_size), person_class] = 1
 	style_hot[np.arange(batch_size), style_class] = 1
 	motion_hot[np.arange(batch_size), motion_class] = 1
