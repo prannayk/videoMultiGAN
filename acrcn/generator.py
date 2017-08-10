@@ -21,7 +21,7 @@ def video_next_batch(batch_size, frames):
 	for i,fil in enumerate(file_list):
 		complete_path = path + fil
 		videonpy = np.load(complete_path)
-		video_list[i] = videonpy
+		video_list[i] = videonpy[:30]
 	start_num = [i for i in range(30-(frames+2))]
 	start_list = np.random.choice(start_num, batch_size, replace=True)
 	video_batch = np.zeros([batch_size, 32, 40, frames + 2])
