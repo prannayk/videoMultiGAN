@@ -311,7 +311,7 @@ class VAEGAN():
 		placeholders = {
 			'image_input' : image_input,
 			'x' : x,
-			'x_old' : x_old
+			'x_old' : x_old,
 			'image_class_input' : image_class_input,
 			'text_label_input' : text_label_input,
 			'z_s' : z_s,
