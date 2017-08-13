@@ -522,9 +522,10 @@ for ep in range(epoch):
 	feed_list = gan.generate_batch()
 	feed_dict = {
 		placeholders['image_input'] : image_sample,
-		placeholders['x'] : fe,
-		placeholders['image_class_input'] : feed_list[2],
-		placeholders['text_label_input'] : feed_list[3],
+		placeholders['x_old'] : image_old,
+		placeholders['x'] : image_gen,
+		placeholders['image_class_input'] : image_labels,
+		placeholders['text_label_input'] : text_labels,
 		placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 		placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
