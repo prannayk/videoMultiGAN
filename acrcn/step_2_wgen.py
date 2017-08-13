@@ -61,7 +61,7 @@ class VAEGAN():
 			softmax = tf.log(X)
 		else :
 			softmax = tf.log(1 - X)
-		return -tf.reduce_mean(softmax)
+		return -tf.reduce_mean(softmax) 
 
 	def create_dataset(self):
 		print("rolling")
