@@ -318,7 +318,7 @@ class VAEGAN():
 			'z_c' : z_c,
 			'z_t' : z_t
 		}
-		list_values = [[],[],[],[],[],[],[],[],[],[],[],[],[]]
+		list_values = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
 		next_image_input = image_input
 		for i in range(self.frames):
 			print(i) 
