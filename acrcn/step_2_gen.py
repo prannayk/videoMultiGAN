@@ -472,7 +472,7 @@ def train_epoch(flag=False, initial=True):
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
 				placeholders['x_old'] : feed_list[1],
-				palceholders['x'] : feed_list[2]
+				placeholders['x'] : feed_list[2],
 				placeholders['image_class_input'] : feed_list[3],
 				placeholders['text_label_input'] : feed_list[4],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
