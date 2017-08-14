@@ -483,7 +483,7 @@ def train_epoch(flag=False, initial=True):
 				placeholders['text_label_input'] : feed_list[4],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
+				placeholders['z_t'] : np.concatenate(np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames))
 			}
 			if initial :
 				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
