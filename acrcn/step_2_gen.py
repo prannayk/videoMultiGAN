@@ -438,7 +438,7 @@ def frame_label(batch_size, frames):
 	t = np.zeros([batch_size*frames, frames])
 	for i in range(batch_size):
 		for j in range(frames):
-			t[i*batch_size + frames,j] = 1
+			t[i*batch_size + j,j] = 1
 	return t
 
 def train_epoch(flag=False, initial=True):
