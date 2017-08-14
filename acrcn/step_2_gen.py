@@ -24,7 +24,7 @@ class VAEGAN():
 		self.image_input_shape[-1] *= self.frames_input
 		self.image_create_shape[-1] *= self.frames
 		self.num_class_image = num_class_image
-		self.num_class_motion = num_class_motion
+		self.num_class_motion = num_class_motion + self.frames
 		self.num_class = num_class_image
 		self.embedding_size = embedding_size 
 		self.zdimension = self.num_class
