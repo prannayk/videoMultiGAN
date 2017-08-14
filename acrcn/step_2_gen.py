@@ -8,7 +8,7 @@ from generator import rot_generator as generate
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
 total_size = 64000
-batch_size = 64
+batch_size = 32
 
 class VAEGAN():
 	"""docstring for VAEGAN"""
@@ -24,7 +24,7 @@ class VAEGAN():
 		self.image_input_shape[-1] *= self.frames_input
 		self.image_create_shape[-1] *= self.frames
 		self.num_class_image = num_class_image
-		self.num_class_motion = num_class_motion
+		self.num_class_motion = num_class_motion + self.frames
 		self.num_class = num_class_image
 		self.embedding_size = embedding_size 
 		self.zdimension = self.num_class
@@ -252,7 +252,7 @@ class VAEGAN():
 		with tf.variable_scope("transformation") as scope:
 			if not self.first_time : 
 				scope.reuse_variables()
-			encode_alt = tf.layers.dense(encode[:,:self.embedding_size], units=int(encode.shape[-1]), reuse=scope.reuse, 
+			encoder_alt = tf.layers.dense(encode[:,:self.embedding_size], units=int(self.embedding_size), reuse=scope.reuse, 
 				kernel_initializer=self.initializer, use_bias=True, name="transformation")
 		z_hat_s = encode[:,:self.embedding_size]
 		z_hat_s_fut = encoder_alt # for transformation embedding to create video
@@ -311,13 +311,14 @@ class VAEGAN():
 		placeholders = {
 			'image_input' : image_input,
 			'x' : x,
+			'x_old' : x_old,
 			'image_class_input' : image_class_input,
 			'text_label_input' : text_label_input,
 			'z_s' : z_s,
 			'z_c' : z_c,
 			'z_t' : z_t
 		}
-		list_values = [[],[],[],[],[],[],[],[],[],[],[],[],[]]
+		list_values = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
 		next_image_input = image_input
 		for i in range(self.frames):
 			print(i) 
@@ -433,6 +434,12 @@ def random_label(batch_size, size):
 		random[i, int(t[i])] = 1
 	return random	
 
+def frame_label(batch_size, frames):
+	t = np.zeros([batch_size*frames, frames])
+	for i in range(batch_size):
+		for j in range(frames):
+			t[i*frames + j,j] = 1
+	return t
 
 def train_epoch(flag=False, initial=True):
 	diter = 5
@@ -451,12 +458,13 @@ def train_epoch(flag=False, initial=True):
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
-				placeholders['x'] : feed_list[1],
-				placeholders['image_class_input'] : feed_list[2],
-				placeholders['text_label_input'] : feed_list[3],
+				placeholders['x_old'] : feed_list[1],
+				placeholders['x'] : feed_list[2],
+				placeholders['image_class_input'] : feed_list[3],
+				placeholders['text_label_input'] : feed_list[4],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-				placeholders['z_t'] : np.concatenate(np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames))
+				placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 			}
 			if initial:
 				_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
@@ -469,12 +477,13 @@ def train_epoch(flag=False, initial=True):
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
-				placeholders['x'] : feed_list[1],
-				placeholders['image_class_input'] : feed_list[2],
-				placeholders['text_label_input'] : feed_list[3],
+				placeholders['x_old'] : feed_list[1],
+				placeholders['x'] : feed_list[2],
+				placeholders['image_class_input'] : feed_list[3],
+				placeholders['text_label_input'] : feed_list[4],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
+				placeholders['z_t'] : np.concatenate(np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames))
 			}
 			if initial :
 				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
@@ -490,13 +499,13 @@ def train_epoch(flag=False, initial=True):
 			# print(z_c)
 		start_time = time.time() 
 
-image_sample,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
+image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 # save_visualization(image_gen, save_path='../results/acrcn/32/frame_8_text_embedding/sample_gen.jpg')
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True)
 
-placeholders,optimizers, losses, x_hat = gan.build_model()
+placeholders,optimizers, losses, x_hat, x_hat_fut = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
@@ -519,12 +528,13 @@ for ep in range(epoch):
 	feed_list = gan.generate_batch()
 	feed_dict = {
 		placeholders['image_input'] : image_sample,
+		placeholders['x_old'] : image_old,
 		placeholders['x'] : image_gen,
 		placeholders['image_class_input'] : image_labels,
 		placeholders['text_label_input'] : text_labels,
 		placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-		placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
+		placeholders['z_t'] : np.concatenate(np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames))
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
