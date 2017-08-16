@@ -258,7 +258,7 @@ class VAEGAN():
 		with tf.variable_scope("transformation") as scope:
 			if not self.first_time : 
 				scope.reuse_variables()
-			encode_alt = tf.layers.dense(encode[:,:self.embedding_size], units=int(encode.shape[-1]), reuse=scope.reuse, 
+			encoder_alt = tf.layers.dense(encode[:,:self.embedding_size], units=int(encode.shape[-1]), reuse=scope.reuse, 
 				kernel_initializer=self.initializer, use_bias=True, name="transformation")
 		z_hat_s = encode[:,:self.embedding_size]
 		z_hat_s_fut = encoder_alt # for transformation embedding to create video
