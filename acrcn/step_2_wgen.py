@@ -515,7 +515,7 @@ def train_epoch(flag=False, initial=True):
 			# print(z_c)
 		start_time = time.time() 
 
-image_sample,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
+image_sample,image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 # save_visualization(image_gen, save_path='../results/acrcn/32/frame_8_text_embedding/sample_gen.jpg')
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
