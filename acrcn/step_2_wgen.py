@@ -316,6 +316,8 @@ class VAEGAN():
 		with tf.variable_scope("style_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
+			print(z_hat_s.shape)
+			print(z_hat_s_fut.shape)
 			D_z_hat_s = self.discriminate_encode(z_hat_s[:embedding_size], scope=scope)
 			scope.reuse_variables()
 			D_z_hat_s_fut = self.discriminate_encode(z_hat_s_fut[:embedding_size], scope)
