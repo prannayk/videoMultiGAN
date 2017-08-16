@@ -101,7 +101,7 @@ class VAEGAN():
 		# list_output.append(self.dataset["image_motion_labels"][self.iter:self.iter + self.batch_size])
 		# self.iter = (self.iter + self.batch_size) % self.total_size
 		return generate(self.batch_size, self.frames)
-	def discriminate_image(self, image, zvalue=self.default_z, scope):
+	def discriminate_image(self, image, zvalue=self.default_z, scope=tf.variable_scope("variable_scope")):
 		with tf.device(self.device):
 			ystack = tf.reshape(zvalue, [self.batch_size, 1,1,self.zdimension])
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1[0] , self.dim_1[1], self.zdimension])
@@ -332,6 +332,7 @@ class VAEGAN():
 		image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
 		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
 		z_t = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.num_class_motion])
+		self.default_z = tf.concat([z_s, z_t], axis=1)
 		placeholders = {
 			'image_input' : image_input,
 			'x' : x,
