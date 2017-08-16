@@ -45,6 +45,7 @@ class VAEGAN():
 		self.batch_size = batch_size
 		self.create_dataset()
 		self.video_create = video_create
+		self.wgan_scale = 1.2
 
 	def learningR(self):
 		return self.learning_rate
