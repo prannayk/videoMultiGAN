@@ -318,6 +318,7 @@ class VAEGAN():
 				scope.reuse_variables()
 			print(z_hat_s.shape)
 			z_hat_s = z_hat_s[:,:embedding_size]
+			z_hat_s_fut = z_hat_s_fut[:,:embedding_size]
 			D_z_hat_s = self.discriminate_encode(z_hat_s[:,:embedding_size], scope=scope)
 			scope.reuse_variables()
 			D_z_hat_s_fut = self.discriminate_encode(z_hat_s_fut[:,:embedding_size], scope)
