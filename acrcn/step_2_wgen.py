@@ -448,6 +448,12 @@ def save_visualization(X, nh_nw=(batch_size,2+frames), save_path='../results/%s/
 	np.save("%s.%s"%(save_path.split(".")[0],".npy"), img)
 	scipy.misc.imsave(save_path, img)
 
+def frame_label(batch_size, frames):
+	t = np.zeros([batch_size*frames, frames])
+	for i in range(batch_size):
+		for j in range(frames):
+			t[i*frames + j,j] = 1
+	return t
 def morph(X):
 	batch_size = int(X.shape[0])
 	dim_channel = int(X.shape[-1]) // (frames+2)
