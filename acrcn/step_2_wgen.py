@@ -434,7 +434,7 @@ embedding_size =128
 motion_size=7
 num_class_image=25
 frames=2
-num_class_motion = 8
+num_class_motion = 7
 
 def save_visualization(X, nh_nw=(batch_size,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
