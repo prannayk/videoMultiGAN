@@ -283,22 +283,22 @@ class VAEGAN():
 			D_x = self.discriminate_image(x, image_class_input, scope)
 			D_x_dash = self.discriminate_image(x_dash, z_c,scope)
 			D_x_gen = self.discriminate_image(x_gen, z_hat_c, scope)
-			D_x_loss = self.gan_loss( D_x_hat, D_x, discriminate_image, x_hat, x, scope=scope)
-			G_x_loss = self.gan_loss( D_x_hat, D_x, discriminate_image, x_hat, x, scope=scope, flag=False)
-			D_x_loss += self.gan_loss( D_x_hat_fut, D_x, discriminate_image, x_hat_fut, x, scope=scope)
-			G_x_loss += self.gan_loss( D_x_hat_fut, D_x, discriminate_image, x_hat_fut, x, scope=scope, flag=False)
-			D_x_loss += self.gan_loss( D_x_dash, D_x, discriminate_image, x_dash, x, scope=scope)
-			G_x_loss += self.gan_loss( D_x_dash, D_x, discriminate_image, x_dash, x, scope=scope, flag=False)
-			D_x_loss += self.gan_loss( D_x_gen, D_x, discriminate_image, x_gen, x, scope=scope)
-			G_x_loss += self.gan_loss( D_x_gen, D_x, discriminate_image, x_gen, x, scope=scope, flag=False)
+			D_x_loss = self.gan_loss( D_x_hat, D_x, self.discriminate_image, x_hat, x, scope=scope)
+			G_x_loss = self.gan_loss( D_x_hat, D_x, self.discriminate_image, x_hat, x, scope=scope, flag=False)
+			D_x_loss += self.gan_loss( D_x_hat_fut, D_x, self.discriminate_image, x_hat_fut, x, scope=scope)
+			G_x_loss += self.gan_loss( D_x_hat_fut, D_x, self.discriminate_image, x_hat_fut, x, scope=scope, flag=False)
+			D_x_loss += self.gan_loss( D_x_dash, D_x, self.discriminate_image, x_dash, x, scope=scope)
+			G_x_loss += self.gan_loss( D_x_dash, D_x, self.discriminate_image, x_dash, x, scope=scope, flag=False)
+			D_x_loss += self.gan_loss( D_x_gen, D_x, self.discriminate_image, x_gen, x, scope=scope)
+			G_x_loss += self.gan_loss( D_x_gen, D_x, self.discriminate_image, x_gen, x, scope=scope, flag=False)
 		with tf.variable_scope("text_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
 			scope.reuse_variables()
 			D_z_t = self.discriminate_encode(z_t, scope)
-			D_z_t_loss = self.gan_loss(D_z_hat_t, D_z_t, discriminate_encode, z_hat_t, z_t, scope=scope)
-			G_z_t_loss = self.gan_loss(D_z_hat_t, D_z_t, discriminate_encode, z_hat_t, z_t, scope=scope, flag=True)
+			D_z_t_loss = self.gan_loss(D_z_hat_t, D_z_t, self.discriminate_encode, z_hat_t, z_t, scope=scope)
+			G_z_t_loss = self.gan_loss(D_z_hat_t, D_z_t, self.discriminate_encode, z_hat_t, z_t, scope=scope, flag=True)
 		with tf.variable_scope("image_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
@@ -306,10 +306,10 @@ class VAEGAN():
 			scope.reuse_variables()
 			D_z_c = self.discriminate_encode(z_c, scope)
 			D_z_real = self.discriminate_encode(image_class_input, scope)
-			D_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, discriminate_encode,z_hat_c, z_hat_real ,scope=scope)
-			D_z_c_loss += self.gan_loss(D_z_c, D_z_real, discriminate_encode,z_c, z_hat_real ,scope=scope)
-			G_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, discriminate_encode,z_hat_c, z_hat_real ,scope=scope, flag=True)
-			G_z_c_loss += self.gan_loss(D_z_c, D_z_real, discriminate_encode,z_c, z_hat_real ,scope=scope, flag=True)
+			D_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, self.discriminate_encode,z_hat_c, z_hat_real ,scope=scope)
+			D_z_c_loss += self.gan_loss(D_z_c, D_z_real, self.discriminate_encode,z_c, z_hat_real ,scope=scope)
+			G_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, self.discriminate_encode,z_hat_c, z_hat_real ,scope=scope, flag=True)
+			G_z_c_loss += self.gan_loss(D_z_c, D_z_real, self.discriminate_encode,z_c, z_hat_real ,scope=scope, flag=True)
 		with tf.variable_scope("style_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
@@ -317,10 +317,10 @@ class VAEGAN():
 			scope.reuse_variables()
 			D_z_hat_s_fut = self.discriminate_encode(z_hat_s_fut, scope)
 			D_z_s = self.discriminate_encode(z_s, scope)
-			D_z_s_loss = self.gan_loss(D_z_hat_s, D_z_s, discriminate_encode,z_hat_s, z_hat_s ,scope=scope)
-			D_z_s_loss += self.gan_loss(D_z_hat_s_fut, D_z_s, discriminate_encode,z_hat_s_fut, z_hat_s ,scope=scope)
-			G_z_s_loss = self.gan_loss(D_z_hat_s, D_z_s, discriminate_encode,z_hat_s, z_hat_s ,scope=scope, flag=True)
-			G_z_s_loss += self.gan_loss(D_z_hat_s_fut, D_z_s, discriminate_encode,z_hat_s_fut, z_hat_s ,scope=scope, flag=True)
+			D_z_s_loss = self.gan_loss(D_z_hat_s, D_z_s, self.discriminate_encode,z_hat_s, z_hat_s ,scope=scope)
+			D_z_s_loss += self.gan_loss(D_z_hat_s_fut, D_z_s, self.discriminate_encode,z_hat_s_fut, z_hat_s ,scope=scope)
+			G_z_s_loss = self.gan_loss(D_z_hat_s, D_z_s, self.discriminate_encode,z_hat_s, z_hat_s ,scope=scope, flag=True)
+			G_z_s_loss += self.gan_loss(D_z_hat_s_fut, D_z_s, self.discriminate_encode,z_hat_s_fut, z_hat_s ,scope=scope, flag=True)
 		self.first_time = False
 		return x_hat, x_hat_fut, D_x_loss, G_x_loss, D_z_t_loss, G_z_t_loss, D_z_c_loss, G_z_c_loss, D_z_s_loss, G_z_s_loss
 	def build_model(self):
