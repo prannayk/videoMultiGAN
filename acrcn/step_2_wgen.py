@@ -64,7 +64,7 @@ class VAEGAN():
 		epsilon = tf.random_normal([],0.0,1.0)
 		mix = (X_in * epsilon) + ((1-epsilon) * Y_in)
 		scope.reuse_variables()
-		d_hat = self.discriminator(mix)
+		d_hat = discriminator(mix)
 		grads = tf.gradients(d_hat, mix)
 		ddx_sum = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=1))
 		ddx_loss = tf.reduce_mean(tf.square(ddx_sum - 1.0) * self.wgan_scale)
