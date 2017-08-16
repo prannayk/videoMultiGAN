@@ -318,7 +318,7 @@ class VAEGAN():
 				scope.reuse_variables()
 			D_z_hat_s = self.discriminate_encode(z_hat_s, scope=scope)
 			scope.reuse_variables()
-			D_z_hat_s_fut = self.discriminate_encode(z_hat_s_fut, scope)
+			D_z_hat_s_fut = self.discriminate_encode(z_hat_s_fut[:embedding_size], scope)
 			D_z_s = self.discriminate_encode(z_s, scope)
 			D_z_s_loss = self.gan_loss(D_z_hat_s, D_z_s, self.discriminate_encode,z_hat_s, z_hat_s ,scope=scope)
 			D_z_s_loss += self.gan_loss(D_z_hat_s_fut, D_z_s, self.discriminate_encode,z_hat_s_fut, z_hat_s ,scope=scope)
