@@ -45,6 +45,7 @@ class VAEGAN():
 		self.batch_size = batch_size
 		self.create_dataset()
 		self.video_create = video_create
+
 	def learningR(self):
 		return self.learning_rate
 
@@ -56,13 +57,18 @@ class VAEGAN():
 		return tf.nn.batch_normalization(X, mean, vari, offset=None, 
 			scale=None, variance_epsilon=1e-6, name=name)
 
-	def gan_loss(self, X, flag=True):
-		if flag :
-			softmax = tf.log(X)
-		else :
-			softmax = tf.log(1 - X)
-		return -tf.reduce_mean(softmax) 
-
+	def gan_loss(self, X, Y, discriminator, X_in, Y_in, reuse=False, name=None, scope=tf.variable_scope("random_testing"), flag=True):
+		if not flag : 
+			return tf.reduce_mean(X)
+		loss = tf.reduce_mean(Y) - tf.reduce_mean(X)
+		epsilon = tf.random_normal([],0.0,1.0)
+		mix = (X_in * epsilon) + ((1-epsilon) * Y_in)
+		scope.reuse_variables()
+		d_hat = self.discriminator(mix)
+		grads = tf.gradients(d_hat, mix)
+		ddx_sum = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=1))
+		ddx_loss = tf.reduce_mean(tf.square(ddx_sum - 1.0) * self.wgan_scale)
+		return loss + ddx_loss
 	def create_dataset(self):
 		print("rolling")
 		# total_size = self.total_size
@@ -277,12 +283,22 @@ class VAEGAN():
 			D_x = self.discriminate_image(x, image_class_input, scope)
 			D_x_dash = self.discriminate_image(x_dash, z_c,scope)
 			D_x_gen = self.discriminate_image(x_gen, z_hat_c, scope)
+			D_x_loss = self.gan_loss( D_x_hat, D_x, discriminate_image, x_hat, x, scope=scope)
+			G_x_loss = self.gan_loss( D_x_hat, D_x, discriminate_image, x_hat, x, scope=scope, flag=False)
+			D_x_loss += self.gan_loss( D_x_hat_fut, D_x, discriminate_image, x_hat_fut, x, scope=scope)
+			G_x_loss += self.gan_loss( D_x_hat_fut, D_x, discriminate_image, x_hat_fut, x, scope=scope, flag=False)
+			D_x_loss += self.gan_loss( D_x_dash, D_x, discriminate_image, x_dash, x, scope=scope)
+			G_x_loss += self.gan_loss( D_x_dash, D_x, discriminate_image, x_dash, x, scope=scope, flag=False)
+			D_x_loss += self.gan_loss( D_x_gen, D_x, discriminate_image, x_gen, x, scope=scope)
+			G_x_loss += self.gan_loss( D_x_gen, D_x, discriminate_image, x_gen, x, scope=scope, flag=False)
 		with tf.variable_scope("text_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
 			D_z_hat_t = self.discriminate_encode(z_hat_t,scope)
 			scope.reuse_variables()
 			D_z_t = self.discriminate_encode(z_t, scope)
+			D_z_t_loss = self.gan_loss(D_z_hat_t, D_z_t, discriminate_encode, z_hat_t, z_t, scope=scope)
+			G_z_t_loss = self.gan_loss(D_z_hat_t, D_z_t, discriminate_encode, z_hat_t, z_t, scope=scope, flag=True)
 		with tf.variable_scope("image_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
@@ -290,6 +306,10 @@ class VAEGAN():
 			scope.reuse_variables()
 			D_z_c = self.discriminate_encode(z_c, scope)
 			D_z_real = self.discriminate_encode(image_class_input, scope)
+			D_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, discriminate_encode,z_hat_c, z_hat_real ,scope=scope)
+			D_z_c_loss += self.gan_loss(D_z_c, D_z_real, discriminate_encode,z_c, z_hat_real ,scope=scope)
+			G_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, discriminate_encode,z_hat_c, z_hat_real ,scope=scope, flag=True)
+			G_z_c_loss += self.gan_loss(D_z_c, D_z_real, discriminate_encode,z_c, z_hat_real ,scope=scope, flag=True)
 		with tf.variable_scope("style_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
@@ -297,8 +317,12 @@ class VAEGAN():
 			scope.reuse_variables()
 			D_z_hat_s_fut = self.discriminate_encode(z_hat_s_fut, scope)
 			D_z_s = self.discriminate_encode(z_s, scope)
+			D_z_s_loss = self.gan_loss(D_z_hat_s, D_z_s, discriminate_encode,z_hat_s, z_hat_s ,scope=scope)
+			D_z_s_loss += self.gan_loss(D_z_hat_s_fut, D_z_s, discriminate_encode,z_hat_s_fut, z_hat_s ,scope=scope)
+			G_z_s_loss = self.gan_loss(D_z_hat_s, D_z_s, discriminate_encode,z_hat_s, z_hat_s ,scope=scope, flag=True)
+			G_z_s_loss += self.gan_loss(D_z_hat_s_fut, D_z_s, discriminate_encode,z_hat_s_fut, z_hat_s ,scope=scope, flag=True)
 		self.first_time = False
-		return x_hat, x_hat_fut, x_gen, D_x_hat, D_x_hat_fut, D_x, D_x_dash, D_x_gen, D_z_hat_c, D_z_c, D_z_real, D_z_hat_s, D_z_hat_s_fut, D_z_s, D_z_hat_t, D_z_t
+		return x_hat, x_hat_fut, D_x_loss, G_x_loss, D_z_t_loss, G_z_t_loss, D_z_c_loss, G_z_c_loss, D_z_s_loss, G_z_s_loss
 	def build_model(self):
 		image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
 		x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_create_shape)
@@ -334,36 +358,37 @@ class VAEGAN():
 		# second_image_input = tf.concat(axis=3, values=[image_input[:,:,:,3:],x_1_hat])
 		# x_2_hat, x_2_gen, D_2_x_hat, D_2_x, D_2_x_dash, D_2_x_gen, D_2_z_hat_c, D_2_z_c, D_2_z_real, D_2_z_hat_s, D_2_z_s,  D_2_z_hat_t, D_2_z_t = self.create_frames(second_image_input, x[:,:,:,3:], 
 			# z_s[self.batch_size:], z_c[self.batch_size:], image_class_input, text_label_input, z_t[self.batch_size:])
+		# x_hat, x_hat_fut, D_x_loss, G_x_loss, D_z_t_loss, G_z_t_loss, D_z_c_loss, G_z_c_loss, D_z_s_loss, G_z_s_loss
 		x_hat = tf.concat(axis=3, values=list_values[0])
 		x_hat_fut = tf.concat(axis=3, values=list_values[1])
-		x_gen = tf.concat(axis=3, values=list_values[2])
-		D_x_hat = tf.concat(axis=0, values=list_values[3])
-		D_x_hat_fut = tf.concat(axis=0, values=list_values[4])
-		D_x_gen = tf.concat(axis=0, values=list_values[7])
-		D_x = tf.concat(axis=0, values=list_values[5])
-		D_x_dash = tf.concat(axis=0, values=list_values[6])
-		D_z_hat_c = tf.concat(axis=0, values=list_values[8])
-		D_z_c = tf.concat(axis=0, values=list_values[9])
-		D_z_real = tf.concat(axis=0, values=list_values[10])
-		D_z_hat_s = tf.concat(axis=0, values=list_values[11])
-		D_z_hat_s_fut = tf.concat(axis=0, values=list_values[12])
-		D_z_s = tf.concat(axis=0, values=list_values[13])
-		D_z_hat_t = tf.concat(axis=0, values=list_values[14])
-		D_z_t = tf.concat(axis=0, values=list_values[15])
+		D_x_loss = tf.concat(axis=0, values=list_values[2])
+		G_x_loss = tf.concat(axis=0, values=list_values[3])
+		D_z_t_loss = tf.concat(axis=0, values=list_values[4])
+		G_z_t_loss = tf.concat(axis=0, values=list_values[7])
+		D_z_c_loss = tf.concat(axis=0, values=list_values[5])
+		G_z_c_loss = tf.concat(axis=0, values=list_values[6])
+		D_z_s_loss = tf.concat(axis=0, values=list_values[8])
+		G_z_s_loss = tf.concat(axis=0, values=list_values[9])
+		# D_z_real = tf.concat(axis=0, values=list_values[10])
+		# D_z_hat_s = tf.concat(axis=0, values=list_values[11])
+		# D_z_hat_s_fut = tf.concat(axis=0, values=list_values[12])
+		# D_z_s = tf.concat(axis=0, values=list_values[13])
+		# D_z_hat_t = tf.concat(axis=0, values=list_values[14])
+		# D_z_t = tf.concat(axis=0, values=list_values[15])
 		
 		losses = dict()
 		with tf.variable_scope("losses"):
 			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_hat_fut))) + tf.sqrt(tf.reduce_mean(tf.square(x_old-x_hat)))
-			losses["disc_image_classifier"] = self.gan_loss(D_z_c, True) + self.gan_loss(D_z_hat_c,False) + self.gan_loss(D_z_real, True)
-			losses["gen_image_classifier"] = self.gan_loss(D_z_hat_c, True)
-			losses["disc_text_classifier"] = self.gan_loss(D_z_t,True) + self.gan_loss(D_z_hat_t, False)
-			losses["gen_text_classifier"] = self.gan_loss(D_z_hat_t, True)
-			losses["disc_image_discriminator"] = self.gan_loss(D_x_gen,False) + self.gan_loss(D_x_hat_fut, False) + self.gan_loss(D_x,True) + self.gan_loss(D_x_hat, False) + self.gan_loss(D_x_dash, False) + 3*self.gan_loss(D_x, True)
-			losses["generator_image"] = self.gan_loss(D_x_gen, True) + (self.lambda_1*losses["reconstruction"])  + self.gan_loss(D_x_hat, True) + self.gan_loss(D_x_hat_fut, True) + self.gan_loss(D_x_dash, True) 
-			losses["generator_image_gan"] = self.gan_loss(D_x_gen, True) + (self.lambda_1*losses["reconstruction"])  + self.gan_loss(D_x_hat, True) + self.gan_loss(D_x_hat_fut, True) + self.gan_loss(D_x_dash, True) 
+			losses["disc_image_classifier"] = D_z_c_loss
+			losses["gen_image_classifier"] = G_z_c_loss
+			losses["disc_text_classifier"] = D_z_t_loss
+			losses["gen_text_classifier"] = G_z_t_loss
+			losses["disc_image_discriminator"] = D_x_loss
+			losses["generator_image"] = G_x_loss + (self.lambda_1*losses["reconstruction"]) 
+			losses["generator_image_gan"] = G_x_loss + (self.lambda_1*losses["reconstruction"]) 
 			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1)
-			losses["disc_style_classifier"] = self.gan_loss(D_z_hat_s,False) + self.gan_loss(D_z_hat_s_fut, False) + 2*self.gan_loss(D_z_s, True)
-			losses["gen_style_classifier"] = self.gan_loss(D_z_hat_s, True) + self.gan_loss(D_z_hat_s_fut, True)
+			losses["disc_style_classifier"] = D_z_s_loss
+			losses["gen_style_classifier"] = G_z_s_loss
 			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
 		print("Completed losses")
 		variable_dict = dict()
