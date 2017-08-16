@@ -309,10 +309,10 @@ class VAEGAN():
 			scope.reuse_variables()
 			D_z_c = self.discriminate_encode(z_c, scope)
 			D_z_real = self.discriminate_encode(image_class_input, scope)
-			D_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, self.discriminate_encode,z_hat_c, z_hat_real ,scope=scope)
-			D_z_c_loss += self.gan_loss(D_z_c, D_z_real, self.discriminate_encode,z_c, z_hat_real ,scope=scope)
-			G_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, self.discriminate_encode,z_hat_c, z_hat_real ,scope=scope, flag=True)
-			G_z_c_loss += self.gan_loss(D_z_c, D_z_real, self.discriminate_encode,z_c, z_hat_real ,scope=scope, flag=True)
+			D_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, self.discriminate_encode,z_hat_c, image_class_input ,scope=scope)
+			D_z_c_loss += self.gan_loss(D_z_c, D_z_real, self.discriminate_encode,z_c, image_class_input ,scope=scope)
+			G_z_c_loss = self.gan_loss(D_z_hat_c, D_z_real, self.discriminate_encode,z_hat_c, image_class_input ,scope=scope, flag=True)
+			G_z_c_loss += self.gan_loss(D_z_c, D_z_real, self.discriminate_encode,z_c, image_class_input ,scope=scope, flag=True)
 		with tf.variable_scope("style_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
