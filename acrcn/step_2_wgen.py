@@ -368,9 +368,9 @@ class VAEGAN():
 		# x_hat, x_hat_fut, D_x_loss, G_x_loss, D_z_t_loss, G_z_t_loss, D_z_c_loss, G_z_c_loss, D_z_s_loss, G_z_s_loss
 		x_hat = tf.concat(axis=3, values=list_values[0])
 		x_hat_fut = tf.concat(axis=3, values=list_values[1])
-		D_x_loss = tf.stack(axis=0, values=list_values[2])
-		G_x_loss = tf.concat(axis=0, values=list_values[3])
-		D_z_t_loss = tf.concat(axis=0, values=list_values[4])
+		D_x_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[2]))
+		G_x_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[3]))
+		D_z_t_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[4]))
 		G_z_t_loss = tf.concat(axis=0, values=list_values[7])
 		D_z_c_loss = tf.concat(axis=0, values=list_values[5])
 		G_z_c_loss = tf.concat(axis=0, values=list_values[6])
