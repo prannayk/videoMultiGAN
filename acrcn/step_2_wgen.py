@@ -512,7 +512,7 @@ def train_epoch(flag=False, initial=True):
 				placeholders['text_label_input'] : feed_list[3],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
+				placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 			}
 			if initial :
 				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
@@ -562,7 +562,7 @@ for ep in range(epoch):
 		placeholders['text_label_input'] : text_labels,
 		placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-		placeholders['z_t'] : np.random.normal(0,1,[batch_size*frames, num_class_motion])
+		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
