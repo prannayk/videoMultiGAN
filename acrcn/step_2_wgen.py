@@ -489,9 +489,10 @@ def train_epoch(flag=False, initial=True):
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
-				placeholders['x'] : feed_list[1],
-				placeholders['image_class_input'] : feed_list[2],
-				placeholders['text_label_input'] : feed_list[3],
+				placeholders['x_old'] : feed_list[1],
+				placeholders['x'] : feed_list[2],
+				placeholders['image_class_input'] : feed_list[3],
+				placeholders['text_label_input'] : feed_list[4],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 				placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
@@ -507,9 +508,10 @@ def train_epoch(flag=False, initial=True):
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
-				placeholders['x'] : feed_list[1],
-				placeholders['image_class_input'] : feed_list[2],
-				placeholders['text_label_input'] : feed_list[3],
+				placeholders['x_old'] : feed_list[1],
+				placeholders['x'] : feed_list[2],
+				placeholders['image_class_input'] : feed_list[3],
+				placeholders['text_label_input'] : feed_list[4],
 				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
 				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 				placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
@@ -528,7 +530,7 @@ def train_epoch(flag=False, initial=True):
 			# print(z_c)
 		start_time = time.time() 
 
-image_sample,image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
+image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 # save_visualization(image_gen, save_path='../results/acrcn/32/frame_8_text_embedding/sample_gen.jpg')
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
@@ -557,6 +559,7 @@ for ep in range(epoch):
 	feed_list = gan.generate_batch()
 	feed_dict = {
 		placeholders['image_input'] : image_sample,
+		placeholders['x_old'] : image_old,
 		placeholders['x'] : image_gen,
 		placeholders['image_class_input'] : image_labels,
 		placeholders['text_label_input'] : text_labels,
