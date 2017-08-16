@@ -64,7 +64,7 @@ class VAEGAN():
 		epsilon = tf.random_normal([],0.0,1.0)
 		mix = (X_in * epsilon) + ((1-epsilon) * Y_in)
 		scope.reuse_variables()
-		d_hat = discriminator(mix)
+		d_hat = discriminator(mix, scope=scope)
 		grads = tf.gradients(d_hat, mix)
 		ddx_sum = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=1))
 		ddx_loss = tf.reduce_mean(tf.square(ddx_sum - 1.0) * self.wgan_scale)
@@ -101,7 +101,7 @@ class VAEGAN():
 		# list_output.append(self.dataset["image_motion_labels"][self.iter:self.iter + self.batch_size])
 		# self.iter = (self.iter + self.batch_size) % self.total_size
 		return generate(self.batch_size, self.frames)
-	def discriminate_image(self, image, zvalue, scope):
+	def discriminate_image(self, image, zvalue=self.default_z, scope):
 		with tf.device(self.device):
 			ystack = tf.reshape(zvalue, [self.batch_size, 1,1,self.zdimension])
 			yneed_1 = ystack*tf.ones([self.batch_size, self.dim_1[0] , self.dim_1[1], self.zdimension])
