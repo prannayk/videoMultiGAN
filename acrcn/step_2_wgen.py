@@ -11,7 +11,7 @@ total_size = 64000
 batch_size = 64
 
 class VAEGAN():
-	"""docstring for VAEGAN"""
+	"""docstring for VAEGAN, no parent class"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
 			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
 			num_class_image=13, frames=2, frames_input=2, total_size = 64000, video_create=False):
@@ -43,12 +43,22 @@ class VAEGAN():
 		self.first_time = True
 		self.total_size = total_size
 		self.batch_size = batch_size
-		self.create_dataset()
 		self.video_create = video_create
 		self.wgan_scale = 1.2
 
 	def learningR(self):
 		return self.learning_rate
+
+	def variable_summaries(self, var,name=None):
+		with tf.name_scope("summaries_%s"%(name)):
+			mean = tf.reduce_mean(var)
+			tf.summary.scalar("mean", mean)
+			with tf.name_scope("stddev"):
+				stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+			tf.summary.scalar("stddev", stddev)
+			tf.summary.scalar("max", tf.reduce_max(var))
+			tf.summary.scalar("min", tf.reduce_min(var))
+			tf.summary.histogram("histogram",var)
 
 	def normalize(self, X, reuse=False, name=None, flag=False):
 		if not flag : 
@@ -70,37 +80,7 @@ class VAEGAN():
 		ddx_sum = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=1))
 		ddx_loss = tf.reduce_mean(tf.square(ddx_sum - 1.0) * self.wgan_scale)
 		return loss + ddx_loss
-	def create_dataset(self):
-		print("rolling")
-		# total_size = self.total_size
-		# batch_size = self.batch_size
-		# image_start = np.zeros(shape=[total_size] + self.image_input_shape)
-		# image_gen = np.zeros(shape=[total_size] + self.image_create_shape)
-		# image_labels = np.zeros(shape=[total_size, 25])
-		# image_motion_labels = np.zeros(shape=[total_size, 6])
-		# for i in range(total_size // batch_size):
-			# if i % 1000 == 0:
-				# print(i)
-			# output_list = generate(self.batch_size,self.frames)
-			# image_start[i*batch_size : i*batch_size + batch_size] = output_list[0]
-			# image_gen[i*batch_size:i*batch_size + batch_size] = output_list[1]
-			# image_labels[i*batch_size:i*batch_size + batch_size] = output_list[2]
-			# image_motion_labels[i*batch_size:i*batch_size + batch_size] = output_list[3]
-		# dataset = {
-			# "image_start" : image_start,
-			# "image_gen" : image_gen,
-			# "image_labels" : image_labels,
-			# "image_motion_labels" : image_motion_labels
-		# }
-		# self.dataset = dataset
-		# self.iter=0
 	def generate_batch(self):
-		# list_output= []
-		# list_output.append(self.dataset["image_start"][self.iter:self.iter + self.batch_size])
-		# list_output.append(self.dataset["image_gen"][self.iter:self.iter + self.batch_size])
-		# list_output.append(self.dataset["image_labels"][self.iter:self.iter + self.batch_size])
-		# list_output.append(self.dataset["image_motion_labels"][self.iter:self.iter + self.batch_size])
-		# self.iter = (self.iter + self.batch_size) % self.total_size
 		return generate(self.batch_size, self.frames)
 	def discriminate_image(self, image, zvalue=None, scope=tf.variable_scope("variable_scope")):
 		if zvalue == None :
@@ -398,6 +378,9 @@ class VAEGAN():
 			losses["disc_style_classifier"] = D_z_s_loss
 			losses["gen_style_classifier"] = G_z_s_loss
 			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
+		self.variable_summaries(losses["reconstruction"],name="Reconstruction Loss")
+		self.variable_summaries(G_x_loss, name="Reconstruction GAN loss")
+		self.variable_summaries(D_x_loss, name="Reconstruction GAN loss")
 		print("Completed losses")
 		variable_dict = dict()
 		variable_dict["encoder"] = [i for i in filter(lambda x: x.name.startswith("encoder"), tf.trainable_variables())]
@@ -429,7 +412,6 @@ class VAEGAN():
 		return placeholders, optimizer, losses, x_hat, x_hat_fut
 
 epoch = 600
- # batch_size = 16
 embedding_size =128
 motion_size=7
 num_class_image=25
@@ -523,8 +505,6 @@ def train_epoch(flag=False, initial=True):
 				_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 			else:
 				_, loss_val[6] = session.run([optimizers["generator_gan"], losses["generator_image"]], feed_dict=feed_dict)
-
-		# z_c = session.run(z_hat_c, feed_dict=feed_dict)
 		count += 1
 		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
@@ -533,7 +513,6 @@ def train_epoch(flag=False, initial=True):
 
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
-# save_visualization(image_gen, save_path='../results/acrcn/32/frame_8_text_embedding/sample_gen.jpg')
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True)
 
@@ -541,6 +520,8 @@ placeholders,optimizers, losses, x_hat, x_hat_fut = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
+merged = tf.summary.merge_all()
+train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
 
 print("Running code: ")
@@ -570,4 +551,6 @@ for ep in range(epoch):
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
+	summary = sess.run(merged, feed_dict=feed_dict)
+	train_writer.add_summary(summary, ep)
 saver.save(session, "/media/hdd/hdd/frame_2_generator_vae.ckpt")
