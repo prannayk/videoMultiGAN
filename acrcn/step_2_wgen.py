@@ -8,7 +8,7 @@ from generator import rot_generator as generate
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
 total_size = 64000
-batch_size = 64
+batch_size = 16
 
 class VAEGAN():
 	"""docstring for VAEGAN, no parent class"""
