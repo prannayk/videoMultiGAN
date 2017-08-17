@@ -8,7 +8,7 @@ from generator import rot_generator as generate
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
 total_size = 64000
-batch_size = 64
+batch_size = 16
 
 class VAEGAN():
 	"""docstring for VAEGAN, no parent class"""
@@ -378,9 +378,9 @@ class VAEGAN():
 			losses["disc_style_classifier"] = D_z_s_loss
 			losses["gen_style_classifier"] = G_z_s_loss
 			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
-		self.variable_summaries(losses["reconstruction"],name="Reconstruction Loss")
-		self.variable_summaries(G_x_loss, name="Reconstruction GAN loss")
-		self.variable_summaries(D_x_loss, name="Reconstruction GAN loss")
+		self.variable_summaries(losses["reconstruction"],name="reconstruction_loss")
+		self.variable_summaries(G_x_loss, name="Reconstruction_GAN_loss")
+		self.variable_summaries(D_x_loss, name="Reconstruction_GAN_loss")
 		print("Completed losses")
 		variable_dict = dict()
 		variable_dict["encoder"] = [i for i in filter(lambda x: x.name.startswith("encoder"), tf.trainable_variables())]
