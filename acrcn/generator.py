@@ -56,15 +56,15 @@ def video_next_batch(batch_size, frames, frames_input=2):
 	style_hot[np.arange(batch_size), style_class] = 1
 	motion_hot[np.arange(batch_size), motion_class] = 1
 	motion_hot[:,-1] = frame_speed
-	return video_batch[:,:,:,:2], video_batch[:,:,:,1:1+frames], video_batch[:,:,:,2:], person_hot, motion_hot, style_hot
+	return video_batch[:,:,:,:frames_input], video_batch[:,:,:,1:1+frames], video_batch[:,:,:,2:], person_hot, motion_hot, style_hot
 
 
 
 def rot_generator(batch_size, frames):
 	return video_next_batch(batch_size, frames)
 
-def validation_generator(batch_size, frames):
-	feed_list = video_next_batch(batch_size, frames)
+def validation_generator(batch_size, frames, frames_input=3):
+	feed_list = video_next_batch(batch_size, frames, frames_input)
 	return feed_list[0], feed_list[1], feed_list[0], feed_list[3], feed_list[4], feed_list[5]
 
 word_len = 14
