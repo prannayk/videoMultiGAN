@@ -30,7 +30,7 @@ class VAEGAN():
         self.zdimension = self.num_class
         self.motion_size = motion_size
         self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
-        self.lambda_1 = 100
+        self.lambda_1 = 10
         self.dim_1 = [self.image_shape[0], self.image_shape[1]]
         self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
         self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -356,7 +356,7 @@ class VAEGAN():
         
         losses = dict()
         with tf.variable_scope("losses"):
-            losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_hat_fut))) + tf.sqrt(tf.reduce_mean(tf.square(x_old-x_hat)))
+            losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(image_input-x_hat))) #+ tf.sqrt(tf.reduce_mean(tf.square(x_old-x_hat)))
             losses["disc_image_discriminator"] = D_x_loss
             losses["generator_image"] = G_x_loss + (self.lambda_1*losses["reconstruction"]) 
             losses["generator_image_gan"] = G_x_loss
