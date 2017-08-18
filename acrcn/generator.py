@@ -64,7 +64,7 @@ def rot_generator(batch_size, frames):
 	return video_next_batch(batch_size, frames)
 
 def validation_generator(batch_size, frames, frames_input=3):
-	feed_list = video_next_batch(batch_size, frames, frames_input)
+	feed_list = video_next_batch(batch_size, frames, frames_input=frames_input)
 	return feed_list[0], feed_list[1], feed_list[0], feed_list[3], feed_list[4], feed_list[5]
 
 word_len = 14
