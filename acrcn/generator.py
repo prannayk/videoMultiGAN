@@ -25,6 +25,7 @@ def video_next_batch(batch_size, frames, frames_input=2):
 	start_list = np.random.choice(start_num, batch_size, replace=True)
 	video_batch = np.zeros([batch_size, 32, 40, frames + frames_input])
 	print(frames + frames_input)
+	print(frames_input)
 	motion_class = []
 	person_class = []
 	style_class = []
