@@ -10,7 +10,7 @@ def video_loader():
 	files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith("video")]
 	lf = files
 
-def video_next_batch(batch_size, frames):
+def video_next_batch(batch_size, frames, frames_input):
 	global lf
 	if len(lf) == 0 :
 		video_loader()
@@ -23,7 +23,7 @@ def video_next_batch(batch_size, frames):
 		video_list[i] = videonpy[:30]
 	start_num = [i for i in range(30-(frames+2))]
 	start_list = np.random.choice(start_num, batch_size, replace=True)
-	video_batch = np.zeros([batch_size, 32, 40, frames + 2])
+	video_batch = np.zeros([batch_size, 32, 40, frames + frames_input])
 	motion_class = []
 	person_class = []
 	style_class = []
