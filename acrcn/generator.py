@@ -10,7 +10,7 @@ def video_loader():
 	files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith("video")]
 	lf = files
 
-def video_next_batch(batch_size, frames, frames_input):
+def video_next_batch(batch_size, frames, frames_input=2):
 	global lf
 	if len(lf) == 0 :
 		video_loader()
@@ -29,7 +29,7 @@ def video_next_batch(batch_size, frames, frames_input):
 	style_class = []
 	frame_speed = []
 	for i in range(batch_size):
-		for j in range(frames+2):
+		for j in range(frames+frames_input):
 			video_batch[i,:,:,j] = video_list[i,start_list[i]+j:start_list[i]+j+1,:,:,0] / 255.
 		list_feat = file_list[i].split(".")[0].split("_")[1:5]
 		if len(list_feat) < 3 : 
