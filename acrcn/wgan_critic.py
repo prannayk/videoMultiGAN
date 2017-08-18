@@ -489,7 +489,7 @@ def train_epoch(flag=False, initial=True):
 
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
-gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
+gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size, frames_input=3, 
     num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True)
 
 placeholders,optimizers, losses, x_hat, x_hat_fut = gan.build_model()
