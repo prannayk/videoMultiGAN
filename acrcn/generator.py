@@ -56,7 +56,7 @@ def video_next_batch(batch_size, frames, frames_input=2):
 	style_hot[np.arange(batch_size), style_class] = 1
 	motion_hot[np.arange(batch_size), motion_class] = 1
 	motion_hot[:,-1] = frame_speed
-	return video_batch[:,:,:,:frames_input], video_batch[:,:,:,1:1+frames], video_batch[:,:,:,2:], person_hot, motion_hot, style_hot
+	return video_batch[:,:,:,:frames_input], video_batch[:,:,:,frames_input-1:frames_input-1+frames], video_batch[:,:,:,2:], person_hot, motion_hot, style_hot
 
 
 
