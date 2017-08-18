@@ -3,7 +3,7 @@ import numpy as np
 import scipy.misc
 import sys
 import time
-from generator import rot_generator as generate
+from generator import validation_generator as generate
 # from tensorflow.examples.tutorials.mnist import input_data
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
