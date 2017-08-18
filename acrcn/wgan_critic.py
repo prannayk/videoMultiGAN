@@ -3,9 +3,8 @@ import numpy as np
 import scipy.misc
 import sys
 import time
-from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/",one_hot=True)
 
+from generator import image_generator as generator
 
 def batch_normalize(X, eps=1e-6,flag=False):
     if flag : 
@@ -244,15 +243,6 @@ d_optimizer = tf.train.AdamOptimizer(lr2,beta1=momentum).minimize(d_loss,var_lis
 saver = tf.train.Saver()
 
 embedding_sample, vector_sample, image_sample = gan.samples_generator()
-
-def generate(batch_size):
-    batch1, batch1_labels = mnist.train.next_batch(batch_size)
-    batch1 = batch1.reshape([batch_size, 28, 28])
-    batch = np.zeros([batch_size,64,64,frames])
-    for i in range(frames):
-        batch[:,2+(4*i):30+(4*i),2+(4*i):30+(4*i),i] = batch1
-        # batch1 = np.rot90(batch1,axes=(1,2))
-    return (batch, batch1_labels)
 
 def morph(X,frames):
     global batch_size
