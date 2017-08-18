@@ -63,6 +63,10 @@ def video_next_batch(batch_size, frames):
 def rot_generator(batch_size, frames):
 	return video_next_batch(batch_size, frames)
 
+def validation_generator(batch_size, frames):
+	feed_list = video_next_batch(batch_size, frames)
+	return feed_list[0], feed_list[1], feed_list[0], feed_list[3], feed_list[4], feed_list[5]
+
 word_len = 14
 
 def sentence_proc(one_hot, rot):

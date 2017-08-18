@@ -361,16 +361,17 @@ def train_epoch(flag=False, initial=True):
 	loss_val = [0,0,0,0,0,0,0]
 	while run <= num_examples:
 		for t in range(final_iter):
-			feed_list = generate(batch_size)
+			feed_list = gan.generate_batch()
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
-				placeholders['x'] : feed_list[1],
-				placeholders['image_class_input'] : feed_list[2],
-				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+				# placeholders['x_old'] : feed_list[1],
+				placeholders['x'] : feed_list[2],
+				placeholders['image_class_input'] : feed_list[3],
+				placeholders['text_label_input'] : feed_list[4],
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
+				placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 			}
 			if initial:
 				_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
@@ -379,16 +380,17 @@ def train_epoch(flag=False, initial=True):
 			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
 
 		for _ in range(2*diter):
-			feed_list = generate(batch_size)
+			feed_list = gan.generate_batch()
 			run += batch_size
 			feed_dict = {
 				placeholders['image_input'] : feed_list[0],
-				placeholders['x'] : feed_list[1],
-				placeholders['image_class_input'] : feed_list[2],
-				placeholders['text_label_input'] : feed_list[3],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size),
-				placeholders['z_t'] : np.random.normal(0,1,[batch_size, num_class_motion])
+				# placeholders['x_old'] : feed_list[1],
+				placeholders['x'] : feed_list[2],
+				placeholders['image_class_input'] : feed_list[3],
+				placeholders['text_label_input'] : feed_list[4],
+				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
+				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
+				placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 			}
 			if initial :
 				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
@@ -396,8 +398,6 @@ def train_epoch(flag=False, initial=True):
 				_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
 			else:
 				_, loss_val[6] = session.run([optimizers["generator_gan"], losses["generator_image"]], feed_dict=feed_dict)
-
-		# z_c = session.run(z_hat_c, feed_dict=feed_dict)
 		count += 1
 		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
