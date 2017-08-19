@@ -5,3 +5,4 @@ gif_*
 .png
 *.ckpt.*
 checkpoint
+path.txt
