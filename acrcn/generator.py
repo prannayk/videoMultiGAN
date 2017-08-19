@@ -7,7 +7,7 @@ lf = list()
 def load_path():
     with open("path.txt") as f :
         line = f.readlines()
-        line = filter(lambda x : x != '\n', line)
+        line = filter(lambda x : x != '\n', line[0])
     return line
 
 def video_loader():
