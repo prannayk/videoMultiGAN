@@ -4,9 +4,15 @@ import os
 
 lf = list()
 
+def load_path():
+    with open("path.txt") as f :
+        line = f.readlines()
+        line = filter(lambda x : x != '\n', line)
+    return line
+
 def video_loader():
 	global lf
-	path = "/media/hdd/hdd/prannayk/action_reaction/"
+	path = load_path()
 	files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith("video")]
 	lf = files
 
