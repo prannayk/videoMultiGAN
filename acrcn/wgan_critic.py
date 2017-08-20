@@ -397,10 +397,11 @@ epoch = 600
 embedding_size =128
 motion_size=7
 num_class_image=25
-frames=3
+frames=1
+frames_input = 1
 num_class_motion = 7
 
-def save_visualization(X, nh_nw=(batch_size,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
     X = morph(X)
     print(X.shape)
     h,w = X.shape[1], X.shape[2]
@@ -421,12 +422,12 @@ def frame_label(batch_size, frames):
     return t
 def morph(X):
     batch_size = int(X.shape[0])
-    dim_channel = int(X.shape[-1]) // (frames+2)
+    dim_channel = int(X.shape[-1]) // (frames+frames_input)
     h,w = map(lambda x: int(x), X.shape[1:3])
-    img = np.zeros([(2+frames)*batch_size,h,w,dim_channel])
+    img = np.zeros([(frames_input+frames)*batch_size,h,w,dim_channel])
     for i in range(batch_size):
-        for t in range(frames+2):
-            img[i*(frames+2) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
+        for t in range(frames+frames_input):
+            img[i*(frames+frames_input) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
     return img
 
 def random_label(batch_size, size):
