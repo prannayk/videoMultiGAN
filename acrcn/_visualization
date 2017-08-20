@@ -423,10 +423,10 @@ def morph(X):
     batch_size = int(X.shape[0])
     dim_channel = int(X.shape[-1]) // (frames+frames_input)
     h,w = map(lambda x: int(x), X.shape[1:3])
-    img = np.zeros([(2+frames)*batch_size,h,w,dim_channel])
+    img = np.zeros([(frames_input+frames)*batch_size,h,w,dim_channel])
     for i in range(batch_size):
         for t in range(frames+frames_input):
-            img[i*(frames+2) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
+            img[i*(frames+frames_input) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
     return img
 
 def random_label(batch_size, size):
