@@ -310,7 +310,7 @@ class VAEGAN():
     #     self.first_time = False
     #     return x_hat, x_hat_fut, D_x_loss, G_x_loss, D_z_t_loss, G_z_t_loss, D_z_c_loss, G_z_c_loss, D_z_s_loss, G_z_s_loss
     def build_model(self):
-        image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_input_shape)
+        image_input = tf.placeholder(tf.float32, shape=[self.batch_size]+ self.image_create_shape)
         # x = tf.placeholder(tf.float32, shape=[self.batch_size]+self.image_create_shape)
         image_class_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.num_class_image])
         z_s = tf.placeholder(tf.float32, shape=[self.batch_size, self.embedding_size])
