@@ -488,7 +488,6 @@ def train_epoch(flag=False, initial=True):
             # print(z_c)
         start_time = time.time() 
 
-frames_input=1
 
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames, frames_input)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
