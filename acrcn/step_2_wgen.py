@@ -382,6 +382,7 @@ class VAEGAN():
 		self.variable_summaries(losses["reconstruction"],name="reconstruction_loss")
 		self.variable_summaries(G_x_loss, name="Reconstruction_GAN_loss")
 		self.variable_summaries(D_x_loss, name="Reconstruction_GAN_loss")
+		self.variable_summaries(losses["anti-reconstruction"], name="anti-reconstruction-loss")
 		print("Completed losses")
 		variable_dict = dict()
 		variable_dict["encoder"] = [i for i in filter(lambda x: x.name.startswith("encoder"), tf.trainable_variables())]
