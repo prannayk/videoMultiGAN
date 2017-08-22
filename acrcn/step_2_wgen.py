@@ -367,6 +367,7 @@ class VAEGAN():
 		losses = dict()
 		with tf.variable_scope("losses"):
 			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_hat_fut))) + tf.sqrt(tf.reduce_mean(tf.square(x_old-x_hat)))
+			losses["anti-reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x_hat_fut - x_hat)))
 			losses["disc_image_classifier"] = D_z_c_loss
 			losses["gen_image_classifier"] = G_z_c_loss
 			losses["disc_text_classifier"] = D_z_t_loss
