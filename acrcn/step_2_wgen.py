@@ -378,7 +378,7 @@ class VAEGAN():
 			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
 			losses["disc_style_classifier"] = D_z_s_loss
 			losses["gen_style_classifier"] = G_z_s_loss
-			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
+			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"] - (self.lambda_2*losses["anti-reconstruction"])
 		self.variable_summaries(losses["reconstruction"],name="reconstruction_loss")
 		self.variable_summaries(G_x_loss, name="Reconstruction_GAN_loss")
 		self.variable_summaries(D_x_loss, name="Reconstruction_GAN_loss")
