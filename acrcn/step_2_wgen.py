@@ -246,7 +246,7 @@ class VAEGAN():
 			encoder_alt = tf.layers.dense(encode[:,:self.embedding_size], units=int(encode.shape[-1]), reuse=scope.reuse, 
 				kernel_initializer=self.initializer, use_bias=True, name="transformation")
 		z_hat_s = encode[:,:self.embedding_size]
-		z_hat_s_fut = encoder_alt # for transformation embedding to create video
+		z_hat_s_fut = encoder_alt[:,:self.embedding_size] # for transformation embedding to create video
 		z_hat_c = tf.nn.softmax(encode[:,self.embedding_size:])
 		z_hat_t = tf.nn.softmax(text_encode)
 		z_hat_input = tf.concat(axis=1, values=[z_hat_s, z_hat_t])
