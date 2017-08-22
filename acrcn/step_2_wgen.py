@@ -32,6 +32,7 @@ class VAEGAN():
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
 		self.lambda_1 = 500
 		self.lambda_2 = 100
+		self.gan_scale = 50
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -373,9 +374,9 @@ class VAEGAN():
 			losses["gen_image_classifier"] = G_z_c_loss
 			losses["disc_text_classifier"] = D_z_t_loss
 			losses["gen_text_classifier"] = G_z_t_loss
-			losses["disc_image_discriminator"] = D_x_loss
-			losses["generator_image"] = G_x_loss + (self.lambda_1*losses["reconstruction"]) 
-			losses["generator_image_gan"] = G_x_loss + (self.lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
+			losses["disc_image_discriminator"] = D_x_loss*self.gan_scale
+			losses["generator_image"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) 
+			losses["generator_image_gan"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
 			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
 			losses["disc_style_classifier"] = D_z_s_loss
 			losses["gen_style_classifier"] = G_z_s_loss
