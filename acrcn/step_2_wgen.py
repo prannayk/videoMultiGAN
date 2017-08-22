@@ -463,6 +463,7 @@ def random_label(batch_size, size):
 
 
 def train_epoch(flag=False, initial=True):
+	eptime = time.time()
 	diter = 5
 	count =  0
 	large_iter =  100
