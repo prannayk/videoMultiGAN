@@ -472,7 +472,7 @@ def train_epoch(flag=False, initial=True):
 		final_iter = diter
 	run=0
 	start_time = time.time()
-	loss_val = [0,0,0,0,0,0,0]
+	loss_val = [0,0,0,0,0,0,0,0]
 	while run <= num_examples:
 		for t in range(final_iter):
 			feed_list = gan.generate_batch()
@@ -520,7 +520,7 @@ def train_epoch(flag=False, initial=True):
 		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
 			# print(z_c)
-		start_time = time.time() 
+			start_time = time.time() 
 
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
