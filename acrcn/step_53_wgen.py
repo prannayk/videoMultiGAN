@@ -449,6 +449,7 @@ def frame_label(batch_size, frames):
 def morph(X):
 	batch_size = int(X.shape[0])
 	dim_channel = int(X.shape[-1]) // (frames_input+frames)
+	print(dim_channel)
 	h,w = map(lambda x: int(x), X.shape[1:3])
 	img = np.zeros([(frames_input+frames)*batch_size,h,w,dim_channel])
 	for i in range(batch_size):
@@ -525,7 +526,7 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
 			start_time = time.time() 
 	print("Total time: " + str(time.time() - eptime))
 
-image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
+image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames, frames_input)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
