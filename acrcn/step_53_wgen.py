@@ -427,6 +427,7 @@ frames_input = 3
 num_class_motion = 7
 
 def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+	print(X.shape)
 	X = morph(X)
 	print(X.shape)
 	h,w = X.shape[1], X.shape[2]
