@@ -50,7 +50,7 @@ class VAEGAN():
 
 	def normalize(self, X, reuse=False, name=None, flag=False):
 		if not flag : 
-			mean , vari = tf.nn.moments(X, 0, keep_dims =True)
+			mean , vari = tf.nn.moments(X, [0], keep_dims =True)
 		else:
 			mean, vari = tf.nn.moments(X, [0,1,2], keep_dims=True)
 		return tf.nn.batch_normalization(X, mean, vari, offset=None, 
