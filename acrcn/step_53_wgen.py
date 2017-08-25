@@ -477,6 +477,7 @@ def get_feed_dict(gan, placeholders):
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
+	return feed_dict
 def train_epoch(gan, placeholders,flag=False, initial=True):
 	eptime = time.time()
 	diter = 5
