@@ -1,0 +1,18 @@
+(64, 32, 40, 9)
+1
+(512, 32, 40, 1)
+0
+(64, 128)
+1
+(64, 128)
+2
+(64, 128)
+3
+(64, 128)
+4
+(64, 128)
+Completed losses
+Completed weights
+encoder
+text_encoder
+generator
