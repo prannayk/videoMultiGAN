@@ -19,8 +19,8 @@ for folder in folders :
 		print("Done with %s"%(filename))
 		path_file = direc + folder + "/" + filename
 		images =[f for f in os.listdir(path_file) if isfile(join(path_file, f))]
-		images = images[:180]
-		frames = np.zeros([180, 128, 128, 3])
+		images = images[:64]
+		frames = np.zeros([64, 128, 128, 3])
 		for i,img in enumerate(images) : 
 			im = np.array(Image.open("%s/%s/%s"%(path, filename, img)).getdata())
 			print(im.shape)
