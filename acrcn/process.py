@@ -26,5 +26,5 @@ for folder in folders :
 			print(im.shape)
 			im = (im / 255. ).reshape([32,40, 3])
 			frames[i] = im
-		np.save("%s/video_50_%s.npy"%(direc, filename), frames)
+		np.save("%s/video_%d_%s.npy"%(direc, num, filename), frames)
 		os.system("rm -rf %s/%s")
