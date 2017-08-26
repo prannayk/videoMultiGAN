@@ -23,6 +23,7 @@ for folder in folders :
 		frames = np.zeros([64, 128, 128, 3])
 		for i,img in enumerate(images) : 
 			im = np.array(Image.open("%s/%s/%s"%(path, filename, img)).getdata())
+			print(im.shape)
 			if (im.shape != [16384,3]):
 				continue
 			im = (im / 255. ).reshape([128,128, 3])
