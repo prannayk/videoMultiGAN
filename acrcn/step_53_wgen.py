@@ -30,9 +30,9 @@ class VAEGAN():
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
-		self.lambda_1 = 500
-		self.lambda_2 = 300
-		self.gan_scale = 50
+		self.lambda_1 = 300
+		self.lambda_2 = 200
+		self.gan_scale = 100
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -321,6 +321,12 @@ class VAEGAN():
 		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
 		z_t = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.num_class_motion])
 		self.default_z = image_class_input
+		tf_lambda_1 = tf.get_variable("lambda_1",dtype=tf.float32, initializer=tf.constant(self.lambda_1))
+		tf_gan_scale = tf.get_variable("gan_scale",dtype=tf.float32, initializer=tf.constant(self.gan_scale))
+		update_op = {
+			"vae" : tf.assign(tf_lambda_1, tf_lambda_1*0.9),
+			"gan" : tf.assign(tf_gan_scale, tf_gan_scale*1.1)
+		}
 		placeholders = {
 			'image_input' : image_input,
 			'x' : x,
@@ -345,10 +351,6 @@ class VAEGAN():
 			else :
 				next_image_input = tf.concat(axis=3, values=[next_image_input[:,:,:,self.dim_channel:], list_output[0]])
 
-		# second_image_input = tf.concat(axis=3, values=[image_input[:,:,:,3:],x_1_hat])
-		# x_2_hat, x_2_gen, D_2_x_hat, D_2_x, D_2_x_dash, D_2_x_gen, D_2_z_hat_c, D_2_z_c, D_2_z_real, D_2_z_hat_s, D_2_z_s,  D_2_z_hat_t, D_2_z_t = self.create_frames(second_image_input, x[:,:,:,3:], 
-			# z_s[self.batch_size:], z_c[self.batch_size:], image_class_input, text_label_input, z_t[self.batch_size:])
-		# x_hat, x_hat_fut, D_x_loss, G_x_loss, D_z_t_loss, G_z_t_loss, D_z_c_loss, G_z_c_loss, D_z_s_loss, G_z_s_loss
 		x_hat = tf.concat(axis=3, values=list_values[0])
 		x_hat_fut = tf.concat(axis=3, values=list_values[1])
 		D_x_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[2]))
@@ -359,12 +361,6 @@ class VAEGAN():
 		G_z_c_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[7]))
 		D_z_s_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[8]))
 		G_z_s_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[9]))
-		# D_z_real = tf.concat(axis=0, values=list_values[10])
-		# D_z_hat_s = tf.concat(axis=0, values=list_values[11])
-		# D_z_hat_s_fut = tf.concat(axis=0, values=list_values[12])
-		# D_z_s = tf.concat(axis=0, values=list_values[13])
-		# D_z_hat_t = tf.concat(axis=0, values=list_values[14])
-		# D_z_t = tf.concat(axis=0, values=list_values[15])
 		
 		losses = dict()
 		with tf.variable_scope("losses"):
@@ -375,13 +371,13 @@ class VAEGAN():
 			losses["disc_text_classifier"] = D_z_t_loss
 			losses["gen_text_classifier"] = G_z_t_loss
 			losses["disc_image_discriminator"] = D_x_loss*self.gan_scale + (self.lambda_2*losses["anti-reconstruction"])
-			losses["generator_image"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) 
-			losses["generator_image_gan"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
-			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
+			losses["generator_image"] = self.gan_scale*G_x_loss + (tf_lambda_1*losses["reconstruction"]) 
+			losses["generator_image_gan"] = self.gan_scale*G_x_loss + (tf_lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
+			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*tf_lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
 			losses["disc_style_classifier"] = D_z_s_loss
 			losses["gen_style_classifier"] = G_z_s_loss
-			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"] - (self.lambda_2*losses["anti-reconstruction"])
-			losses["transformation"] = -losses["anti-reconstruction"]*self.lambda_2 + self.lambda_1*losses["reconstruction"] 
+			losses["encoder"] = losses["gen_image_classifier"] + (tf_lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"] - (self.lambda_2*losses["anti-reconstruction"])
+			losses["transformation"] = -losses["anti-reconstruction"]*self.lambda_2 + tf_lambda_1*losses["reconstruction"] 
 		self.variable_summaries(losses["reconstruction"],name="reconstruction_loss")
 		self.variable_summaries(G_x_loss, name="Reconstruction_GAN_loss")
 		self.variable_summaries(D_x_loss, name="Reconstruction_GAN_loss")
@@ -408,7 +404,7 @@ class VAEGAN():
 			print("generator")
 			optimizer["generator"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9).minimize(losses["generator_image"], var_list=variable_dict["generator"])
 			optimizer["generator_gan"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9).minimize(losses["generator_image_gan"], var_list=variable_dict["generator"])
-			optimizer["generator_reconstruction"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9).minimize(self.lambda_1*losses["reconstruction"], var_list=variable_dict["generator"])
+			optimizer["generator_reconstruction"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9).minimize(tf_lambda_1*losses["reconstruction"], var_list=variable_dict["generator"])
 			print("disc_image")
 			optimizer["discriminator"] = tf.train.AdamOptimizer(self.learning_rate[3],beta1=0.5, beta2=0.9).minimize(losses["disc_image_discriminator"], var_list=variable_dict["image_disc"])
 			print("disc_non_image")
@@ -416,7 +412,7 @@ class VAEGAN():
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"], var_list=variable_dict["text_class"])
 			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"], var_list=variable_dict["style_class"])
 		print("Completed optimizers")
-		return placeholders, optimizer, losses, x_hat, x_hat_fut
+		return placeholders, optimizer, losses, x_hat, x_hat_fut, update_op
 
 epoch = 600
 embedding_size =128
@@ -570,3 +566,8 @@ for ep in range(epoch):
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
 	saver.save(session, "/media/hdd/hdd/prannayk/large_acnrcn.ckpt")
+	if ep % 15 == 0:
+		session.run(update_op["vae"])
+	if ep % 10 == 0:
+		session.run(update_op["gan"])
+
