@@ -324,8 +324,10 @@ class VAEGAN():
 		tf_lambda_1 = tf.get_variable("lambda_1",dtype=tf.float32, initializer=tf.constant(self.lambda_1))
 		tf_gan_scale = tf.get_variable("gan_scale",dtype=tf.float32, initializer=tf.constant(self.gan_scale))
 		update_op = {
-			"vae" : tf.assign(tf_lambda_1, tf_lambda_1*0.9),
-			"gan" : tf.assign(tf_gan_scale, tf_gan_scale*1.1)
+			"vae_up" : tf.assign(tf_lambda_1, tf_lambda_1*1.1),
+			"gan_up" : tf.assign(tf_gan_scale, tf_gan_scale*1.1),
+			"vae_down" : tf.assign(tf_lambda_1, tf_lambda_1*0.9),
+			"gan_down" : tf.assign(tf_gan_scale, tf_gan_scale*0.9)
 		}
 		placeholders = {
 			'image_input' : image_input,
@@ -561,13 +563,13 @@ for ep in range(epoch):
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
+	if ep % 15 == 0:
+		session.run(update_op["vae_down"])
+	if ep % 10 == 0:
+		session.run(update_op["gan_up"])
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
 	saver.save(session, "/media/hdd/hdd/prannayk/large_acnrcn.ckpt")
-	if ep % 15 == 0:
-		session.run(update_op["vae"])
-	if ep % 10 == 0:
-		session.run(update_op["gan"])
 
