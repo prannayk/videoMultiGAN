@@ -32,7 +32,7 @@ class VAEGAN():
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
 		self.lambda_1 = 300
 		self.lambda_2 = 200
-		self.gan_scale = 100
+		self.gan_scale = 50
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -555,10 +555,6 @@ for ep in range(epoch):
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
-	if ep % 15 == 0:
-		session.run(update_op["vae_down"])
-	if ep % 10 == 0:
-		session.run(update_op["gan_up"])
 	images = session.run(x_hat, feed_dict=feed_dict)
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
