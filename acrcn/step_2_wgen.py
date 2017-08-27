@@ -30,7 +30,9 @@ class VAEGAN():
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
-		self.lambda_1 = 10
+		self.lambda_1 = 500
+		self.lambda_2 = 300
+		self.gan_scale = 50
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -81,7 +83,7 @@ class VAEGAN():
 		ddx_loss = tf.reduce_mean(tf.square(ddx_sum - 1.0) * self.wgan_scale)
 		return loss + ddx_loss
 	def generate_batch(self):
-		return generate(self.batch_size, self.frames)
+		return generate(self.batch_size, self.frames,self.frames_input)
 	def discriminate_image(self, image, zvalue=None, scope=tf.variable_scope("variable_scope")):
 		if zvalue == None :
 			zvalue = self.default_z
@@ -244,7 +246,7 @@ class VAEGAN():
 			encoder_alt = tf.layers.dense(encode[:,:self.embedding_size], units=int(encode.shape[-1]), reuse=scope.reuse, 
 				kernel_initializer=self.initializer, use_bias=True, name="transformation")
 		z_hat_s = encode[:,:self.embedding_size]
-		z_hat_s_fut = encoder_alt # for transformation embedding to create video
+		z_hat_s_fut = encoder_alt[:,:self.embedding_size] # for transformation embedding to create video
 		z_hat_c = tf.nn.softmax(encode[:,self.embedding_size:])
 		z_hat_t = tf.nn.softmax(text_encode)
 		z_hat_input = tf.concat(axis=1, values=[z_hat_s, z_hat_t])
@@ -254,7 +256,7 @@ class VAEGAN():
 				scope.reuse_variables()
 			x_hat = self.generate_image(z_hat_input, z_hat_c, scope)
 			scope.reuse_variables()
-			x_hat_fut = self.generate_image(z_hat_input, z_hat_c, scope)
+			x_hat_fut = self.generate_image(z_hat_input_fut, z_hat_c, scope)
 			x_dash = self.generate_image(tf.concat(axis=1, values=[z_s, z_t]),z_c,scope)
 			x_gen = self.generate_image(z_hat_input,z_hat_c, scope)
 		with tf.variable_scope("image_discriminator") as scope:
@@ -367,23 +369,27 @@ class VAEGAN():
 		losses = dict()
 		with tf.variable_scope("losses"):
 			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_hat_fut))) + tf.sqrt(tf.reduce_mean(tf.square(x_old-x_hat)))
+			losses["anti-reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x_hat_fut - x_hat)))
 			losses["disc_image_classifier"] = D_z_c_loss
 			losses["gen_image_classifier"] = G_z_c_loss
 			losses["disc_text_classifier"] = D_z_t_loss
 			losses["gen_text_classifier"] = G_z_t_loss
-			losses["disc_image_discriminator"] = D_x_loss
-			losses["generator_image"] = G_x_loss + (self.lambda_1*losses["reconstruction"]) 
-			losses["generator_image_gan"] = G_x_loss + (self.lambda_1*losses["reconstruction"]) 
-			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1)
+			losses["disc_image_discriminator"] = D_x_loss*self.gan_scale + (self.lambda_2*losses["anti-reconstruction"])
+			losses["generator_image"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) 
+			losses["generator_image_gan"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
+			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
 			losses["disc_style_classifier"] = D_z_s_loss
 			losses["gen_style_classifier"] = G_z_s_loss
-			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"]
+			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"] - (self.lambda_2*losses["anti-reconstruction"])
+			losses["transformation"] = -losses["anti-reconstruction"]*self.lambda_2 + self.lambda_1*losses["reconstruction"] 
 		self.variable_summaries(losses["reconstruction"],name="reconstruction_loss")
 		self.variable_summaries(G_x_loss, name="Reconstruction_GAN_loss")
 		self.variable_summaries(D_x_loss, name="Reconstruction_GAN_loss")
+		self.variable_summaries(losses["anti-reconstruction"], name="anti-reconstruction-loss")
 		print("Completed losses")
 		variable_dict = dict()
 		variable_dict["encoder"] = [i for i in filter(lambda x: x.name.startswith("encoder"), tf.trainable_variables())]
+		variable_dict["transformation"] = [i for i in filter(lambda x: x.name.startswith("transformation"), tf.trainable_variables())]
 		variable_dict["text_encoder"] = [i for i in filter(lambda x: x.name.startswith("text_encoder"), tf.trainable_variables())]
 		variable_dict["generator"] = [i for i in filter(lambda x: x.name.startswith("generator"), tf.trainable_variables())]
 		variable_dict["image_disc"] = [i for i in filter(lambda x: x.name.startswith("image_disc"), tf.trainable_variables())]
@@ -396,6 +402,7 @@ class VAEGAN():
 			# encoder_adam = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9)
 			print("encoder")
 			optimizer["encoder"] = tf.train.AdamOptimizer(self.learning_rate[0],beta1=0.5,beta2=0.9).minimize(losses["encoder"], var_list=variable_dict["encoder"])
+			optimizer["transformation"] = tf.train.AdamOptimizer(self.learning_rate[0], beta1=0.5, beta2=0.9).minimize(losses["transformation"], var_list=variable_dict["transformation"])
 			print("text_encoder")
 			optimizer["text_encoder"] = tf.train.AdamOptimizer(self.learning_rate[1], beta1=0.5, beta2=0.9).minimize(losses["text_encoder"], var_list=variable_dict["text_encoder"])
 			print("generator")
@@ -415,10 +422,11 @@ epoch = 600
 embedding_size =128
 motion_size=7
 num_class_image=25
-frames=2
+frames=5
+frames_input = 3
 num_class_motion = 7
 
-def save_visualization(X, nh_nw=(batch_size,2+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	X = morph(X)
 	print(X.shape)
 	h,w = X.shape[1], X.shape[2]
@@ -439,12 +447,12 @@ def frame_label(batch_size, frames):
 	return t
 def morph(X):
 	batch_size = int(X.shape[0])
-	dim_channel = int(X.shape[-1]) // (frames+2)
+	dim_channel = int(X.shape[-1]) // (frames_input+frames)
 	h,w = map(lambda x: int(x), X.shape[1:3])
-	img = np.zeros([(2+frames)*batch_size,h,w,dim_channel])
+	img = np.zeros([(frames_input+frames)*batch_size,h,w,dim_channel])
 	for i in range(batch_size):
-		for t in range(frames+2):
-			img[i*(frames+2) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
+		for t in range(frames_input+frames):
+			img[i*(frames_input+frames) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
 	return img
 
 def random_label(batch_size, size):
@@ -455,7 +463,20 @@ def random_label(batch_size, size):
 	return random	
 
 
-def train_epoch(flag=False, initial=True):
+def get_feed_dict(gan, placeholders):
+	feed_list = gan.generate_batch()
+	feed_dict = {
+		placeholders['image_input'] : feed_list[0],
+		placeholders['x_old'] : feed_list[1],
+		placeholders['x'] : feed_list[2],
+		placeholders['image_class_input'] : feed_list[3],
+		placeholders['text_label_input'] : feed_list[4],
+		placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
+		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
+		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
+	}
+def train_epoch(gan, placeholders,flag=False, initial=True):
+	eptime = time.time()
 	diter = 5
 	count =  0
 	large_iter =  100
@@ -465,56 +486,48 @@ def train_epoch(flag=False, initial=True):
 		final_iter = diter
 	run=0
 	start_time = time.time()
-	loss_val = [0,0,0,0,0,0,0]
+	loss_val = [0,0,0,0,0,0,0,0]
 	while run <= num_examples:
 		for t in range(final_iter):
-			feed_list = gan.generate_batch()
 			run += batch_size
-			feed_dict = {
-				placeholders['image_input'] : feed_list[0],
-				placeholders['x_old'] : feed_list[1],
-				placeholders['x'] : feed_list[2],
-				placeholders['image_class_input'] : feed_list[3],
-				placeholders['text_label_input'] : feed_list[4],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-				placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
-			}
+			feed_dict = get_feed_dict(gan, placeholders)
 			if initial:
-				_, loss_val[1] = session.run([optimizers["code_discriminator"], losses["disc_image_classifier"]], feed_dict=feed_dict)
-				_, loss_val[2] = session.run([optimizers["text_discriminator"], losses["disc_text_classifier"]], feed_dict=feed_dict)
-				_, loss_val[3] = session.run([optimizers["style_discriminator"], losses["disc_style_classifier"]], feed_dict=feed_dict)
-			_, loss_val[0] = session.run([optimizers["discriminator"],losses["disc_image_discriminator"]], feed_dict=feed_dict)
-
+				_,_,_, loss_val[1],loss_val[2], loss_val[3],loss_val[0] = session.run([
+					optimizers["code_discriminator"], optimizers["text_discriminator"],
+					optimizers["style_discriminator"], optimizers["discriminator"],
+					losses["disc_image_classifier"],losses["disc_text_classifier"], 
+					losses["disc_image_discriminator"], losses["disc_image_discriminator"]
+					], feed_dict=feed_dict)
+			else :
+				_, loss_val[0] = session.run([optimizers["discriminator"], losses["disc_image_discriminator"]])
 		for _ in range(2*diter):
-			feed_list = gan.generate_batch()
 			run += batch_size
-			feed_dict = {
-				placeholders['image_input'] : feed_list[0],
-				placeholders['x_old'] : feed_list[1],
-				placeholders['x'] : feed_list[2],
-				placeholders['image_class_input'] : feed_list[3],
-				placeholders['text_label_input'] : feed_list[4],
-				placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
-				placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-				placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
-			}
+			feed_dict = get_feed_dict(gan, placeholders)
 			if initial :
-				_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image"]], feed_dict=feed_dict)
-				_, loss_val[4] = session.run([optimizers["encoder"], losses["encoder"]], feed_dict=feed_dict)
-				_, loss_val[5] = session.run([optimizers["text_encoder"], losses["text_encoder"]], feed_dict=feed_dict)
+				_,_,_,_, loss_val[6],loss_val[4],loss_val[5],loss_val[7] = session.run([
+					optimizers["generator"], optimizers["encoder"], 
+					optimizers["text_encoder"], optimizers["transformation"],
+					losses["generator_image"], losses["encoder"],
+					losses["text_encoder"], losses["transformation"]
+					], feed_dict=feed_dict)
 			else:
-				_, loss_val[6] = session.run([optimizers["generator_gan"], losses["generator_image"]], feed_dict=feed_dict)
+				_,_,_,_, loss_val[6],loss_val[4],loss_val[5],loss_val[7] = session.run([
+					optimizers["generator"], optimizers["encoder"], 
+					optimizers["text_encoder"], optimizers["transformation"],
+					losses["generator_image_gan"], losses["encoder"],
+					losses["text_encoder"], losses["transformation"]
+					], feed_dict=feed_dict)
 		count += 1
 		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
 			# print(z_c)
-		start_time = time.time() 
+			start_time = time.time() 
+	print("Total time: " + str(time.time() - eptime))
 
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
-	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True)
+	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
 
 placeholders,optimizers, losses, x_hat, x_hat_fut = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
@@ -532,11 +545,11 @@ num_examples = 64000
 for ep in range(epoch):
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
-			train_epoch(flag=True)
+			train_epoch(gan, placeholders,flag=True)
 		else :
-			train_epoch(flag=True, initial=True)
+			train_epoch(gan, placeholders,flag=True, initial=True)
 	else:
-		train_epoch()
+		train_epoch(gan, placeholders,)
 	print("Saving image")
 	feed_list = gan.generate_batch()
 	feed_dict = {

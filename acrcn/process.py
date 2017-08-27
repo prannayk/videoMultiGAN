@@ -23,8 +23,11 @@ for folder in folders :
 		frames = np.zeros([90, 32, 40, 3])
 		for i,img in enumerate(images) : 
 			im = np.array(Image.open("%s/%s/%s"%(path, filename, img)).getdata())
-			print(im.shape)
-			im = (im / 255. ).reshape([32,40, 3])
+			print(np.sum(im))
+			print(np.mean(im))
+			if (im.shape != [16384,3]):
+				continue
+			im = (im / 255. ).reshape([128,128, 3])
 			frames[i] = im
 		np.save("%s/video_5_%s.npy"%(direc, filename), frames)
 		os.system("rm -rf %s/%s")
