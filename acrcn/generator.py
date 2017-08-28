@@ -20,7 +20,7 @@ def video_next_batch(batch_size, frames, frames_input=2):
 	global lf
 	if len(lf) == 0 :
 		video_loader(0)
-	path = load_path()
+	path = load_path(0)
 	file_list = np.random.choice(lf, batch_size , replace=True)
 	video_list = np.zeros([batch_size, 30, 32, 40, 3])
 	for i,fil in enumerate(file_list):
