@@ -6,7 +6,7 @@ from subprocess import call
 from PIL import Image
 
 folders = ["boxing", "handclapping", "handwaving", "jogging", "running", "walking"]
-direc = "/users/gpu/prannay/video_source/"
+direc = "/home/accents/video_source/"
 
 for folder in folders : 
 	path = direc
