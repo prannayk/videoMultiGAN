@@ -73,7 +73,10 @@ def video_large_batch(batch_size, frames, frames_input=2):
 	video_list = np.zeros([batch_size, 30, 64, 64, 3])
 	for i,fil in enumerate(file_list):
 		complete_path = path + fil
+		print(complete_path)
 		videonpy = np.load(complete_path)
+		if videonpy.shape != [batch_size,30,64,64,3]:
+			print(fil)
 		video_list[i] = videonpy[:30]
 	start_num = [i for i in range(30-(frames+2))]
 	start_list = np.random.choice(start_num, batch_size, replace=True)
