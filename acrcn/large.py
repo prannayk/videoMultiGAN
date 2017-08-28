@@ -39,7 +39,7 @@ class VAEGAN():
 		self.dim_8 = [self.image_shape[0] // 8, self.image_shape[1] // 8]
 		self.dim_16 = [self.image_shape[0] // 16, self.image_shape[1] // 16]
 		self.dim_channel = self.image_shape[-1]
-		self.device = "/gpu:1"
+		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		self.first_time = True
@@ -132,7 +132,7 @@ class VAEGAN():
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name="conv_5")
 			h5_relu = LeakyReLU(h3)
-			h5_reshape = tf.reshape(h5, shape=[self.batch_size,self.dim_8[1]*self.dim_8[0]*64])
+			h5_reshape = tf.reshape(h5, shape=[self.batch_size,self.dim_16[1]*self.dim_16[0]*64])
 			h5_concat = self.normalize(tf.concat(axis=1, values=[h5_reshape, zvalue]))
 			h6 = tf.layers.dense(h5_concat, units=256, 
 				activation=None,
@@ -173,13 +173,13 @@ class VAEGAN():
 				reuse=scope.reuse,name='conv_2')
 			h3_relu = tf.nn.relu(self.normalize(h3))
 			h3_concat = tf.concat(axis=3, values=[h3_relu, yneed_1])
-			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = self.dim_channel, 
+			h4 = tf.layers.conv2d_transpose(inputs=h3_concat, filters = 32, 
 				kernel_size=[5,5], strides=[2,2], padding='SAME', activation=None,
 				kernel_initializer=self.initializer,
 				reuse=scope.reuse,name='conv_3')
 			h4_relu = tf.nn.relu(self.normalize(h4))
 			h4_concat = tf.concat(axis=3, values=[h4_relu, yneed_2])
-			h5 = tf.layers.conv2d_transpose(inputs=h3_concat, filter=self.dim_channel,
+			h5 = tf.layers.conv2d_transpose(inputs=h4_concat, filters=self.dim_channel,
 				kernel_size=[4,4],strides=[2,2], padding='SAME', activation=None,
 				reuse=scope.reuse, name="conv_4")
 			return tf.nn.sigmoid(h5)
@@ -421,8 +421,8 @@ epoch = 600
 embedding_size =128
 motion_size=7
 num_class_image=25
-frames=5
-frames_input = 3
+frames=2
+frames_input = 2
 num_class_motion = 7
 
 def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):

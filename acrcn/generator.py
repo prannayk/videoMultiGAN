@@ -13,7 +13,7 @@ def load_path(num):
 def video_loader(num):
 	global lf
 	path = load_path(num)
-	files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith("video")]
+	files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith("video") and ('npy' in f)]
 	lf = files
 
 def video_next_batch(batch_size, frames, frames_input=2):
@@ -68,12 +68,15 @@ def video_large_batch(batch_size, frames, frames_input=2):
 	global lf
 	if len(lf) == 0 :
 		video_loader(1)
-	path = load_path()
+	path = load_path(1)
 	file_list = np.random.choice(lf, batch_size , replace=True)
 	video_list = np.zeros([batch_size, 30, 64, 64, 3])
 	for i,fil in enumerate(file_list):
 		complete_path = path + fil
+		print(complete_path)
 		videonpy = np.load(complete_path)
+		if videonpy.shape != [batch_size,30,64,64,3]:
+			print(fil)
 		video_list[i] = videonpy[:30]
 	start_num = [i for i in range(30-(frames+2))]
 	start_list = np.random.choice(start_num, batch_size, replace=True)
