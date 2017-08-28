@@ -6,8 +6,8 @@ from subprocess import call
 from PIL import Image
 
 folders = ["boxing", "handclapping", "handwaving", "jogging", "running", "walking"]
-direc = "/home/accents/video_source/"
-save_direc = "/mnt/video_large/"
+direc = "~/video_source/"
+save_direc = "~/video_large/"
 
 for num in [5,10,15,20,25]:
 	for folder in folders : 
