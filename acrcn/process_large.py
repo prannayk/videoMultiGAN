@@ -6,8 +6,8 @@ from subprocess import call
 from PIL import Image
 
 folders = ["boxing", "handclapping", "handwaving", "jogging", "running", "walking"]
-direc = "~/video_source/"
-save_direc = "~/video_large/"
+direc = "/users/gpu/prannay/video_source/"
+save_direc = "/users/gpu/prannay/video_large/"
 
 for num in [5,10,15,20,25]:
 	for folder in folders : 
@@ -22,12 +22,12 @@ for num in [5,10,15,20,25]:
 			path_file = direc + "/" + filename
 			images =[f for f in os.listdir(path_file) if isfile(join(path_file, f))]
 			images = images[:90]
-			frames = np.zeros([90, 32, 40, 3])
+			frames = np.zeros([90, 64, 64, 3])
 			for i,img in enumerate(images) : 
 				im = np.array(Image.open("%s/%s/%s"%(path, filename, img)).getdata())
 				print(np.sum(im))
 				print(np.mean(im))
-				im = (im / 255. ).reshape([32,40, 3])
+				im = (im / 255. ).reshape([64,64, 3])
 				frames[i] = im
 			np.save("%s/video_%d_%s.npy"%(save_direc, num, filename), frames)
 			os.system("rm -rf %s/%s")

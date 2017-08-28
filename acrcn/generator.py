@@ -10,9 +10,9 @@ def load_path(num):
         line = filter(lambda x : x != '\n', line[num])
     return line
 
-def video_loader():
+def video_loader(num):
 	global lf
-	path = load_path()
+	path = load_path(num)
 	files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith("video")]
 	lf = files
 
