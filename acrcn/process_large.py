@@ -17,8 +17,6 @@ for num in [5,10,15,20,25]:
 			filename = file.split("/")[-1].split(".")[0]
 			call(["mkdir",join(path, filename)])
 			os.system("ffmpeg -i %s/%s.avi -vf fps=%d -s 64x64 -f image2 %s/%s/%s-"%(path, filename,num, path, filename, filename) + "%03d.png ")
-			os.system("mv %s/%s/ %s/"%(path, filename, filename))
-			print("Done with %s"%(filename))
 			path_file = direc + "/" + filename
 			images =[f for f in os.listdir(path_file) if isfile(join(path_file, f))]
 			images = images[:90]
@@ -30,4 +28,4 @@ for num in [5,10,15,20,25]:
 				im = (im / 255. ).reshape([64,64, 3])
 				frames[i] = im
 			np.save("%s/video_%d_%s.npy"%(save_direc, num, filename), frames)
-			os.system("rm -rf %s/%s")
+			os.system("rm -rf %s/%s"%(path, filename))
