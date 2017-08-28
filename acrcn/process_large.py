@@ -7,6 +7,7 @@ from PIL import Image
 
 folders = ["boxing", "handclapping", "handwaving", "jogging", "running", "walking"]
 direc = "/home/accents/video_source/"
+save_direc = "/mnt/video_large/"
 
 for num in [5,10,15,20,25]:
 	for folder in folders : 
@@ -28,5 +29,5 @@ for num in [5,10,15,20,25]:
 				print(np.mean(im))
 				im = (im / 255. ).reshape([32,40, 3])
 				frames[i] = im
-			np.save("%s/video_%d_%s.npy"%(direc, num, filename), frames)
+			np.save("%s/video_%d_%s.npy"%(save_direc, num, filename), frames)
 			os.system("rm -rf %s/%s")

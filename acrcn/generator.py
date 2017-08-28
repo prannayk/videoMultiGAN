@@ -4,10 +4,10 @@ import os
 
 lf = list()
 
-def load_path():
+def load_path(num):
     with open("path.txt") as f :
         line = f.readlines()
-        line = filter(lambda x : x != '\n', line[0])
+        line = filter(lambda x : x != '\n', line[num])
     return line
 
 def video_loader():
@@ -19,7 +19,7 @@ def video_loader():
 def video_next_batch(batch_size, frames, frames_input=2):
 	global lf
 	if len(lf) == 0 :
-		video_loader()
+		video_loader(0)
 	path = load_path()
 	file_list = np.random.choice(lf, batch_size , replace=True)
 	video_list = np.zeros([batch_size, 30, 32, 40, 3])
@@ -64,10 +64,61 @@ def video_next_batch(batch_size, frames, frames_input=2):
 	motion_hot[:,-1] = frame_speed
 	return video_batch[:,:,:,:frames_input], video_batch[:,:,:,frames_input-1:frames_input-1+frames], video_batch[:,:,:,frames_input:], person_hot, motion_hot, style_hot
 
+def video_large_batch(batch_size, frames, frames_input=2):
+	global lf
+	if len(lf) == 0 :
+		video_loader(1)
+	path = load_path()
+	file_list = np.random.choice(lf, batch_size , replace=True)
+	video_list = np.zeros([batch_size, 30, 64, 64, 3])
+	for i,fil in enumerate(file_list):
+		complete_path = path + fil
+		videonpy = np.load(complete_path)
+		video_list[i] = videonpy[:30]
+	start_num = [i for i in range(30-(frames+2))]
+	start_list = np.random.choice(start_num, batch_size, replace=True)
+	video_batch = np.zeros([batch_size, 64, 64, frames + frames_input])
+	motion_class = []
+	person_class = []
+	style_class = []
+	frame_speed = []
+	for i in range(batch_size):
+		for j in range(frames+frames_input):
+			video_batch[i,:,:,j] = video_list[i,start_list[i]+j:start_list[i]+j+1,:,:,0] / 255.
+		list_feat = file_list[i].split(".")[0].split("_")[1:5]
+		if len(list_feat) < 3 : 
+			print(list_feat)
+		if list_feat[2] == "walking" :
+			motion_class.append(5)
+		elif list_feat[2] == "running" :
+			motion_class.append(4)
+		elif list_feat[2] == "jogging" :
+			motion_class.append(3)
+		elif list_feat[2] == "handclapping" : 
+			motion_class.append(2)
+		elif list_feat[2] == "handwaving" : 
+			motion_class.append(1)
+		else:
+			motion_class.append(0)
+		person_class.append(int(list_feat[1][6:]) - 1)
+		style_class.append(int(list_feat[3][1:]) - 1)
+		frame_speed.append(list_feat[0])
+	person_hot = np.zeros([batch_size, 25])
+	style_hot = np.zeros([batch_size, 4])
+	motion_hot = np.zeros([batch_size, 7])
+	person_hot[np.arange(batch_size), person_class] = 1
+	style_hot[np.arange(batch_size), style_class] = 1
+	motion_hot[np.arange(batch_size), motion_class] = 1
+	motion_hot[:,-1] = frame_speed
+	return video_batch[:,:,:,:frames_input], video_batch[:,:,:,frames_input-1:frames_input-1+frames], video_batch[:,:,:,frames_input:], person_hot, motion_hot, style_hot
+
 
 
 def rot_generator(batch_size, frames,frames_input=2):
 	return video_next_batch(batch_size, frames, frames_input=frames_input)
+
+def large_generator(batch_size, frames,frames_input=2):
+	return video_large_batch(batch_size, frames, frames_input=frames_input)
 
 def validation_generator(batch_size, frames, frames_input=3):
 	feed_list = video_next_batch(batch_size, frames, frames_input=frames_input)
