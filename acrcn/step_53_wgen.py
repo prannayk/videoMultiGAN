@@ -39,7 +39,7 @@ class VAEGAN():
 		self.dim_8 = [self.image_shape[0] // 8, self.image_shape[1] // 8]
 		self.dim_16 = [self.image_shape[0] // 16, self.image_shape[1] // 8]
 		self.dim_channel = self.image_shape[-1]
-		self.device = "/gpu:0"
+		self.device = "/gpu:1"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		self.first_time = True
@@ -321,8 +321,8 @@ class VAEGAN():
 		text_label_input = tf.placeholder(tf.float32, shape=[self.batch_size, self.motion_size])
 		z_t = tf.placeholder(tf.float32, shape=[self.batch_size*self.frames, self.num_class_motion])
 		self.default_z = image_class_input
-		tf_lambda_1 = tf.get_variable("lambda_1",dtype=tf.float32, initializer=tf.constant(self.lambda_1))
-		tf_gan_scale = tf.get_variable("gan_scale",dtype=tf.float32, initializer=tf.constant(self.gan_scale))
+		tf_lambda_1 = tf.get_variable("lambda_1",dtype=tf.float32, initializer=tf.constant(float(self.lambda_1)))
+		tf_gan_scale = tf.get_variable("gan_scale",dtype=tf.float32, initializer=tf.constant(float(self.gan_scale)))
 		update_op = {
 			"vae_up" : tf.assign(tf_lambda_1, tf_lambda_1*1.1),
 			"gan_up" : tf.assign(tf_gan_scale, tf_gan_scale*1.1),
@@ -530,7 +530,7 @@ save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='.
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
 
-placeholders,optimizers, losses, x_hat, x_hat_fut = gan.build_model()
+placeholders,optimizers, losses, x_hat, x_hat_fut,update_op = gan.build_model()
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
@@ -571,5 +571,5 @@ for ep in range(epoch):
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
-	saver.save(session, "/media/hdd/hdd/prannayk/large_acnrcn.ckpt")
+	saver.save(session, "~/trained_models/step_53_model.ckpt")
 
