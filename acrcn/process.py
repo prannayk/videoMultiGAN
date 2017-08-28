@@ -14,7 +14,7 @@ for folder in folders :
 	for file in filelist:
 		filename = file.split("/")[-1].split(".")[0]
 		call(["mkdir",join(path, filename)])
-		os.system("ffmpeg -i %s/%s.avi -vf fps=10 -s 40x32 -f image2 %s/%s/%s-"%(path, filename, path, filename, filename) + "%03d.png ")
+		os.system("ffmpeg -i %s/%s.avi -vf fps=5 -s 40x32 -f image2 %s/%s/%s-"%(path, filename, path, filename, filename) + "%03d.png ")
 		os.system("mv %s/%s-* %s/"%(path, filename, filename))
 		print("Done with %s"%(filename))
 		path_file = direc + "/" + filename
@@ -26,5 +26,5 @@ for folder in folders :
 			im = (im / 255. ).reshape([32,40, 3])
 			frames[i] = im
 		print(np.mean(frames))
-		np.save("/mnt/video_small/video_10_%s.npy"%(filename), frames)
+		np.save("/mnt/video_small/video_5_%s.npy"%(filename), frames)
 		os.system("rm -rf %s/%s")
