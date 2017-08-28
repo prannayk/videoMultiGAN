@@ -298,7 +298,6 @@ class VAEGAN():
 		with tf.variable_scope("style_classifier") as scope:
 			if not self.first_time :
 				scope.reuse_variables()
-			print(z_hat_s.shape)
 			z_hat_s = z_hat_s[:,:embedding_size]
 			z_hat_s_fut = z_hat_s_fut[:,:embedding_size]
 			D_z_hat_s = self.discriminate_encode(z_hat_s[:,:embedding_size], scope=scope)
@@ -334,7 +333,6 @@ class VAEGAN():
 		list_values = [[],[],[],[],[],[],[],[],[],[],[],[],[]]
 		next_image_input = image_input
 		for i in range(self.frames):
-			print(i) 
 			list_return = self.create_frames(next_image_input, x[:,:,:,self.dim_channel*i:self.dim_channel*i+self.dim_channel], 
 				z_s[self.batch_size*i:self.batch_size*i+self.batch_size], z_c[self.batch_size*i:self.batch_size*i+self.batch_size], 
 				image_class_input, text_label_input, z_t[self.batch_size*i:self.batch_size*i+self.batch_size])
