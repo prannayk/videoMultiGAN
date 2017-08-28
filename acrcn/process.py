@@ -23,8 +23,9 @@ for folder in folders :
 		frames = np.zeros([90, 32, 40, 3])
 		for i,img in enumerate(images) : 
 			im = np.array(Image.open("%s/%s/%s"%(path, filename, img)).getdata())
+			print(np.sum(im))
+			print(np.mean(im))
 			im = (im / 255. ).reshape([32,40, 3])
 			frames[i] = im
-		print(np.mean(frames))
-		np.save("/mnt/video_small/video_5_%s.npy"%(filename), frames)
+		np.save("%s/video_20_%s.npy"%(direc, filename), frames)
 		os.system("rm -rf %s/%s")
