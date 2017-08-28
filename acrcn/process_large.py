@@ -17,7 +17,7 @@ for num in [5,10,15,20,25]:
 			filename = file.split("/")[-1].split(".")[0]
 			call(["mkdir",join(path, filename)])
 			os.system("ffmpeg -i %s/%s.avi -vf fps=%d -s 64x64 -f image2 %s/%s/%s-"%(path, filename,num, path, filename, filename) + "%03d.png ")
-			os.system("mv %s/%s-* %s/"%(path, filename, filename))
+			os.system("mv %s/%s/ %s/"%(path, filename, filename))
 			print("Done with %s"%(filename))
 			path_file = direc + "/" + filename
 			images =[f for f in os.listdir(path_file) if isfile(join(path_file, f))]
