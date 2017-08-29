@@ -423,7 +423,7 @@ motion_size=300
 num_class_image=13
 frames=5
 frames_input = 3
-num_class_motion = 7
+num_class_motion = 32
 
 def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	print(X.shape)
