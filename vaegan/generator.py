@@ -108,7 +108,7 @@ def convert_embedding(sentence):
 	t = np.zeros([word_len,300])
 	t[:len(embed)] = embed
 	del embed
-	return t
+	return np.mean(t,axis=0)
 
 
 def rot_text_generator(batch_size, frames,frames_input=3):
@@ -121,7 +121,7 @@ def rot_text_generator(batch_size, frames,frames_input=3):
 	batch_old = np.zeros([batch_size, 64, 64,3*frames])
 	batch_labels = np.zeros([batch_size, 13])
 	batch_labels[:,:10] += batch1_labels
-	text_labels = np.zeros([batch_size, word_len, 300])
+	text_labels = np.zeros([batch_size, 300])
 	for i in range(batch_size):
 		t = np.random.randint(0,32 // (frames+2) + 1)
 		l = np.random.randint(0,256,[3]).astype(float) / 255
