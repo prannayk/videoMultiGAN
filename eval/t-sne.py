@@ -17,26 +17,33 @@ RS = 20170829
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as PathEffects
 import matplotlib
-%matplotlib inline
-
+from optparse import OptionParser
 import seaborn as sns
 sns.set_style('darkgrid')
 sns.set_palette('muted')
 sns.set_context("notebook", font_scale=1.5,
-                rc={"lines.linewidth": 2.5})
+	rc={"lines.linewidth": 2.5})
 
 from moviepy.video.io.bindings import mplfig_to_npimage
 import moviepy.editor as mpy
+parser = OptionParser()
+parser.add_option("-i","--input", dest="output",
+	help="Output File", metavar="FILE")
+parser.add_option("-c","--classes",dest="classes",
+	help="Number of classes", metavar="FILE")
+(options, args) = parser.parse_args()
+data = np.load(options["output"])
+size = int(options["classes"])
 
 def scatter(x, colors):
 	# We choose a color palette with seaborn.
-	palette = np.array(sns.color_palette("hls", 10))
+	palette = np.array(sns.color_palette("hls", size))
 
 	# We create a scatter plot.
 	f = plt.figure(figsize=(8, 8))
 	ax = plt.subplot(aspect='equal')
 	sc = ax.scatter(x[:,0], x[:,1], lw=0, s=40,
-	                c=palette[colors.astype(np.int)])
+		c=palette[colors.astype(np.int)])
 	plt.xlim(-25, 25)
 	plt.ylim(-25, 25)
 	ax.axis('off')
@@ -54,8 +61,8 @@ def scatter(x, colors):
 		txts.append(txt)
 
 	return f, ax, sc, txts
-y = np.hstack([digits.target[digits.target==i]
-               for i in range(10)])
+x = np.vstack([data.data[data.target==i] for i in range(size)])
+y = np.hstack([data.target[data.target==i] for i in range(size)])
 digits_proj = TSNE(random_state=RS).fit_transform(X)
 scatter(digits_proj, y)
-plt.savefig('images/digits_tsne-generated.png', dpi=120)
+plt.savefig('images/%s_tsne-generated.png'%(options["output"]), dpi=120)
