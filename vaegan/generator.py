@@ -144,7 +144,7 @@ def rot_text_generator(batch_size, frames,frames_input=3):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch_gen[i, 2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),j+(3*r)] = batch2[i]*l[j]
-					if r != (frames_input-1) :
+					if r != (frames-1) :
 						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		elif t==1 :
 			sentence = "the digit %s is moving to the right downwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
@@ -162,7 +162,7 @@ def rot_text_generator(batch_size, frames,frames_input=3):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch_gen[i, 34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),j+(3*r)] = batch2[i]*l[j]
-					if r != (frames_input-1) :
+					if r != (frames-1) :
 						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		elif t==2 :
 			sentence = "the digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
@@ -180,7 +180,7 @@ def rot_text_generator(batch_size, frames,frames_input=3):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch_gen[i, 34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),j+(3*r)] = batch2[i]*l[j]
-					if r != (frames_input-1) :
+					if r != (frames-1) :
 						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		else :
 			sentence = "the digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
@@ -198,7 +198,7 @@ def rot_text_generator(batch_size, frames,frames_input=3):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch_gen[i, 2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),j+(3*r)] = batch2[i]*l[j]
-					if r != (frames_input-1) :
+					if r != (frames-1) :
 						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 	return batch,batch_old, batch_gen, batch_labels, text_labels
 def text_generator(batch_size):

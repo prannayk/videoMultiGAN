@@ -37,9 +37,9 @@ class VAEGAN():
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
 		self.dim_8 = [self.image_shape[0] // 8, self.image_shape[1] // 8]
-		self.dim_16 = [self.image_shape[0] // 16, self.image_shape[1] // 8]
+		self.dim_16 = [self.image_shape[0] // 16, self.image_shape[1] // 16]
 		self.dim_channel = self.image_shape[-1]
-		self.device = "/gpu:1"
+		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		self.first_time = True
@@ -526,7 +526,7 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
 			start_time = time.time() 
 	print("Total time: " + str(time.time() - eptime))
 
-image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames, frames_input)
+image_sample, image_old,image_gen,image_labels, text_labels_ = generate(batch_size, frames, frames_input)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/final/mnist64/%s/sample.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
