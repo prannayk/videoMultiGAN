@@ -420,7 +420,7 @@ class VAEGAN():
 epoch = 600
 embedding_size =128
 motion_size=300
-num_class_image=25
+num_class_image=13
 frames=5
 frames_input = 3
 num_class_motion = 7
