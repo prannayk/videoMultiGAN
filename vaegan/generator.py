@@ -1,10 +1,10 @@
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 from PIL import Image
 import numpy as np
 
 print("Loading keyed vectors")
-with open("/media/hdd/hdd/prannayk/temp.vec") as fil:
+with open("/extra_data/prannay/temp.vec") as fil:
 	lines = fil.readlines()
 dictionary = dict()
 for line in lines:
@@ -111,13 +111,14 @@ def convert_embedding(sentence):
 	return t
 
 
-def rot_text_generator(batch_size, frames):
+def rot_text_generator(batch_size, frames,frames_input=3):
 	global word_len
 	batch1in, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1in.reshape([batch_size, 28,28])
 	batch2 = batch1in.reshape([batch_size, 28,28])
-	batch = np.zeros([batch_size, 64, 64,9])
+	batch = np.zeros([batch_size, 64, 64,3*frames_input])
 	batch_gen = np.zeros([batch_size, 64, 64,3*frames])
+	batch_old = np.zeros([batch_size, 64, 64,3*frames])
 	batch_labels = np.zeros([batch_size, 13])
 	batch_labels[:,:10] += batch1_labels
 	text_labels = np.zeros([batch_size, word_len, 300])
@@ -133,14 +134,18 @@ def rot_text_generator(batch_size, frames):
 			# text_labels[i] = np.array([rot,-1,1,1,-1])
 			# text_labels[i][-1] *= random
 			# text_labels[i][-2] *= random
-			for r in range(3):
+			for r in range(frames_input):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate(r*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r == (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j] = batch2[i]*l[j]
 			for r in range(frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
-					batch_gen[i, 10+(random*r):38+(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
+					batch_gen[i, 2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r != (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		elif t==1 :
 			sentence = "the digit %s is moving to the right downwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
 			text_labels[i] = convert_embedding(sentence)
@@ -151,10 +156,14 @@ def rot_text_generator(batch_size, frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate(r*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch[i,34-(random*r):62-(random*r),34-(random*r):62-(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r == (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j] = batch2[i]*l[j]
 			for r in range(frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
-					batch_gen[i, 26-(random*r):54-(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch2[i]*l[j]
+					batch_gen[i, 34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r != (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		elif t==2 :
 			sentence = "the digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
 			text_labels[i] = convert_embedding(sentence)
@@ -165,10 +174,14 @@ def rot_text_generator(batch_size, frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate(r*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch[i,34-(random*r):62-(random*r),2+(random*r):30+(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r == (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j] = batch2[i]*l[j]
 			for r in range(frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
-					batch_gen[i, 26-(random*r):54-(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
+					batch_gen[i, 34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r != (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		else :
 			sentence = "the digit %s is moving to the right upwards while it rotates %s"%(sentence_proc(batch1_labels[i], rot))
 			text_labels[i] = convert_embedding(sentence)
@@ -179,11 +192,15 @@ def rot_text_generator(batch_size, frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate(r*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch[i,2+(random*r):30+(random*r),34-(random*r):62-(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r == (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j] = batch2[i]*l[j]
 			for r in range(frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
-					batch_gen[i, 10+(random*r):38+(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch2[i]*l[j]
-	return batch, batch_gen, batch_labels, text_labels
+					batch_gen[i, 2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r != (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
+	return batch,batch_old, batch_gen, batch_labels, text_labels
 def text_generator(batch_size):
 	batch1, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1.reshape([batch_size, 28,28])
