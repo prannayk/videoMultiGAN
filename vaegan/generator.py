@@ -1,10 +1,10 @@
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 from PIL import Image
 import numpy as np
 
 print("Loading keyed vectors")
-with open("/media/hdd/hdd/prannayk/temp.vec") as fil:
+with open("/extra_data/prannay/temp.vec") as fil:
 	lines = fil.readlines()
 dictionary = dict()
 for line in lines:
