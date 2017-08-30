@@ -39,7 +39,7 @@ class VAEGAN():
 		self.dim_8 = [self.image_shape[0] // 8, self.image_shape[1] // 8]
 		self.dim_16 = [self.image_shape[0] // 16, self.image_shape[1] // 8]
 		self.dim_channel = self.image_shape[-1]
-		self.device = "/gpu:1"
+		self.device = "/gpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		self.first_time = True
