@@ -533,7 +533,7 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session, )
+saver.restore(session, "/extra_data/prannay/models/large_acnrcn.ckpt")
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
@@ -564,5 +564,5 @@ for e in range(epoch):
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
-	saver.save(session, "/users/gpu/prannay/trained_models/large_acnrcn.ckpt")
+	saver.save(session, "/extra_data/prannay/trained_models/large_acnrcn_2.ckpt")
 
