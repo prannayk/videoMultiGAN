@@ -479,35 +479,6 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
 	start_time = time.time()
 	loss_val = [0,0,0,0,0,0,0,0]
 	while run <= num_examples:
-		for t in range(final_iter):
-			run += batch_size
-			feed_dict = get_feed_dict(gan, placeholders)
-			if initial:
-				_,_,_,_, loss_val[1],loss_val[2], loss_val[3],loss_val[0] = session.run([
-					optimizers["code_discriminator"], optimizers["text_discriminator"],
-					optimizers["style_discriminator"], optimizers["discriminator"],
-					losses["disc_image_classifier"],losses["disc_text_classifier"], 
-					losses["disc_image_discriminator"], losses["disc_image_discriminator"]
-					], feed_dict=feed_dict)
-			else :
-				_, loss_val[0] = session.run([optimizers["discriminator"], losses["disc_image_discriminator"]])
-		for _ in range(2*diter):
-			run += batch_size
-			feed_dict = get_feed_dict(gan, placeholders)
-			if initial :
-				_,_,_,_, loss_val[6],loss_val[4],loss_val[5],loss_val[7] = session.run([
-					optimizers["generator"], optimizers["encoder"], 
-					optimizers["text_encoder"], optimizers["transformation"],
-					losses["generator_image"], losses["encoder"],
-					losses["text_encoder"], losses["transformation"]
-					], feed_dict=feed_dict)
-			else:
-				_,_,_,_, loss_val[6],loss_val[4],loss_val[5],loss_val[7] = session.run([
-					optimizers["generator"], optimizers["encoder"], 
-					optimizers["text_encoder"], optimizers["transformation"],
-					losses["generator_image_gan"], losses["encoder"],
-					losses["text_encoder"], losses["transformation"]
-					], feed_dict=feed_dict)
 		for _ in range(2*diter):
 			run += batch_size
 			feed_dict = get_feed_dict(gan, placeholders)
