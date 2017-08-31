@@ -508,11 +508,6 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
 					losses["generator_image_gan"], losses["encoder"],
 					losses["text_encoder"], losses["transformation"]
 					], feed_dict=feed_dict)
-		for _ in range(2*diter):
-			run += batch_size
-			feed_dict = get_feed_dict(gan, placeholders)
-			_, loss_val[0] = session.run([optimizers["discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
-			_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image_gan"]], feed_dict=feed_dict)
 		count += 1
 		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
