@@ -31,7 +31,7 @@ class VAEGAN():
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
 		self.lambda_1 = 30
-		self.lambda_2 = 20
+		self.lambda_2 = 0
 		self.gan_scale = 5
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
