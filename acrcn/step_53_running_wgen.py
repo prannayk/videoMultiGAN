@@ -363,7 +363,6 @@ class VAEGAN():
 			losses["disc_text_classifier"] = D_z_t_loss
 			losses["gen_text_classifier"] = G_z_t_loss
 			losses["disc_image_discriminator"] = D_x_loss*self.gan_scale + (self.lambda_2*losses["anti-reconstruction"])
-			losses["generator_image_vanilla"] = G_x_loss
 			losses["generator_image"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"])
 			losses["generator_image_gan"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
 			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
@@ -509,6 +508,11 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
 					losses["generator_image_gan"], losses["encoder"],
 					losses["text_encoder"], losses["transformation"]
 					], feed_dict=feed_dict)
+		for _ in range(2*diter):
+			run += batch_size
+			feed_dict = get_feed_dict(gan, placeholders)
+			_, loss_val[0] = session.run([optimizers["discriminator"], losses["disc_image_discriminator"]], feed_dict=feed_dict)
+			_, loss_val[6] = session.run([optimizers["generator"], losses["generator_image_gan"]], feed_dict=feed_dict)
 		count += 1
 		if count % 10 == 0 or flag:
 			print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
@@ -529,13 +533,13 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-
+saver.restore(session, )
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
-for ep in range(epoch):
+for e in range(epoch):
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
 			train_epoch(gan, placeholders,flag=True)
