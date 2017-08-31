@@ -558,5 +558,5 @@ for ep in range(epoch):
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
-	saver.save(session, "/extra_data/prannay/trained_models/step_53_model.ckpt")
+	saver.save(session, "/extra_data/prannay/trained_models/53_no_wgan_model.ckpt")
 
