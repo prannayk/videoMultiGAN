@@ -8,7 +8,7 @@ from generator import rot_text_generator as generate
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
 total_size = 64000
-batch_size = 64
+batch_size = 16
 
 class VAEGAN():
 	"""docstring for VAEGAN, no parent class"""
@@ -545,7 +545,6 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-#saver.restore(session, "/data3/prannay/trained_models/mnist_53_model_2.ckpt")
 
 print("Running code: ")
 
