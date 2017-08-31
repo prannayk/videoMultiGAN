@@ -525,6 +525,7 @@ print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
 saver = tf.train.Saver()
+saver.restore(session, "/data3/prannay/trained_models/step_53_model.ckpt")
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
