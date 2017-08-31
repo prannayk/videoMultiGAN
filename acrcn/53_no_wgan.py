@@ -528,13 +528,15 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
+saver.restore(session, "/data3/prannay/trained_models/53_no_wgan_model.ckpt")
 
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
-for ep in range(epoch):
+for e in range(epoch):
+	ep = e + 37
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
 			train_epoch(gan, placeholders,flag=True)
