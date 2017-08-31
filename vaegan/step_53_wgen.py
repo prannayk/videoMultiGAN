@@ -539,7 +539,7 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-
+saver.restore(session, "/data3/prannay/trained_models/mnist_53_model.ckpt")
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
