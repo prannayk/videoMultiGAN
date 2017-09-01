@@ -525,14 +525,15 @@ writer = tf.summary.FileWriter("../embeddings/")
 config = projector.ProjectorConfig()
 embedding = config.embeddings.add()
 embedding.tensor_name = embedding_tensor.name
-embedding.metadata_path = "/users/gpu/prannay/vgan/embeddings/testmain.tsv"
+embedding.metadata_path = "/users/gpu/prannay/vgan/embeddings/metadata.tsv"
 embedding.sprite.image_path = "/users/gpu/prannay/vgan/embeddings/testmain.jpg"
-embedding.sprite.single_image_dim.extend([32,32])
+embedding.sprite.single_image_dim.extend([32,40])
+writer = tf.summary.FileWriter("/users/gpu/prannay/embeddings/")
 projector.visualize_embeddings(writer, config)
 saver = tf.train.Saver()
 saver.save(session, "/users/gpu/prannay/vgan/embeddings/model.ckpt",1)
 
-with open("/users/gpu/prannay/vgan/embeddings/testmain.tsv", mode="w") as fil:
+with open("/users/gpu/prannay/vgan/embeddings/metadata.tsv", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
 		fil.write("%d\t%d\n"%(i, one_hot(label)))
