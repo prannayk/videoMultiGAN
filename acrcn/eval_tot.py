@@ -487,11 +487,13 @@ def create_sprite_image(images):
 	for i in range(n_plots):
 		for j in range(n_plots):
 			this_filter = i*n_plots + j
+            np.mean(images[this_filter])
 			if this_filter < images.shape[0]:
+                np.mean(images[this_filter])
 				this_img = images[this_filter]
 				spriteimage[i*img_h:(i+1) * img_h,
-				j * img_w:(j + 1) * img_w ] = this_img.reshape([32,40])
-	imsave("/users/gpu/prannay/vgan/embeddings/testmain.jpg", spriteimage)
+				j * img_w:(j + 1) * img_w ,:] = this_img
+	np.mean(spriteimage)
 
 def one_hot(X):
 	for i in range(X.shape[0]):
