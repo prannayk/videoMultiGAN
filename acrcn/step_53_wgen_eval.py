@@ -501,7 +501,7 @@ def create_sprite_image(images):
 				this_img = images[this_filter]
 				spriteimage[i*img_h:(i+1) * img_h,
 				j * img_w:(j + 1) * img_w ] = this_img.reshape([32,40])
-	imsave("/users/gpu/prannay/vgan/sprite/test1.jpg", spriteimage)
+	imsave("/users/gpu/prannay/vgan/sprite/test2.jpg", spriteimage)
 
 def one_hot(X):
 	for i in range(X.shape[0]):
@@ -513,7 +513,7 @@ image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
-num_examples=640
+num_examples=16000
 placeholders,optimizers, losses, x_hat, x_hat_fut, embedding = gan.build_model()
 print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
@@ -536,12 +536,12 @@ writer = tf.summary.FileWriter("../embeddings/")
 config = projector.ProjectorConfig()
 embedding = config.embeddings.add()
 embedding.tensor_name = embedding_tensor.name
-embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/test1.meta"
-embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/test1.txt"
+embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/test2.meta"
+embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/test2.txt"
 embedding.sprite.single_image_dim.extend([32,32])
 projector.visualize_embeddings(writer, config)
 
-with open("/users/gpu/prannay/vgan/metadata/test1.meta", mode="w") as fil:
+with open("/users/gpu/prannay/vgan/metadata/test2.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
 		fil.write("%d\t%d\n"%(i, one_hot(label)))

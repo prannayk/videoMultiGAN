@@ -470,7 +470,7 @@ def train_epoch(gan,tensor_writer,flag=False, initial=True):
 		feed_list = get_feed_dict(gan)
 		label_data[run:run+batch_size] = feed_list[3]
 		images[run:run+batch_size] = feed_list[0][:,:,:,:1]
-		embedding_np[run:run+batch_size] = images[run:run+batch_size].reshape([batch_size,32,40])
+		embedding_np[run:run+batch_size] = images[run:run+batch_size].reshape([batch_size,32*40])
 		run+=batch_size
 		count += 1
 		if count % 10 == 0 or flag:
@@ -508,16 +508,15 @@ num_examples=640
 print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 model_name = "/extra_data/prannay/models/large_acnrcn.ckpt"
-saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session,model_name)
+#saver.restore(session,model_name)
 print("Running code: ")
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
-embedding_np, images, label_data = train_epoch(gan, placeholders, train_writer)
+embedding_np, images, label_data = train_epoch(gan, train_writer)
 create_sprite_image(images)
 embedding_tensor = tf.Variable(embedding_np)
 init_embedding = tf.variables_initializer([embedding_tensor])
@@ -530,6 +529,8 @@ embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/testmain.meta"
 embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/testmain.txt"
 embedding.sprite.single_image_dim.extend([32,32])
 projector.visualize_embeddings(writer, config)
+saver = tf.train.Saver()
+saver.save(session,"../logs/testmain.ckpt")
 
 with open("/users/gpu/prannay/vgan/metadata/testmain.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
