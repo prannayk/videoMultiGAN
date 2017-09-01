@@ -31,8 +31,8 @@ class VAEGAN():
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
 		self.lambda_1 = 10
-		self.lambda_2 = 6
-		self.gan_scale = 15
+		self.lambda_2 = 0
+		self.gan_scale = 1
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -570,13 +570,14 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
+saver.restore(session, "/extra_data/prannay/trained_models/mnist_53_model_5.ckpt")
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 16000
 for e in range(epoch):
-	ep = e + 5
+	ep = e + 35
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
 			train_epoch(gan, placeholders,flag=True)
