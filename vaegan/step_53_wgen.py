@@ -546,13 +546,14 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session, "/extra_data/prannay/trained_models/mnist_53_model_3.ckpt")
+saver.restore(session, "/extra_data/prannay/trained_models/mnist_53_model_4.ckpt")
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
-for ep in range(epoch):
+for e in range(epoch):
+	ep = e + 5
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
 			train_epoch(gan, placeholders,flag=True)
