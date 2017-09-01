@@ -30,9 +30,9 @@ class VAEGAN():
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
-		self.lambda_1 = 5
-		self.lambda_2 = 2
-		self.gan_scale = 1
+		self.lambda_1 = 10
+		self.lambda_2 = 6
+		self.gan_scale = 15
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -546,7 +546,6 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session, "/extra_data/prannay/trained_models/mnist_53_model_4.ckpt")
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
@@ -577,5 +576,5 @@ for e in range(epoch):
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/final/mnist64/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
-	saver.save(session, "/extra_data/prannay/trained_models/mnist_53_model_4.ckpt")
+	saver.save(session, "/extra_data/prannay/trained_models/mnist_53_model_5.ckpt")
 
