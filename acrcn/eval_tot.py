@@ -531,6 +531,7 @@ embedding.sprite.single_image_dim.extend([32,32])
 projector.visualize_embeddings(writer, config)
 saver = tf.train.Saver()
 saver.save(session,"../logs/testmain.ckpt")
+saver.save(session, "../embeddings/model.ckpt")
 
 with open("/users/gpu/prannay/vgan/metadata/testmain.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
