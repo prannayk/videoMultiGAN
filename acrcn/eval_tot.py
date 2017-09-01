@@ -509,14 +509,15 @@ print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 model_name = "/extra_data/prannay/models/large_acnrcn.ckpt"
 merged = tf.summary.merge_all()
-train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
+#train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
 #saver.restore(session,model_name)
 print("Running code: ")
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 640
-embedding_np, images, label_data = train_epoch(gan, train_writer)
+summary_writer = tf.summary.FileWriter("/users/gpu/prannay/vgan/embeddings")
+embedding_np, images, label_data = train_epoch(gan, summary_writer)
 create_sprite_image(images)
 embedding_tensor = tf.Variable(embedding_np)
 saver = tf.train.Saver()
@@ -529,7 +530,7 @@ embedding.metadata_path = "/users/gpu/prannay/vgan/embeddings/metadata.tsv"
 embedding.sprite.image_path = "/users/gpu/prannay/vgan/embeddings/testmain.jpg"
 embedding.sprite.single_image_dim.extend([32,40])
 print("here")
-projector.visualize_embeddings(train_writer, config)
+projector.visualize_embeddings(summary_writer, config)
 saver.save(session, "/users/gpu/prannay/vgan/embeddings/model.ckpt",1)
 print("writing file")
 with open("/users/gpu/prannay/vgan/embeddings/metadata.tsv", mode="w") as fil:
