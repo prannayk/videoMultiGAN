@@ -88,10 +88,11 @@ class VAEGAN():
 		self.x = np.zeros([self.total_size] + self.image_input_shape)
 		self.x_old = np.zeros([self.total_size] + self.image_create_shape)
 		self.x_gen = np.zeros([self.total_size] + self.image_create_shape)
-		self.person_hot = np.zeros([self.total_size]+self.num_class_image)
-		self.motion_hot = np.zeros([self.total_size] + self.motion_size)
+		self.person_hot = np.zeros([self.total_size]+[self.num_class_image])
+		self.motion_hot = np.zeros([self.total_size] + [self.motion_size])
 		run = 0
-		while(run <= self.total_size):
+		while(run < self.total_size):
+			print(run)
 			feed_dict = generate(batch_size=self.batch_size, frames=self.frames, frames_input=self.frames_input)
 			self.x[run:run+self.batch_size] = feed_dict[0]
 			self.x_old[run:run+self.batch_size] = feed_dict[1]
