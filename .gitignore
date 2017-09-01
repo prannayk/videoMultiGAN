@@ -3,6 +3,5 @@ gif_*
 *.npy
 *.swp
 .png
-*.ckpt.*
 checkpoint
 path.txt
