@@ -529,6 +529,7 @@ diter = 5
 num_examples = 64000
 embedding_np, images, label_data = train_epoch(gan, placeholders, train_writer)
 create_sprite_image(images)
+np.save("../embeddings/latent.npy", embedding_np)
 embedding_tensor = tf.Variable(embedding_np)
 init_embedding = tf.variables_initializer([embedding_tensor])
 session.run(init_embedding)
