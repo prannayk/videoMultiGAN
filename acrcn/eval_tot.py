@@ -525,8 +525,8 @@ writer = tf.summary.FileWriter("../embeddings/")
 config = projector.ProjectorConfig()
 embedding = config.embeddings.add()
 embedding.tensor_name = embedding_tensor.name
-embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/testmain.jpg"
-embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/testmain.tsv"
+embedding.metadata_path = "/users/gpu/prannay/vgan/embeddings/testmain.tsv"
+embedding.sprite.image_path = "/users/gpu/prannay/vgan/embeddings/testmain.jpg"
 embedding.sprite.single_image_dim.extend([32,32])
 projector.visualize_embeddings(writer, config)
 saver = tf.train.Saver()
