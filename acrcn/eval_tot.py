@@ -528,9 +528,10 @@ embedding.tensor_name = embedding_tensor.name
 embedding.metadata_path = "/users/gpu/prannay/vgan/embeddings/metadata.tsv"
 embedding.sprite.image_path = "/users/gpu/prannay/vgan/embeddings/testmain.jpg"
 embedding.sprite.single_image_dim.extend([32,40])
-writer = tf.summary.FileWriter("/users/gpu/prannay/embeddings/")
-projector.visualize_embeddings(writer, config)
+print("here")
+summary_writer = tf.summary.FileWriter("/users/gpu/prannay/embeddings/")
 saver = tf.train.Saver()
+projector.visualize_embeddings(summary_writer, config)
 saver.save(session, "/users/gpu/prannay/vgan/embeddings/model.ckpt",1)
 
 with open("/users/gpu/prannay/vgan/embeddings/metadata.tsv", mode="w") as fil:
