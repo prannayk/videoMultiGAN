@@ -490,7 +490,7 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 	return embedding_np, images, label_data
 def create_sprite_image(images):
 	img_h = images.shape[1]
-	img_h = images.shape[2]
+	img_w = images.shape[2]
 	n_plots = int(np.ceil(np.sqrt(images.shape[0])))
 	spriteimage = np.ones([img_h*n_plots, img_w*n_plots])
 
