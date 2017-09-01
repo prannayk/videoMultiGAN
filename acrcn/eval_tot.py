@@ -455,36 +455,26 @@ def random_label(batch_size, size):
 	return random	
 
 
-def get_feed_dict(gan, placeholders):
+def get_feed_dict(gan):
 	feed_list = gan.generate_batch()
-	feed_dict = {
-		placeholders['image_input'] : feed_list[0],
-		placeholders['x_old'] : feed_list[1],
-		placeholders['x'] : feed_list[2],
-		placeholders['image_class_input'] : feed_list[3],
-		placeholders['text_label_input'] : feed_list[4],
-		placeholders['z_s'] : np.random.normal(0,1,[batch_size*frames, embedding_size]),
-		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
-		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
-	}
-	return feed_dict, feed_list
-def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
+	return feed_list
+def train_epoch(gan,tensor_writer,flag=False, initial=True):
 	eptime = time.time()
 	start_time = time.time()
 	run =0 
 	count = 0
 	label_data = np.zeros([num_examples, num_class_image])
 	images = np.zeros([num_examples, 32,40,1])
-	embedding_np = np.zeros([num_examples, embedding_size + num_class_image])
+	embedding_np = np.zeros([num_examples, 32*40])
 	while run < num_examples:		
-		feed_dict,feed_list = get_feed_dict(gan, placeholders)
+		feed_list = get_feed_dict(gan)
 		label_data[run:run+batch_size] = feed_list[3]
 		images[run:run+batch_size] = feed_list[0][:,:,:,:1]
-		embedding_np[run:run+batch_size] = session.run(embedding,feed_dict=feed_dict)
+		embedding_np[run:run+batch_size] = images[run:run+batch_size].reshape([batch_size,32,40])
 		run+=batch_size
 		count += 1
 		if count % 10 == 0 or flag:
-			print(start_time - time.time())
+			print(time.time() - start_time)
 			start_time = time.time() 
 	print("Total time: " + str(time.time() - eptime))
 	return embedding_np, images, label_data
@@ -501,7 +491,7 @@ def create_sprite_image(images):
 				this_img = images[this_filter]
 				spriteimage[i*img_h:(i+1) * img_h,
 				j * img_w:(j + 1) * img_w ] = this_img.reshape([32,40])
-	imsave("/users/gpu/prannay/vgan/sprite/test1.jpg", spriteimage)
+	imsave("/users/gpu/prannay/vgan/sprite/testmain.jpg", spriteimage)
 
 def one_hot(X):
 	for i in range(X.shape[0]):
@@ -514,7 +504,7 @@ save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='.
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
 num_examples=640
-placeholders,optimizers, losses, x_hat, x_hat_fut, embedding = gan.build_model()
+#placeholders,optimizers, losses, x_hat, x_hat_fut, embedding = gan.build_model()
 print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 model_name = "/extra_data/prannay/models/large_acnrcn.ckpt"
@@ -536,12 +526,12 @@ writer = tf.summary.FileWriter("../embeddings/")
 config = projector.ProjectorConfig()
 embedding = config.embeddings.add()
 embedding.tensor_name = embedding_tensor.name
-embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/test1.meta"
-embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/test1.txt"
+embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/testmain.meta"
+embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/testmain.txt"
 embedding.sprite.single_image_dim.extend([32,32])
 projector.visualize_embeddings(writer, config)
 
-with open("/users/gpu/prannay/vgan/metadata/test1.meta", mode="w") as fil:
+with open("/users/gpu/prannay/vgan/metadata/testmain.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
 		fil.write("%d\t%d\n"%(i, one_hot(label)))
