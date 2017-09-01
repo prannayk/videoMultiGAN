@@ -519,8 +519,8 @@ num_examples = 16000
 summary_writer = tf.summary.FileWriter("/users/gpu/prannay/vgan/embeddings")
 embedding_np, images, label_data = train_epoch(gan, summary_writer)
 create_sprite_image(images)
-np.save("../embeddings/640.npy", embedding_np)
-with open("../embeddings/metadata.tsv", mode="w") as fil:
+np.save("../embeddings/motion.npy", embedding_np)
+with open("../embeddings/motiondata.tsv", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
 		fil.write("%d\t%d\n"%(i, one_hot(label)))

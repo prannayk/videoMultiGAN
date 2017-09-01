@@ -473,12 +473,12 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 	start_time = time.time()
 	run =0 
 	count = 0
-	label_data = np.zeros([num_examples, num_class_image])
+	label_data = np.zeros([num_examples, motion_size])
 	images = np.zeros([num_examples, 32,40,1])
 	embedding_np = np.zeros([num_examples, embedding_size + num_class_image])
 	while run < num_examples:		
 		feed_dict,feed_list = get_feed_dict(gan, placeholders)
-		label_data[run:run+batch_size] = feed_list[3]
+		label_data[run:run+batch_size] = feed_list[4]
 		images[run:run+batch_size] = feed_list[0][:,:,:,:1]
 		embedding_np[run:run+batch_size] = session.run(embedding,feed_dict=feed_dict)
 		run+=batch_size
@@ -529,8 +529,8 @@ diter = 5
 num_examples = 64000
 embedding_np, images, label_data = train_epoch(gan, placeholders, train_writer)
 create_sprite_image(images)
-np.save("../embeddings/latent.npy", embedding_np)
-with open("/users/gpu/prannay/vgan/metadata/test2.meta", mode="w") as fil:
+np.save("../embeddings/latent2.npy", embedding_np)
+with open("/users/gpu/prannay/vgan/metadata/test4.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
 		fil.write("%d\t%d\n"%(i, one_hot(label)))
