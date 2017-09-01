@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import scipy.misc
+from scipy.misc import imsave
 import sys
 import time
 from generator import rot_generator as generate
@@ -487,6 +488,26 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 			start_time = time.time() 
 	print("Total time: " + str(time.time() - eptime))
 	return embedding_np, images, label_data
+def create_sprite_image(images):
+	img_h = images.shape[1]
+	img_h = images.shape[2]
+	n_plots = int(np.ceil(np.sqrt(images.shape[0])))
+	spriteimage = np.ones([img_h*n_plots, img_w*n_plots])
+
+	for i in range(n_plots):
+		for j in range(n_plots):
+			this_filter = i*n_plots + j
+			if this_filter < images.shape[0]:
+				this_img = images[this_filter]
+				spriteimage[i*img_h:(i+1) * img_h,
+				j * img_w:(j + 1) * img_w ] = this_img
+	imsave("/users/gpu/prannay/vgan/sprite/test1.txt", spriteimage)
+
+def one_hot(X):
+	for i in range(X.shape[0]):
+		if X[i] == 1:
+			return i
+
 
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames, frames_input)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
@@ -519,26 +540,6 @@ embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/test1.meta"
 embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/test1.txt"
 embedding.sprite.single_image_dim.extend([32,32])
 projector.visualize_embeddings(summary_writer, config)
-
-def create_sprite_image(images):
-	img_h = images.shape[1]
-	img_h = images.shape[2]
-	n_plots = int(np.ceil(np.sqrt(images.shape[0])))
-	spriteimage = np.ones([img_h*n_plots, img_w*n_plots])
-
-	for i in range(n_plots):
-		for j in range(n_plots):
-			this_filter = i*n_plots + j
-			if this_filter < images.shape[0]:
-				this_img = images[this_filter]
-				spriteimage[i*img_h:(i+1) * img_h,
-				j * img_w:(j + 1) * img_w ] = this_img
-	imsave("/users/gpu/prannay/vgan/sprite/test1.txt", spriteimage)
-
-def one_hot(X):
-	for i in range(X.shape[0]):
-		if X[i] == 1:
-			return i
 
 with open("/users/gpu/prannay/vgan/metadata/test1.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
