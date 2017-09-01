@@ -515,7 +515,7 @@ tf.global_variables_initializer().run()
 print("Running code: ")
 epoch = int(sys.argv[-1])
 diter = 5
-num_examples = 64000
+num_examples = 640
 embedding_np, images, label_data = train_epoch(gan, train_writer)
 create_sprite_image(images)
 embedding_tensor = tf.Variable(embedding_np)
