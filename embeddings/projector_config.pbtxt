@@ -1,8 +1,8 @@
 embeddings {
   tensor_name: "Variable:0"
-  metadata_path: "/users/gpu/prannay/vgan/metadata/testmain.meta"
+  metadata_path: "/users/gpu/prannay/vgan/metadata/testmain.jpg"
   sprite {
-    image_path: "/users/gpu/prannay/vgan/sprite/testmain.txt"
+    image_path: "/users/gpu/prannay/vgan/sprite/testmain.tsv"
     single_image_dim: 32
     single_image_dim: 32
   }
