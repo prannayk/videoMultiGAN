@@ -7,7 +7,7 @@ from generator import rot_generator as generate
 # from tensorflow.examples.tutorials.mnist import input_data
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
-total_size = 64000
+total_size = 16000
 batch_size = 16
 
 class VAEGAN():
