@@ -495,7 +495,7 @@ gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[
 placeholders,optimizers, losses, x_hat, x_hat_fut, embedding = gan.build_model()
 print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
-model_name = ""
+model_name = "/extra_data/prannay/models/large_acnrcn.ckpt"
 saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
