@@ -577,7 +577,7 @@ epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 16000
 for e in range(epoch):
-	ep = e + 35
+	ep = e + 58
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
 			train_epoch(gan, placeholders,flag=True)
