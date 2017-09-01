@@ -528,8 +528,9 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
+saver.restore(session,"/extra_data/prannay/trained_models/large_lower_acnrcn_2.ckpt")
 print("Running code: ")
-
+print(time.time())
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 64000
