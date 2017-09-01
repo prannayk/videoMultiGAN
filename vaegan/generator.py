@@ -3,21 +3,21 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 from PIL import Image
 import numpy as np
 
-print("Loading keyed vectors")
-with open("/extra_data/prannay/temp.vec") as fil:
-	lines = fil.readlines()
-dictionary = dict()
-for line in lines:
-	t = line.split()
- 	dictionary.update({t[0] : np.array(map(lambda x: float(x), t[1:])) })
-print("Loaded and created word dictionary")
+#print("Loading keyed vectors")
+#with open("/extra_data/prannay/temp.vec") as fil:
+#	lines = fil.readlines()
+#dictionary = dict()
+#for line in lines:
+#	t = line.split()
+# 	dictionary.update({t[0] : np.array(map(lambda x: float(x), t[1:])) })
+#print("Loaded and created word dictionary")
 
 
-def rot_generator(batch_size, frames):
+def rot_generator(batch_size, frames, frames_input=3):
 	batch1in, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1in.reshape([batch_size, 28,28])
 	batch2 = batch1in.reshape([batch_size, 28,28])
-	batch = np.zeros([batch_size, 64, 64,9])
+	batch = np.zeros([batch_size, 64, 64,3*frames_input])
 	batch_gen = np.zeros([batch_size, 64, 64,3*frames])
 	batch_old = np.zeros([batch_size, 64, 64,3*frames])
 	batch_labels = np.zeros([batch_size, 13])

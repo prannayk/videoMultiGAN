@@ -501,7 +501,7 @@ def create_sprite_image(images):
 				this_img = images[this_filter]
 				spriteimage[i*img_h:(i+1) * img_h,
 				j * img_w:(j + 1) * img_w ] = this_img.reshape([32,40])
-	imsave("/users/gpu/prannay/vgan/sprite/test1.txt", spriteimage)
+	imsave("/users/gpu/prannay/vgan/sprite/test1.png", spriteimage)
 
 def one_hot(X):
 	for i in range(X.shape[0]):
