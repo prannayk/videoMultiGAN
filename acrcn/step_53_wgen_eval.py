@@ -466,7 +466,7 @@ def get_feed_dict(gan, placeholders):
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
-	return feed_dict
+	return feed_dict, feed_list
 def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 	eptime = time.time()
 	start_time = time.time()
@@ -476,9 +476,9 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 	images = np.zeros([num_examples, 32,32,1])
 	embedding_np = np.zeros([num_examples, num_class_image+embedding_size])
 	while run <= num_examples:		
-		feed_dict = get_feed_dict(gan, placeholders)
-		label_data[run:run+batch_size] = feed_dict['image_class_input']
-		images[run:run+batch_size] = feed_dict["x"][:,:,:,0]
+		feed_dict,feed_list = get_feed_dict(gan, placeholders)
+		label_data[run:run+batch_size] = feed_list[3]
+		images[run:run+batch_size] = feed_list[0][:,:,:,0]
 		embedding_np = session.run(embedding,feed_dict=feed_dict)
 		run+=batch_size
 		count += 1
