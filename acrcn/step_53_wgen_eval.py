@@ -486,6 +486,7 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 			print(start_time - time.time())
 			start_time = time.time() 
 	print("Total time: " + str(time.time() - eptime))
+	return embedding_np, images, label_data
 
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames, frames_input)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
