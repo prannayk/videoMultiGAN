@@ -515,7 +515,7 @@ tf.global_variables_initializer().run()
 print("Running code: ")
 epoch = int(sys.argv[-1])
 diter = 5
-num_examples = 640
+num_examples = 16000
 summary_writer = tf.summary.FileWriter("/users/gpu/prannay/vgan/embeddings")
 embedding_np, images, label_data = train_epoch(gan, summary_writer)
 create_sprite_image(images)
