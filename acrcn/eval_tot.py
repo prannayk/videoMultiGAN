@@ -491,7 +491,7 @@ def create_sprite_image(images):
 				this_img = images[this_filter]
 				spriteimage[i*img_h:(i+1) * img_h,
 				j * img_w:(j + 1) * img_w ] = this_img.reshape([32,40])
-	imsave("/users/gpu/prannay/vgan/sprite/testmain.jpg", spriteimage)
+	imsave("/users/gpu/prannay/vgan/embeddings/testmain.jpg", spriteimage)
 
 def one_hot(X):
 	for i in range(X.shape[0]):
@@ -532,7 +532,7 @@ projector.visualize_embeddings(writer, config)
 saver = tf.train.Saver()
 saver.save(session, "/users/gpu/prannay/vgan/embeddings/model.ckpt",1)
 
-with open("/users/gpu/prannay/vgan/metadata/testmain.tsv", mode="w") as fil:
+with open("/users/gpu/prannay/vgan/embeddings/testmain.tsv", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
 		fil.write("%d\t%d\n"%(i, one_hot(label)))
