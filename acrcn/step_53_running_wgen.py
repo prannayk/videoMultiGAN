@@ -30,9 +30,9 @@ class VAEGAN():
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
-		self.lambda_1 = 300
+		self.lambda_1 = 10
 		self.iter = 0
-		self.lambda_2 = 200
+		self.lambda_2 = 5
 		self.gan_scale = 50
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
@@ -92,7 +92,8 @@ class VAEGAN():
 		self.motion_hot = np.zeros([self.total_size] + [self.motion_size])
 		run = 0
 		while(run < self.total_size):
-			print(run)
+			if run % 100 == 0 : 
+				print(run)
 			feed_dict = generate(batch_size=self.batch_size, frames=self.frames, frames_input=self.frames_input)
 			self.x[run:run+self.batch_size] = feed_dict[0]
 			self.x_old[run:run+self.batch_size] = feed_dict[1]
