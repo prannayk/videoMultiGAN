@@ -43,6 +43,7 @@ class VAEGAN():
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		self.first_time = True
+		self.device= "cpu:0"
 		self.total_size = total_size
 		self.batch_size = batch_size
 		self.video_create = video_create
@@ -474,11 +475,10 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 	label_data = np.zeros([num_examples, num_class_image])
 	images = np.zeros([num_examples, 32,32,1])
 	embedding_np = np.zeros([num_examples, num_class_image+embedding_size])
-	while run <= num_examples:
-		
+	while run <= num_examples:		
 		feed_dict = get_feed_dict(gan, placeholders)
-		images[run:run+batch_size] = feed_dict[0][:,:,:,0]
 		label_data[run:run+batch_size] = feed_dict[3]
+		images[run:run+batch_size] = feed_dict[0][:,:,:,0]
 		embedding_np = session.run(embedding,feed_dict=feed_dict)
 		run+=batch_size
 		count += 1
