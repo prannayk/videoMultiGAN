@@ -519,6 +519,7 @@ num_examples = 640
 summary_writer = tf.summary.FileWriter("/users/gpu/prannay/vgan/embeddings")
 embedding_np, images, label_data = train_epoch(gan, summary_writer)
 create_sprite_image(images)
+np.save("../embeddings/640.npy", embedding_np)
 embedding_tensor = tf.Variable(embedding_np)
 saver = tf.train.Saver()
 init_embedding = tf.variables_initializer([embedding_tensor])
