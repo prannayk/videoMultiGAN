@@ -463,12 +463,12 @@ def train_epoch(gan,tensor_writer,flag=False, initial=True):
 	start_time = time.time()
 	run =0 
 	count = 0
-	label_data = np.zeros([num_examples, num_class_image])
+	label_data = np.zeros([num_examples, motion_size])
 	images = np.zeros([num_examples, 32,40,1])
 	embedding_np = np.zeros([num_examples, 32*40])
 	while run < num_examples:		
 		feed_list = get_feed_dict(gan)
-		label_data[run:run+batch_size] = feed_list[3]
+		label_data[run:run+batch_size] = feed_list[4]
 		images[run:run+batch_size] = feed_list[0][:,:,:,:1]
 		embedding_np[run:run+batch_size] = images[run:run+batch_size].reshape([batch_size,32*40])
 		run+=batch_size
