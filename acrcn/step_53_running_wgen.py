@@ -31,6 +31,7 @@ class VAEGAN():
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
 		self.lambda_1 = 10
+		self.iter = 0
 		self.lambda_2 = 5
 		self.gan_scale = 50
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
@@ -47,6 +48,7 @@ class VAEGAN():
 		self.batch_size = batch_size
 		self.video_create = video_create
 		self.wgan_scale = 1.2
+		self.create_dataset()
 
 	def learningR(self):
 		return self.learning_rate
@@ -82,8 +84,28 @@ class VAEGAN():
 		ddx_sum = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=1))
 		ddx_loss = tf.reduce_mean(tf.square(ddx_sum - 1.0) * self.wgan_scale)
 		return loss + ddx_loss
+	def create_dataset(self):
+		self.x = np.zeros([self.total_size] + self.image_input_shape)
+		self.x_old = np.zeros([self.total_size] + self.image_create_shape)
+		self.x_gen = np.zeros([self.total_size] + self.image_create_shape)
+		self.person_hot = np.zeros([self.total_size]+self.num_class_image)
+		self.motion_hot = np.zeros([self.total_size] + self.motion_size)
+		run = 0
+		while(run <= self.total_size):
+			feed_dict = generate(batch_size=self.batch_size, frames=self.frames, frames_input=self.frames_input)
+			self.x[run:run+self.batch_size] = feed_dict[0]
+			self.x_old[run:run+self.batch_size] = feed_dict[1]
+			self.x_gen[run:run+self.batch_size] = feed_dict[2]
+			self.person_hot[run:run+self.batch_size] = feed_dict[3]
+			self.motion_hot[run:run+self.batch_size] = feed_dict[4]
+			run+=self.batch_size
+		print("Loaded dataset")
+		print(time.time())
 	def generate_batch(self):
-		return generate(self.batch_size, self.frames,self.frames_input)
+		assert (self.total_size % self.batch_size == 0)
+		self.iter = (self.iter + batch_size) % self.total_size
+		return (self.x[self.iter:self.iter+self.batch_size], self.x_old[self.iter:self.iter+batch_size], self.x_gen[self.iter:self.iter+batch_size], 
+			self.person_hot[self.iter:self.iter+batch_size], self.motion_hot[self.iter:self.iter+batch_size])
 	def discriminate_image(self, image, zvalue=None, scope=tf.variable_scope("variable_scope")):
 		if zvalue == None :
 			zvalue = self.default_z
