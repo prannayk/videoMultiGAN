@@ -539,7 +539,7 @@ embedding.tensor_name = embedding_tensor.name
 embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/test1.meta"
 embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/test1.txt"
 embedding.sprite.single_image_dim.extend([32,32])
-projector.visualize_embeddings(summary_writer, config)
+projector.visualize_embeddings(writer, config)
 
 with open("/users/gpu/prannay/vgan/metadata/test1.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
