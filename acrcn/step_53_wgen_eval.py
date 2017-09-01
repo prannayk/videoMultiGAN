@@ -475,12 +475,12 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 	count = 0
 	label_data = np.zeros([num_examples, num_class_image])
 	images = np.zeros([num_examples, 32,40,1])
-	embedding_np = np.zeros([num_examples, num_class_image+embedding_size])
+	embedding_np = np.zeros([num_examples, 32*40])
 	while run < num_examples:		
 		feed_dict,feed_list = get_feed_dict(gan, placeholders)
 		label_data[run:run+batch_size] = feed_list[3]
 		images[run:run+batch_size] = feed_list[0][:,:,:,:1]
-		embedding_np = session.run(embedding,feed_dict=feed_dict)
+		embedding_np[run:run+batch_size] = session.run(embedding,feed_dict=feed_dict)
 		run+=batch_size
 		count += 1
 		if count % 10 == 0 or flag:
@@ -501,7 +501,7 @@ def create_sprite_image(images):
 				this_img = images[this_filter]
 				spriteimage[i*img_h:(i+1) * img_h,
 				j * img_w:(j + 1) * img_w ] = this_img.reshape([32,40])
-	imsave("/users/gpu/prannay/vgan/sprite/test1.png", spriteimage)
+	imsave("/users/gpu/prannay/vgan/sprite/test1.jpg", spriteimage)
 
 def one_hot(X):
 	for i in range(X.shape[0]):
@@ -513,7 +513,7 @@ image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
-num_examples=8000
+num_examples=640
 placeholders,optimizers, losses, x_hat, x_hat_fut, embedding = gan.build_model()
 print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
