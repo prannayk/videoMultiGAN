@@ -544,4 +544,4 @@ projector.visualize_embeddings(writer, config)
 with open("/users/gpu/prannay/vgan/metadata/test1.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
-		f.write("%d\t%d\n"%(i, one_hot(label)))
+		fil.write("%d\t%d\n"%(i, one_hot(label)))
