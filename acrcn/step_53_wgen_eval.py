@@ -477,8 +477,8 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 	embedding_np = np.zeros([num_examples, num_class_image+embedding_size])
 	while run <= num_examples:		
 		feed_dict = get_feed_dict(gan, placeholders)
-		label_data[run:run+batch_size] = feed_dict[3]
-		images[run:run+batch_size] = feed_dict[0][:,:,:,0]
+		label_data[run:run+batch_size] = feed_dict['image_class_input']
+		images[run:run+batch_size] = feed_dict["x"][:,:,:,0]
 		embedding_np = session.run(embedding,feed_dict=feed_dict)
 		run+=batch_size
 		count += 1
