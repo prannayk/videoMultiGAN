@@ -98,8 +98,8 @@ class VAEGAN():
 			self.x[run:run+batch_size] = feed_list[0]
 			self.x_old[run:run+batch_size] = feed_list[1]
 			self.x_gen[run:run+batch_size] = feed_list[2]
-			self.labels = feed_list[3]
-			self.motion = feed_list[4]
+			self.labels[run:run+batch_size] = feed_list[3]
+			self.motion[run:run+batch_size] = feed_list[4]
 			run = run + self.batch_size
 		print("Created dataset")
 	def generate_batch(self):
