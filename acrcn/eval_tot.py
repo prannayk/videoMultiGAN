@@ -520,6 +520,10 @@ summary_writer = tf.summary.FileWriter("/users/gpu/prannay/vgan/embeddings")
 embedding_np, images, label_data = train_epoch(gan, summary_writer)
 create_sprite_image(images)
 np.save("../embeddings/640.npy", embedding_np)
+with open("../embeddings/metadata.tsv", mode="w") as fil:
+	fil.write("Index\tLabel\n")
+	for i, label in enumerate(label_data):
+		fil.write("%d\t%d\n"%(i, one_hot(label)))
 embedding_tensor = tf.Variable(embedding_np)
 saver = tf.train.Saver()
 init_embedding = tf.variables_initializer([embedding_tensor])

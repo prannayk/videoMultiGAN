@@ -530,6 +530,10 @@ num_examples = 64000
 embedding_np, images, label_data = train_epoch(gan, placeholders, train_writer)
 create_sprite_image(images)
 np.save("../embeddings/latent.npy", embedding_np)
+with open("/users/gpu/prannay/vgan/metadata/test2.meta", mode="w") as fil:
+	fil.write("Index\tLabel\n")
+	for i, label in enumerate(label_data):
+		fil.write("%d\t%d\n"%(i, one_hot(label)))
 embedding_tensor = tf.Variable(embedding_np)
 init_embedding = tf.variables_initializer([embedding_tensor])
 session.run(init_embedding)
