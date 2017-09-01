@@ -526,14 +526,14 @@ session.run(init_embedding)
 config = projector.ProjectorConfig()
 embedding = config.embeddings.add()
 embedding.tensor_name = embedding_tensor.name
-embedding.metadata_path = "/users/gpu/prannay/vgan/embeddings/metadata.tsv"
-embedding.sprite.image_path = "/users/gpu/prannay/vgan/embeddings/testmain.jpg"
+embedding.metadata_path = "../embeddings/metadata.tsv"
+embedding.sprite.image_path = "../embeddings/testmain.jpg"
 embedding.sprite.single_image_dim.extend([32,40])
 print("here")
 projector.visualize_embeddings(summary_writer, config)
-saver.save(session, "/users/gpu/prannay/vgan/embeddings/model.ckpt",1)
+saver.save(session, "../embeddings/model.ckpt",1)
 print("writing file")
-with open("/users/gpu/prannay/vgan/embeddings/metadata.tsv", mode="w") as fil:
+with open("../embeddings/metadata.tsv", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
 		fil.write("%d\t%d\n"%(i, one_hot(label)))
