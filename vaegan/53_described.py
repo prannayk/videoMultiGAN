@@ -554,12 +554,13 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
 			# print(z_c)
 			start_time = time.time() 
 	print("Total time: " + str(time.time() - eptime))
-
+num_examples = 16000
 image_sample, image_old,image_gen,image_labels, text_labels = generate(batch_size, frames, frames_input)
 save_visualization(np.concatenate([image_sample,image_old],axis=3), save_path='../results/final/mnist64/%s/sample.jpg'%(sys.argv[-2]))
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/final/mnist64/%s/sample00.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], motion_size=motion_size,  
-	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
+	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input,
+    total_size=num_examples)
 
 placeholders,optimizers, losses, x_hat, x_hat_fut = gan.build_model()
 print("Starting session")
@@ -573,7 +574,7 @@ print("Running code: ")
 
 epoch = int(sys.argv[-1])
 diter = 5
-num_examples = 64000
+num_examples = 16000
 for e in range(epoch):
 	ep = e + 5
 	if ep % 50 == 0 or ep < 7:

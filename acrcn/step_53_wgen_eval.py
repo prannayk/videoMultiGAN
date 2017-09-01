@@ -513,7 +513,7 @@ image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
-
+num_examples=8000
 placeholders,optimizers, losses, x_hat, x_hat_fut, embedding = gan.build_model()
 print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
@@ -530,7 +530,7 @@ num_examples = 64000
 embedding_np, images, label_data = train_epoch(gan, placeholders, train_writer)
 create_sprite_image(images)
 embedding_tensor = tf.Variable(embedding_np)
-init_embedding = tf.variables_initializer(embedding_tensor)
+init_embedding = tf.variables_initializer([embedding_tensor])
 session.run(init_embedding)
 writer = tf.summary.FileWriter("../embeddings/")
 config = projector.ProjectorConfig()
