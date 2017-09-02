@@ -40,13 +40,14 @@ if (not os.path.exists("../imgs/%s"%(rname))):
 filelist = []
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1
-    if t % 100 == 0:
+    if t % 10 == 0:
         print(t)
     save_visualization(inputimgs[i:i+128,:,:,:5],save_path="../imgs/%s/input_%04d.jpg"%(rname, t))
     filelist.append("%s/output_%04d.jpg"%(rname, t))
     i+=128
 with open("input.txt",mode="w") as f:
     f.write('\n'.join(filelist))
+print("go output")
 filelist = []
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1
