@@ -12,6 +12,7 @@ for line in lines:
 classes = np.array(classes)[1:,1:].reshape([len(classes)-1])
 print("Loaded data")
 xsne = tsne(learning_rate=10).fit_transform(data)
+np.save("save_%s"%(sys.argv[3]),xsne)
 sizes = [3]*xsne.shape[0]
 plt.scatter(xsne[:,0], xsne[:,1],c=classes,s=sizes)
 plt.show()
