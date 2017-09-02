@@ -1,9 +1,11 @@
 import numpy as np
 from scipy.misc import imsave
+import os
+import sys
 rname = sys.argv[-1]
 inputimgs = np.load("%sinputimg.npy"%(rname))
 outputimgs = np.load("%soutputimg.npy"%(rname))
-def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(128,5), save_path='../../results/%s/sample.jpg'%(sys.argv[4])):
 	print(X.shape)
 	X = morph(X)
 	print(X.shape)
@@ -37,5 +39,10 @@ def morph(X):
 i=0
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1
-    save_visualization(inputimgs[i:i+128],nh_nw=(128,5),save_path="../imgs/%s/input_%04d.jpg"%(rname, t))
+    save_visualization(inputimgs[i:i+128,:,:,:5],save_path="../imgs/%s/input_%04d.jpg"%(rname, t))
     i+=128
+while i < inputimgs.shape[0]:
+    t = (i / 128) + 1
+    save_visualization(outputimgs[i:i+128],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
+    i+=128
+
