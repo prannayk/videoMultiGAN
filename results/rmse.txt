@@ -1,0 +1,4 @@
+Vanilla : 0.0568
+no-anti-reconstruction : 0.0915
+best : 0.09006
+no_wgan : 0.098478
