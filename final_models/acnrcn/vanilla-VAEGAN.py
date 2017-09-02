@@ -30,9 +30,9 @@ class VAEGAN():
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
-		self.lambda_1 = 300
-		self.lambda_2 = 200
-		self.gan_scale = 50
+		self.lambda_1 = 500
+		self.lambda_2 = 80
+		self.gan_scale = 10
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -541,5 +541,5 @@ for ep in range(epoch):
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
-	saver.save(session, "~/trained_models/step_53_model.ckpt")
+	saver.save(session, "/extra_data/prannay/trained_models/vanilla_model.ckpt")
 
