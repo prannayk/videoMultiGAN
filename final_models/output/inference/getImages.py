@@ -53,7 +53,7 @@ filelist = []
 i=0
 while i < outputimgs.shape[0]:
     t = (i / 128) + 1
-    save_visualization(outputimgs[i:i+128],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
+    save_visualization(outputimgs[i:i+128:,:,:,:5],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
     filelist.append("%s/output_%04d.jpg"%(rname, t))
     i+=128
 with open("output.txt",mode="w") as f:
