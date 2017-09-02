@@ -35,16 +35,23 @@ def morph(X):
 	return img
 
 i=0
-os.makedirs("../imgs/%s"%(rname))
+if (not os.path.exists("../imgs/%s"%(rname)))
+    os.makedirs("../imgs/%s"%(rname))
+filelist = []
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1
     if t % 100 == 0:
         print(t)
     save_visualization(inputimgs[i:i+128,:,:,:5],save_path="../imgs/%s/input_%04d.jpg"%(rname, t))
+    filelist.append("%s/output_%04d.jpg"%(rname, t))
     i+=128
+with open("input.txt",mode="w") as f:
+    f.write('\n'.join(filelist))
+filelist = []
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1
     save_visualization(outputimgs[i:i+128],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
-    filelist.append("%s/output_%04d.jpg"%(rname, t)
+    filelist.append("%s/output_%04d.jpg"%(rname, t))
     i+=128
-
+with open("output.txt",mode="w") as f:
+    f.write('\n'.join(filelist))
