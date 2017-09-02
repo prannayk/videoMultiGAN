@@ -7,6 +7,7 @@ rname = sys.argv[-1]
 inputimgs = np.load("%sinputimg.npy"%(rname))
 outputimgs = np.load("%soutputimg.npy"%(rname))
 def save_visualization(X, nh_nw=(128,5), save_path='.'):
+	print(X.shape)
 	X = morph(X)
 	h,w = X.shape[1], X.shape[2]
 	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
@@ -50,7 +51,7 @@ with open("input.txt",mode="w") as f:
 print("go output")
 filelist = []
 i=0
-while i < inputimgs.shape[0]:
+while i < outputimgs.shape[0]:
     t = (i / 128) + 1
     save_visualization(outputimgs[i:i+128],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
     filelist.append("%s/output_%04d.jpg"%(rname, t))
