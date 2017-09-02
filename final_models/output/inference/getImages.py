@@ -35,6 +35,7 @@ def morph(X):
 	return img
 
 i=0
+os.makedirs("../imgs/%s"%(rname))
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1
     if t % 100 == 0:
@@ -44,5 +45,6 @@ while i < inputimgs.shape[0]:
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1
     save_visualization(outputimgs[i:i+128],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
+    filelist.append("%s/output_%04d.jpg"%(rname, t)
     i+=128
 
