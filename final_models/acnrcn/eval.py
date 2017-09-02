@@ -486,23 +486,22 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
     run=0
     start_time = time.time()
     assert num_examples % batch_size == 0
-    rimages_old = np.zeros([num_examples,32,40,3])
+    rimages_old = np.zeros([num_examples,32,40,5])
     rimages_create = np.zeros([num_examples,32,40,10])
     rimages_labels = np.zeros([num_examples,num_class_image])
     while run < num_examples:
-        feed_dict, feed_list = get_feed_dict
-        images = session.run(x_hat, feed_dict)
-        feed_dict["image_input"] = images[:,:,:,2:]
-        images_new = session.run(x_hat, feed_dict)
+        feed_dict, feed_list = get_feed_dict(gan, placeholders)
+        images = session.run(x_hat, feed_dict=feed_dict)
+        feed_dict[placeholders["image_input"]] = images[:,:,:,2:]
+        images_new = session.run(x_hat, feed_dict=feed_dict)
         rimages_labels[run:run+batch_size] = feed_list[3]
-        rimages_old[run:run+batch_size] = feed_list[0]
+        rimages_old[run:run+batch_size] = feed_list[1]
         rimages_create[run:run+batch_size,:,:,:5] = images
         rimages_create[run:run+batch_size,:,:,5:] = images_new
         run += batch_size
         count += 1
         if count % 10 == 0 or flag:
-            print("%d:%d : "%(ep+1,run) + " : ".join(map(lambda x : str(x),loss_val)) + " " + str(time.time() - start_time))
-            # print(z_c)
+            print(time.time() - start_time)
             start_time = time.time() 
     print("Total time: " + str(time.time() - eptime))
     return rimages_old, rimages_create, rimages_labels
@@ -520,14 +519,13 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session,"/extra_data/prannay/trained_models/vanilla_model.ckpt")
+saver.restore(session,"/extra_data/prannay/trained_models/%s.ckpt"%(sys.argv[-1]))
 print("Running code: ")
 
-epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 16000
-img_in, img_create, labels = train_epoch()
-np.save("../output/%s/inputimg.npy"%(sys.argv[-2]), img_in)
-np.save("../output/%s/outputimg.npy"%(sys.argv[-2]), img_create)
-np.save("../output/%s/inputimg.npy"%(sys.argv[-2]), labels)
+img_in, img_create, labels = train_epoch(gan, placeholders)
+np.save("../output/%s/%sinputimg.npy"%(sys.argv[-2],sys.argv[-1]), img_in)
+np.save("../output/%s/%soutputimg.npy"%(sys.argv[-2],sys.argv[-1]), img_create)
+np.save("../output/%s/%sinputlabels.npy"%(sys.argv[-2],sys.argv[-1]), labels)
 print("Completed running code")
