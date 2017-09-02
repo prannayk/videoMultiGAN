@@ -35,7 +35,7 @@ def morph(X):
 	return img
 
 i=0
-if (not os.path.exists("../imgs/%s"%(rname)))
+if (not os.path.exists("../imgs/%s"%(rname))):
     os.makedirs("../imgs/%s"%(rname))
 filelist = []
 while i < inputimgs.shape[0]:
