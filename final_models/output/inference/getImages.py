@@ -36,4 +36,6 @@ def morph(X):
 
 i=0
 while i < inputimgs.shape[0]:
-    save
+    t = (i / 128) + 1
+    save_visualization(inputimgs[i:i+128],nh_nw=(128,5),save_path="../imgs/%s/input_%04d.jpg"%(rname, t))
+    i+=128
