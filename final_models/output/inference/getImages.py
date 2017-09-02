@@ -46,7 +46,7 @@ while i < inputimgs.shape[0]:
     save_visualization(inputimgs[i:i+128,:,:,:5],save_path="../imgs/%s/input_%04d.jpg"%(rname, t))
     filelist.append("%s/output_%04d.jpg"%(rname, t))
     i+=128
-with open("input.txt",mode="w") as f:
+with open("../imgs/%s_input.txt"%(rname),mode="w") as f:
     f.write('\n'.join(filelist))
 print("go output")
 filelist = []
@@ -56,5 +56,5 @@ while i < outputimgs.shape[0]:
     save_visualization(outputimgs[i:i+128:,:,:,:5],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
     filelist.append("%s/output_%04d.jpg"%(rname, t))
     i+=128
-with open("output.txt",mode="w") as f:
+with open("../imgs/%s_output.txt"%(rname),mode="w") as f:
     f.write('\n'.join(filelist))
