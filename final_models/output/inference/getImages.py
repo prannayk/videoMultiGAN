@@ -2,6 +2,7 @@ import numpy as np
 from scipy.misc import imsave
 import os
 import sys
+import scipy.misc
 rname = sys.argv[-1]
 inputimgs = np.load("%sinputimg.npy"%(rname))
 outputimgs = np.load("%soutputimg.npy"%(rname))
