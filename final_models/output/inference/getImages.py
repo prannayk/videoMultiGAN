@@ -44,7 +44,7 @@ while i < inputimgs.shape[0]:
     if t % 10 == 0:
         print(t)
     save_visualization(inputimgs[i:i+128,:,:,:5],save_path="../imgs/%s/input_%04d.jpg"%(rname, t))
-    filelist.append("%s/output_%04d.jpg"%(rname, t))
+    filelist.append("%s/input_%04d.jpg"%(rname, t))
     i+=128
 with open("../imgs/%s_input.txt"%(rname),mode="w") as f:
     f.write('\n'.join(filelist))
