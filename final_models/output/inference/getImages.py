@@ -49,6 +49,7 @@ with open("input.txt",mode="w") as f:
     f.write('\n'.join(filelist))
 print("go output")
 filelist = []
+i=0
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1
     save_visualization(outputimgs[i:i+128],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
