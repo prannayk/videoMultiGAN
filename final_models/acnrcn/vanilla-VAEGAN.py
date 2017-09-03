@@ -539,7 +539,7 @@ saver.restore(session,"/extra_data/prannay/trained_models/just_vanilla.ckpt")
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 16000
-for e in range(ep96
+for e in range(epoch):
 	ep = e + 68
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
