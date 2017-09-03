@@ -383,36 +383,23 @@ class VAEGAN():
 		G_x_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[3]))
 		D_z_t_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[4]))
 		G_z_t_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[5]))
-		D_z_c_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[6]))
-		G_z_c_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[7]))
-		D_z_s_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[8]))
-		G_z_s_loss = tf.reduce_mean(tf.stack(axis=0, values=list_values[9]))
 		
 		losses = dict()
 		with tf.variable_scope("losses"):
 			losses["reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x-x_hat_fut))) + tf.sqrt(tf.reduce_mean(tf.square(x_old-x_hat)))
-			losses["anti-reconstruction"] = tf.sqrt(tf.reduce_mean(tf.square(x_hat_fut - x_hat)))
-			losses["disc_image_classifier"] = D_z_c_loss
-			losses["gen_image_classifier"] = G_z_c_loss
 			losses["disc_text_classifier"] = D_z_t_loss
 			losses["gen_text_classifier"] = G_z_t_loss
 			losses["disc_image_discriminator"] = D_x_loss*self.gan_scale + (self.lambda_2*losses["anti-reconstruction"])
 			losses["generator_image"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) 
-			losses["generator_image_gan"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
-			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
-			losses["disc_style_classifier"] = D_z_s_loss
-			losses["gen_style_classifier"] = G_z_s_loss
-			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"] - (self.lambda_2*losses["anti-reconstruction"])
-			losses["transformation"] = -losses["anti-reconstruction"]*self.lambda_2 + self.lambda_1*losses["reconstruction"] 
+			losses["generator_image_gan"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) 			
+			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1) 
+			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"])  
+			losses["transformation"] = self.lambda_1*losses["reconstruction"] 
 		self.variable_summaries(losses["reconstruction"],name="reconstruction_loss")
 		self.variable_summaries(G_x_loss, name="generator_loss")
 		self.variable_summaries(D_x_loss, name="Disc_loss")
 		self.variable_summaries(G_z_t_loss, name="generator_loss_text")
 		self.variable_summaries(D_z_t_loss, name="Disc_loss_text")
-		self.variable_summaries(G_z_c_loss, name="generator_loss_class")
-		self.variable_summaries(D_z_c_loss, name="Disc_loss_class")
-		self.variable_summaries(G_z_s_loss, name="generator_loss_style")
-		self.variable_summaries(D_z_s_loss, name="Disc_loss_style")
 		self.variable_summaries(losses["anti-reconstruction"], name="anti-reconstruction-loss")
 		print("Completed losses")
 		variable_dict = dict()
@@ -440,9 +427,7 @@ class VAEGAN():
 			print("disc_image")
 			optimizer["discriminator"] = tf.train.AdamOptimizer(self.learning_rate[3],beta1=0.5, beta2=0.9).minimize(losses["disc_image_discriminator"], var_list=variable_dict["image_disc"])
 			print("disc_non_image")
-			optimizer["code_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[4],beta1=0.5, beta2=0.9).minimize(losses["disc_image_classifier"], var_list=variable_dict["image_class"])
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"], var_list=variable_dict["text_class"])
-			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"], var_list=variable_dict["style_class"])
 		print("Completed optimizers")
 		return placeholders, optimizer, losses, x_hat, x_hat_fut
 
