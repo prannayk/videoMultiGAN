@@ -3,4 +3,4 @@ no cond : 0.6084
 no anti reconstruction : 0.48594
 no wgan : 0.48625
 vanilla : 0.644028714286
-
+vondrick : 0.43
