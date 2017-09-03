@@ -9,6 +9,7 @@ outputimgs = np.load("%soutputimg.npy"%(rname))
 def save_visualization(X, nh_nw=(256,4), save_path='.'):
 	print(X.shape)
 	X = morph(X)
+	print(X.shape)
 	h,w = X.shape[1], X.shape[2]
 	img = np.zeros((h * nh_nw[0], w * nh_nw[1], 3))
 	
@@ -27,12 +28,12 @@ def frame_label(batch_size, frames):
 	return t
 def morph(X):
 	batch_size = int(X.shape[0])
-	dim_channel = int(X.shape[-1]) // (5)
+	dim_channel = int(X.shape[-1]) // (4)
 	h,w = map(lambda x: int(x), X.shape[1:3])
-	img = np.zeros([(5)*batch_size,h,w,dim_channel])
+	img = np.zeros([(4)*batch_size,h,w,dim_channel])
 	for i in range(batch_size):
-		for t in range(5):
-			img[i*(5) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
+		for t in range(4):
+			img[i*(4) + t] = X[i,:,:,t*dim_channel:t*dim_channel+dim_channel]
 	return img
 
 i=0
