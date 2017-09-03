@@ -570,7 +570,7 @@ merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
 print("Running code: ")
-
+saver.restore(session, "/extra_data/prannay/trained_models/mnist_53_model_no_wgan.ckpt")
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 24000
