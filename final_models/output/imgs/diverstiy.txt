@@ -1,1 +1,2 @@
 vanilla_model : 3.678
+vondrick-initial : 6.46622
