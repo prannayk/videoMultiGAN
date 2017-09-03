@@ -48,7 +48,6 @@ class VAEGAN():
 		self.video_create = video_create
 		self.iter = 0
 		self.wgan_scale = 1.2
-		self.create_dataset()
 
 	def learningR(self):
 		return self.learning_rate
@@ -429,6 +428,7 @@ class VAEGAN():
 			print("disc_non_image")
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"], var_list=variable_dict["text_class"])
 		print("Completed optimizers")
+		self.create_dataset()
 		return placeholders, optimizer, losses, x_hat, x_hat_fut
 
 epoch = 600
