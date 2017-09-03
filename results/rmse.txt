@@ -1,6 +1,6 @@
 Vanilla : 0.0568
 no-anti-reconstruction : 0.0915
-best : 0.09006
+best : 0.087006
 no_wgan : 0.098478
 just vanilla vaegan : 0.0619192109561
 
