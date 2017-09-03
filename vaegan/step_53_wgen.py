@@ -3,18 +3,18 @@ import numpy as np
 import scipy.misc
 import sys
 import time
-from generator import rot_text_generator as generate
+from generator import rot_generator as generate
 # from tensorflow.examples.tutorials.mnist import input_data
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
-total_size = 64000
+total_size = 24000
 batch_size = 16
 
 class VAEGAN():
 	"""docstring for VAEGAN, no parent class"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
 			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
-			num_class_image=13, frames=2, frames_input=2, total_size = 64000, video_create=False):
+			num_class_image=13, frames=2, frames_input=2, total_size = 24000, video_create=False):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
@@ -32,7 +32,7 @@ class VAEGAN():
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
 		self.lambda_1 = 5
 		self.lambda_2 = 2
-		self.gan_scale = 1
+		self.gan_scale = 0
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -46,7 +46,9 @@ class VAEGAN():
 		self.total_size = total_size
 		self.batch_size = batch_size
 		self.video_create = video_create
+		self.iter = 0
 		self.wgan_scale = 1.2
+		self.create_dataset()
 
 	def learningR(self):
 		return self.learning_rate
@@ -83,9 +85,28 @@ class VAEGAN():
 		ddx_loss = tf.reduce_mean(tf.square(ddx_sum - 1.0) * self.wgan_scale)
 		return loss + ddx_loss
 	def create_dataset(self):
-		self.x = np.zeros([total_size] + image_input_shape)
+		self.x = np.zeros([self.total_size] + self.image_input_shape)
+		self.x_old = np.zeros([self.total_size] + self.image_create_shape)
+		self.x_gen = np.zeros([self.total_size] + self.image_create_shape)
+		self.labels = np.zeros([self.total_size, self.num_class_image])
+		self.motion = np.zeros([self.total_size, self.motion_size])
+		run = 0
+		while (run < self.total_size):
+			if (run % 1000 == 0):
+				print(run)
+			feed_list = generate(self.batch_size, self.frames, self.frames_input)
+			self.x[run:run+batch_size] = feed_list[0]
+			self.x_old[run:run+batch_size] = feed_list[1]
+			self.x_gen[run:run+batch_size] = feed_list[2]
+			self.labels[run:run+batch_size] = feed_list[3]
+			self.motion[run:run+batch_size] = feed_list[4]
+			run = run + self.batch_size
+		print("Created dataset")
 	def generate_batch(self):
-		return generate(self.batch_size, self.frames,self.frames_input)
+		self.iter = (self.iter + self.batch_size) % self.total_size
+		return (self.x[self.iter:self.iter+self.batch_size], self.x_old[self.iter:self.iter+self.batch_size], self.x_gen[self.iter:self.iter+self.batch_size],
+			self.labels[self.iter:self.iter+self.batch_size], self.motion[self.iter:self.iter+self.batch_size])
+		# return generate(self.batch_size, self.frames,self.frames_input)
 	def discriminate_image(self, image, zvalue=None, scope=tf.variable_scope("variable_scope")):
 		if zvalue == None :
 			zvalue = self.default_z
@@ -427,11 +448,11 @@ class VAEGAN():
 
 epoch = 600
 embedding_size =128
-motion_size=300
+motion_size=5
 num_class_image=13
 frames=5
 frames_input = 3
-num_class_motion = 32
+num_class_motion = 8
 
 def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
 	print(X.shape)
@@ -548,14 +569,13 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session, "/extra_data/prannay/trained_models/mnist_53_model_4.ckpt")
 print("Running code: ")
 
 epoch = int(sys.argv[-1])
 diter = 5
-num_examples = 64000
+num_examples = 24000
 for e in range(epoch):
-	ep = e + 5
+	ep = e + 0
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
 			train_epoch(gan, placeholders,flag=True)
@@ -579,5 +599,5 @@ for e in range(epoch):
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/final/mnist64/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
-	saver.save(session, "/extra_data/prannay/trained_models/mnist_53_model_4.ckpt")
+	saver.save(session, "/extra_data/prannay/trained_models/mnist_53_model_no_wgan.ckpt")
 

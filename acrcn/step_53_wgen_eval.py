@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import scipy.misc
+from scipy.misc import imsave
 import sys
 import time
 from generator import rot_generator as generate
@@ -472,14 +473,14 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 	start_time = time.time()
 	run =0 
 	count = 0
-	label_data = np.zeros([num_examples, num_class_image])
+	label_data = np.zeros([num_examples, motion_size])
 	images = np.zeros([num_examples, 32,40,1])
-	embedding_np = np.zeros([num_examples, num_class_image+embedding_size])
+	embedding_np = np.zeros([num_examples, embedding_size + num_class_image])
 	while run < num_examples:		
 		feed_dict,feed_list = get_feed_dict(gan, placeholders)
-		label_data[run:run+batch_size] = feed_list[3]
+		label_data[run:run+batch_size] = feed_list[4]
 		images[run:run+batch_size] = feed_list[0][:,:,:,:1]
-		embedding_np = session.run(embedding,feed_dict=feed_dict)
+		embedding_np[run:run+batch_size] = session.run(embedding,feed_dict=feed_dict)
 		run+=batch_size
 		count += 1
 		if count % 10 == 0 or flag:
@@ -487,12 +488,32 @@ def train_epoch(gan, placeholders,tensor_writer,flag=False, initial=True):
 			start_time = time.time() 
 	print("Total time: " + str(time.time() - eptime))
 	return embedding_np, images, label_data
+def create_sprite_image(images):
+	img_h = images.shape[1]
+	img_w = images.shape[2]
+	n_plots = int(np.ceil(np.sqrt(images.shape[0])))
+	spriteimage = np.ones([img_h*n_plots, img_w*n_plots])
+
+	for i in range(n_plots):
+		for j in range(n_plots):
+			this_filter = i*n_plots + j
+			if this_filter < images.shape[0]:
+				this_img = images[this_filter]
+				spriteimage[i*img_h:(i+1) * img_h,
+				j * img_w:(j + 1) * img_w ] = this_img.reshape([32,40])
+	imsave("/users/gpu/prannay/vgan/sprite/test2.jpg", spriteimage)
+
+def one_hot(X):
+	for i in range(X.shape[0]):
+		if X[i] == 1:
+			return i
+
 
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames, frames_input)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
-
+num_examples=16000
 placeholders,optimizers, losses, x_hat, x_hat_fut, embedding = gan.build_model()
 print("Starting session")
 session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
@@ -508,39 +529,24 @@ diter = 5
 num_examples = 64000
 embedding_np, images, label_data = train_epoch(gan, placeholders, train_writer)
 create_sprite_image(images)
+np.save("../embeddings/latent2.npy", embedding_np)
+with open("/users/gpu/prannay/vgan/metadata/test4.meta", mode="w") as fil:
+	fil.write("Index\tLabel\n")
+	for i, label in enumerate(label_data):
+		fil.write("%d\t%d\n"%(i, one_hot(label)))
 embedding_tensor = tf.Variable(embedding_np)
-init_embedding = tf.variables_initializer(embedding_tensor)
+init_embedding = tf.variables_initializer([embedding_tensor])
 session.run(init_embedding)
 writer = tf.summary.FileWriter("../embeddings/")
 config = projector.ProjectorConfig()
 embedding = config.embeddings.add()
 embedding.tensor_name = embedding_tensor.name
-embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/test1.meta"
-embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/test1.txt"
+embedding.metadata_path = "/users/gpu/prannay/vgan/metadata/test2.meta"
+embedding.sprite.image_path = "/users/gpu/prannay/vgan/sprite/test2.txt"
 embedding.sprite.single_image_dim.extend([32,32])
-projector.visualize_embeddings(summary_writer, config)
+projector.visualize_embeddings(writer, config)
 
-def create_sprite_image(images):
-	img_h = images.shape[1]
-	img_h = images.shape[2]
-	n_plots = int(np.ceil(np.sqrt(images.shape[0])))
-	spriteimage = np.ones([img_h*n_plots, img_w*n_plots])
-
-	for i in range(n_plots):
-		for j in range(n_plots):
-			this_filter = i*n_plots + j
-			if this_filter < images.shape[0]:
-				this_img = images[this_filter]
-				spriteimage[i*img_h:(i+1) * img_h,
-				j * img_w:(j + 1) * img_w ] = this_img
-	imsave("/users/gpu/prannay/vgan/sprite/test1.txt", spriteimage)
-
-def one_hot(X):
-	for i in range(X.shape[0]):
-		if X[i] == 1:
-			return i
-
-with open("/users/gpu/prannay/vgan/metadata/test1.meta", mode="w") as fil:
+with open("/users/gpu/prannay/vgan/metadata/test2.meta", mode="w") as fil:
 	fil.write("Index\tLabel\n")
 	for i, label in enumerate(label_data):
-		f.write("%d\t%d\n"%(i, one_hot(label)))
+		fil.write("%d\t%d\n"%(i, one_hot(label)))

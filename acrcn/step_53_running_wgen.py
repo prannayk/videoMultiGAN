@@ -30,9 +30,9 @@ class VAEGAN():
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
-		self.lambda_1 = 10
+		self.lambda_1 = 300
 		self.iter = 0
-		self.lambda_2 = 5
+		self.lambda_2 = 200
 		self.gan_scale = 50
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
@@ -552,7 +552,7 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session,"/extra_data/prannay/trained_models/large_lower_acnrcn_2.ckpt")
+saver.restore(session,"/extra_data/prannay/trained_models/vanilla_model.ckpt")
 print("Running code: ")
 print(time.time())
 epoch = int(sys.argv[-1])
@@ -583,5 +583,5 @@ for e in range(epoch):
 	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/acrcn/32/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
-	saver.save(session, "/extra_data/prannay/trained_models/large_lower_acnrcn_2.ckpt")
+	saver.save(session, "/extra_data/prannay/trained_models/betterbest.ckpt")
 

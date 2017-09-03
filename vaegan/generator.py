@@ -3,22 +3,23 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 from PIL import Image
 import numpy as np
 
-print("Loading keyed vectors")
-with open("/extra_data/prannay/temp.vec") as fil:
-	lines = fil.readlines()
-dictionary = dict()
-for line in lines:
-	t = line.split()
- 	dictionary.update({t[0] : np.array(map(lambda x: float(x), t[1:])) })
-print("Loaded and created word dictionary")
+#print("Loading keyed vectors")
+#with open("/extra_data/prannay/temp.vec") as fil:
+#	lines = fil.readlines()
+#dictionary = dict()
+#for line in lines:
+#	t = line.split()
+# 	dictionary.update({t[0] : np.array(map(lambda x: float(x), t[1:])) })
+#print("Loaded and created word dictionary")
 
 
-def rot_generator(batch_size, frames):
+def rot_generator(batch_size, frames, frames_input=3):
 	batch1in, batch1_labels = mnist.train.next_batch(batch_size)
 	batch1 = batch1in.reshape([batch_size, 28,28])
 	batch2 = batch1in.reshape([batch_size, 28,28])
-	batch = np.zeros([batch_size, 64, 64,9])
+	batch = np.zeros([batch_size, 64, 64,3*frames_input])
 	batch_gen = np.zeros([batch_size, 64, 64,3*frames])
+	batch_old = np.zeros([batch_size, 64, 64,3*frames])
 	batch_labels = np.zeros([batch_size, 13])
 	batch_labels[:,:10] += batch1_labels
 	text_labels = np.zeros([batch_size, 5])
@@ -32,14 +33,18 @@ def rot_generator(batch_size, frames):
 			text_labels[i] = np.array([rot,-1,1,1,-1])
 			text_labels[i][-1] *= random
 			text_labels[i][-2] *= random
-			for r in range(3):
+			for r in range(frames_input):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate(r*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r == (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j] = batch2[i]*l[j]
 			for r in range(frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
-					batch_gen[i, 10+(random*r):38+(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
+					batch_gen[i, 2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r != (frames-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		elif t==1 :
 			text_labels[i] = np.array([rot, 1,-1,-1,1])
 			text_labels[i][-1] *= random
@@ -48,10 +53,14 @@ def rot_generator(batch_size, frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate(r*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch[i,34-(random*r):62-(random*r),34-(random*r):62-(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r == (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j] = batch2[i]*l[j]
 			for r in range(frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
-					batch_gen[i, 26-(random*r):54-(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch2[i]*l[j]
+					batch_gen[i, 34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r != (frames-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		elif t==2 :
 			text_labels[i] = np.array([rot, -1,-1,1,1])
 			text_labels[i][-1] *= random
@@ -60,10 +69,14 @@ def rot_generator(batch_size, frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate(r*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch[i,34-(random*r):62-(random*r),2+(random*r):30+(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r == (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j] = batch2[i]*l[j]
 			for r in range(frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
-					batch_gen[i, 26-(random*r):54-(random*r),10+(random*r):38+(random*r),j+(3*r)] = batch2[i]*l[j]
+					batch_gen[i, 34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r != (frames-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
 		else :
 			text_labels[i] = np.array([rot, 1,1,-1,-1])
 			text_labels[i][-1] *= random
@@ -72,11 +85,15 @@ def rot_generator(batch_size, frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate(r*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
 					batch[i,2+(random*r):30+(random*r),34-(random*r):62-(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r == (frames_input-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j] = batch2[i]*l[j]
 			for r in range(frames):
 				batch2[i] = (np.array(Image.fromarray(batch1[i] * 255.).rotate((j+3)*rot, Image.BILINEAR).getdata()) / 255.).reshape(28,28)
 				for j in range(3):
-					batch_gen[i, 10+(random*r):38+(random*r),26-(random*r):54-(random*r),j+(3*r)] = batch2[i]*l[j]
-	return batch, batch_gen, batch_labels, # text_labels
+					batch_gen[i, 2+(random*frames_input)+(random*r):30+(frames_input*random)+(random*r),34-(frames_input*random)-(random*r):62-(random*frames_input)-(random*r),j+(3*r)] = batch2[i]*l[j]
+					if r != (frames-1) :
+						batch_old[i,2+(random*r):30+(random*r),2+(random*r):30+(random*r),j+(3*r)+3] = batch2[i]*l[j]
+	return batch,batch_old, batch_gen, batch_labels, text_labels
 
 word_len = 14
 
