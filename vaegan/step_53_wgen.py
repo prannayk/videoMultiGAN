@@ -82,6 +82,8 @@ class VAEGAN():
 		ddx_sum = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=1))
 		ddx_loss = tf.reduce_mean(tf.square(ddx_sum - 1.0) * self.wgan_scale)
 		return loss + ddx_loss
+	def create_dataset(self):
+		self.x = np.zeros([total_size] + image_input_shape)
 	def generate_batch(self):
 		return generate(self.batch_size, self.frames,self.frames_input)
 	def discriminate_image(self, image, zvalue=None, scope=tf.variable_scope("variable_scope")):
