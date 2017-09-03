@@ -6,7 +6,7 @@ import scipy.misc
 rname = sys.argv[-1]
 inputimgs = np.load("%sinputimg.npy"%(rname))
 outputimgs = np.load("%soutputimg.npy"%(rname))
-def save_visualization(X, nh_nw=(256,5), save_path='.'):
+def save_visualization(X, nh_nw=(256,4), save_path='.'):
 	print(X.shape)
 	X = morph(X)
 	h,w = X.shape[1], X.shape[2]
@@ -43,19 +43,6 @@ while i < inputimgs.shape[0]:
     t = (i / 256) + 1
     if t % 10 == 0:
         print(t)
-    save_visualization(inputimgs[i:i+256,:,:,:4],save_path="../imgs/%s/gen_1_%04d.jpg"%(rname, t))
-    save_visualization(inputimgs[i:i+256,:,:,4:],save_path="../imgs/%s/gen_2_%04d.jpg"%(rname, t))
-    filelist.append("/users/gpu/prannay/vgan/final_models/output/imgs/%s/input_%04d.jpg"%(rname, t))
+    save_visualization(outputimgs[i:i+256,:,:,:4],save_path="../imgs/%s/gen_1_%04d.jpg"%(rname, t))
+    save_visualization(outputimgs[i:i+256,:,:,1:5],save_path="../imgs/%s/gen_2_%04d.jpg"%(rname, t))
     i+=256
-with open("../imgs/%s_input.txt"%(rname),mode="w") as f:
-    f.write('\n'.join(filelist))
-print("go output")
-filelist = []
-i=0
-while i < outputimgs.shape[0]:
-    t = (i / 256) + 1
-    save_visualization(outputimgs[i:i+256:,:,:,:5],save_path="../imgs/%s/output_%04d.jpg"%(rname, t))
-    filelist.append("/users/gpu/prannay/vgan/final_models/output/imgs/%s/output_%04d.jpg"%(rname, t))
-    i+=256
-with open("../imgs/%s_output.txt"%(rname),mode="w") as f:
-    f.write('\n'.join(filelist))
