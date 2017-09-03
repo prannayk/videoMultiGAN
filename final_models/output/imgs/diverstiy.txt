@@ -1,5 +1,5 @@
 vanilla_model : 3.678
 vondrick-initial : 6.46622
 vondrick-final : 6.46622
-large_acnrcn : 4.09012
+large_acnrcn : 4.62
 vanilla : 3.69324564374
