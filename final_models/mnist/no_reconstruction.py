@@ -569,7 +569,7 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session, "/exta_data/prannay/trained_models/no_anti.ckpt")
+saver.restore(session, "/extra_data/prannay/trained_models/no_anti.ckpt")
 print("Running code: ")
 epoch = int(sys.argv[-1])
 diter = 5
