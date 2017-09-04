@@ -7,14 +7,14 @@ from generator import rot_generator as generate
 # from tensorflow.examples.tutorials.mnist import input_data
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
-total_size = 24000
+total_size = 16000
 batch_size = 16
 
 class VAEGAN():
 	"""docstring for VAEGAN, no parent class"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
 			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
-			num_class_image=13, frames=2, frames_input=2, total_size = 24000, video_create=False):
+			num_class_image=13, frames=2, frames_input=2, total_size = 16000, video_create=False):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
@@ -569,12 +569,13 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
+saver.restore(session, "/exta_data/prannay/trained_models/no_anti.ckpt")
 print("Running code: ")
 epoch = int(sys.argv[-1])
 diter = 5
-num_examples = 24000
+num_examples = 16000
 for e in range(epoch):
-	ep = e + 0
+	ep = e + 8
 	if ep % 50 == 0 or ep < 7:
 		if ep > 5:
 			train_epoch(gan, placeholders,flag=True)

@@ -7,14 +7,14 @@ from generator import rot_generator as generate
 # from tensorflow.examples.tutorials.mnist import input_data
 # mnist = input_data.read_data_sets("/media/hdd/hdd/data_backup/prannayk/MNIST_data/", one_hot=True)
 
-total_size = 24000
+total_size = 8000
 batch_size = 16
 
 class VAEGAN():
 	"""docstring for VAEGAN, no parent class"""
 	def __init__(self, batch_size = 16, image_shape= [28,28,3], embedding_size = 128,
 			learning_rate = sys.argv[1:], motion_size = 4, num_class_motion=6, 
-			num_class_image=13, frames=2, frames_input=2, total_size = 24000, video_create=False):
+			num_class_image=13, frames=2, frames_input=2, total_size = 8000, video_create=False):
 		self.batch_size = batch_size
 		self.image_shape = image_shape
 		self.image_input_shape = list(image_shape)
@@ -48,7 +48,6 @@ class VAEGAN():
 		self.video_create = video_create
 		self.iter = 0
 		self.wgan_scale = 1.2
-		self.create_dataset()
 
 	def learningR(self):
 		return self.learning_rate
@@ -444,6 +443,7 @@ class VAEGAN():
 			optimizer["text_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[5],beta1=0.5, beta2=0.9).minimize(losses["disc_text_classifier"], var_list=variable_dict["text_class"])
 			optimizer["style_discriminator"] = tf.train.AdamOptimizer(self.learning_rate[6],beta1=0.5, beta2=0.9).minimize(losses["disc_style_classifier"], var_list=variable_dict["style_class"])
 		print("Completed optimizers")
+		self.create_dataset()
 		return placeholders, optimizer, losses, x_hat, x_hat_fut
 
 epoch = 600
@@ -505,7 +505,7 @@ def get_feed_dict(gan, placeholders):
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
-	return feed_dict
+	return feed_dict, feed_list
 def train_epoch(gan, placeholders,flag=False, initial=True):
     eptime = time.time()
     diter = 5
@@ -518,18 +518,18 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
     run=0
     start_time = time.time()
     assert num_examples % batch_size == 0
-    rimages_old = np.zeros([num_examples,32,40,5])
-    rimages_create = np.zeros([num_examples,32,40,10])
+    rimages_old = np.zeros([num_examples,64,64,15])
+    rimages_create = np.zeros([num_examples,64,64,30])
     rimages_labels = np.zeros([num_examples,num_class_image])
     while run < num_examples:
         feed_dict, feed_list = get_feed_dict(gan, placeholders)
         images = session.run(x_hat, feed_dict=feed_dict)
-        feed_dict[placeholders["image_input"]] = images[:,:,:,2:]
+        feed_dict[placeholders["image_input"]] = images[:,:,:,6:]
         images_new = session.run(x_hat, feed_dict=feed_dict)
         rimages_labels[run:run+batch_size] = feed_list[3]
         rimages_old[run:run+batch_size] = feed_list[1]
-        rimages_create[run:run+batch_size,:,:,:5] = images
-        rimages_create[run:run+batch_size,:,:,5:] = images_new
+        rimages_create[run:run+batch_size,:,:,:15] = images
+        rimages_create[run:run+batch_size,:,:,15:] = images_new
         run += batch_size
         count += 1
         if count % 10 == 0 or flag:
@@ -550,13 +550,12 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore("/extra_data/prannay/trained_models/%s.ckpt"%(sys.argv[-1]))
+saver.restore(session, "/extra_data/prannay/trained_models/%s.ckpt"%(sys.argv[-1]))
 print("Running code: ")
-epoch = int(sys.argv[-1])
 diter = 5
-num_examples = 24000
+num_examples = 8000
 img_in, img_create, labels = train_epoch(gan, placeholders)
-np.save("../output/%s/%sinputimg.npy"%(sys.argv[-2],sys.argv[-1]), img_in)
-np.save("../output/%s/%soutputimg.npy"%(sys.argv[-2],sys.argv[-1]), img_create)
-np.save("../output/%s/%sinputlabels.npy"%(sys.argv[-2],sys.argv[-1]), labels)
+np.save("../output/%s/%sinpimg.npy"%(sys.argv[-2],sys.argv[-1]), img_in)
+np.save("../output/%s/%soutpimg.npy"%(sys.argv[-2],sys.argv[-1]), img_create)
+np.save("../output/%s/%sinplabels.npy"%(sys.argv[-2],sys.argv[-1]), labels)
 print("Completed running code")
