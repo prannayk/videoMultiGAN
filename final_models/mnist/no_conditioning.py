@@ -30,9 +30,9 @@ class VAEGAN():
 		self.zdimension = self.num_class
 		self.motion_size = motion_size
 		self.learning_rate = map(lambda x: float(x), learning_rate[:(len(learning_rate) - 2)])
-		self.lambda_1 = 5
-		self.lambda_2 = 2
-		self.gan_scale = 0
+		self.lambda_1 = 10
+		self.lambda_2 = 8
+		self.gan_scale = 5
 		self.dim_1 = [self.image_shape[0], self.image_shape[1]]
 		self.dim_2 = [self.image_shape[0] // 2, self.image_shape[1] // 2]
 		self.dim_4 = [self.image_shape[0] // 4, self.image_shape[1] // 4]
@@ -399,10 +399,10 @@ class VAEGAN():
 			losses["disc_image_discriminator"] = D_x_loss*self.gan_scale + (self.lambda_2*losses["anti-reconstruction"])
 			losses["generator_image"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) 
 			losses["generator_image_gan"] = self.gan_scale*G_x_loss + (self.lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
-			losses["text_encoder"] = losses["gen_text_classifier"] + (losses["reconstruction"]*self.lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
+			losses["text_encoder"] = (losses["reconstruction"]*self.lambda_1) - (self.lambda_2*losses["anti-reconstruction"])
 			losses["disc_style_classifier"] = D_z_s_loss
 			losses["gen_style_classifier"] = G_z_s_loss
-			losses["encoder"] = losses["gen_image_classifier"] + (self.lambda_1*losses["reconstruction"]) + losses["gen_style_classifier"] - (self.lambda_2*losses["anti-reconstruction"])
+			losses["encoder"] = (self.lambda_1*losses["reconstruction"]) - (self.lambda_2*losses["anti-reconstruction"])
 			losses["transformation"] = -losses["anti-reconstruction"]*self.lambda_2 + self.lambda_1*losses["reconstruction"] 
 		self.variable_summaries(losses["reconstruction"],name="reconstruction_loss")
 		self.variable_summaries(G_x_loss, name="generator_loss")
@@ -454,7 +454,7 @@ frames=5
 frames_input = 3
 num_class_motion = 8
 
-def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../../results/%s/sample.jpg'%(sys.argv[4])):
 	print(X.shape)
 	X = morph(X)
 	print(X.shape)
@@ -556,8 +556,8 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
 	print("Total time: " + str(time.time() - eptime))
 
 image_sample, image_old,image_gen,image_labels, text_labels = generate(batch_size, frames, frames_input)
-save_visualization(np.concatenate([image_sample,image_old],axis=3), save_path='../results/final/mnist64/%s/sample.jpg'%(sys.argv[-2]))
-save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/final/mnist64/%s/sample00.jpg'%(sys.argv[-2]))
+save_visualization(np.concatenate([image_sample,image_old],axis=3), save_path='../../results/final/mnist64/%s/sample.jpg'%(sys.argv[-2]))
+save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../../results/final/mnist64/%s/sample00.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
 
@@ -570,7 +570,6 @@ merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
 print("Running code: ")
-saver.restore(session, "/extra_data/prannay/trained_models/mnist_53_model_no_wgan.ckpt")
 epoch = int(sys.argv[-1])
 diter = 5
 num_examples = 24000
@@ -596,8 +595,8 @@ for e in range(epoch):
 		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
-	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/final/mnist64/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
+	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../../results/final/mnist64/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
-	saver.save(session, "/extra_data/prannay/trained_models/mnist_53_model_no_wgan.ckpt")
+	saver.save(session, "/extra_data/prannay/trained_models/no_conditioning.ckpt")
 
