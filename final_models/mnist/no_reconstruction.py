@@ -454,7 +454,7 @@ frames=5
 frames_input = 3
 num_class_motion = 8
 
-def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../results/%s/sample.jpg'%(sys.argv[4])):
+def save_visualization(X, nh_nw=(batch_size,frames_input+frames), save_path='../../results/%s/sample.jpg'%(sys.argv[4])):
 	print(X.shape)
 	X = morph(X)
 	print(X.shape)
@@ -556,8 +556,8 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
 	print("Total time: " + str(time.time() - eptime))
 
 image_sample, image_old,image_gen,image_labels, text_labels = generate(batch_size, frames, frames_input)
-save_visualization(np.concatenate([image_sample,image_old],axis=3), save_path='../results/final/mnist64/%s/sample.jpg'%(sys.argv[-2]))
-save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../results/final/mnist64/%s/sample00.jpg'%(sys.argv[-2]))
+save_visualization(np.concatenate([image_sample,image_old],axis=3), save_path='../../results/final/mnist64/%s/sample.jpg'%(sys.argv[-2]))
+save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../../results/final/mnist64/%s/sample00.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[64,64,3], motion_size=motion_size,  
 	num_class_motion=num_class_motion, num_class_image=num_class_image, frames=frames, video_create=True, frames_input=frames_input)
 
@@ -595,7 +595,7 @@ for e in range(epoch):
 		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
 	images = session.run(x_hat, feed_dict=feed_dict)
-	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../results/final/mnist64/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
+	save_visualization(np.concatenate([image_sample, images],axis=3), save_path="../../results/final/mnist64/%s/sample_%d.jpg"%(sys.argv[-2], ep+1))
 	summary = session.run(merged, feed_dict=feed_dict)
 	train_writer.add_summary(summary, ep)
 	saver.save(session, "/extra_data/prannay/trained_models/no_anti.ckpt")
