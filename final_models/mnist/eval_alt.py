@@ -39,7 +39,7 @@ class VAEGAN():
 		self.dim_8 = [self.image_shape[0] // 8, self.image_shape[1] // 8]
 		self.dim_16 = [self.image_shape[0] // 16, self.image_shape[1] // 16]
 		self.dim_channel = self.image_shape[-1]
-		self.device = "/gpu:0"
+		self.device = "/cpu:0"
 		self.image_size = reduce(lambda x,y : x*y, image_shape)
 		self.initializer = tf.random_normal_initializer(stddev=0.02)
 		self.first_time = True
@@ -504,7 +504,7 @@ def get_feed_dict(gan, placeholders):
 		placeholders['z_c'] : random_label(batch_size*frames, num_class_image),
 		placeholders['z_t'] : np.concatenate([np.random.normal(0,1,[batch_size*frames, num_class_motion]), frame_label(batch_size, frames)], axis=1)
 	}
-	return feed_dict
+	return feed_dict,feed_list
 def train_epoch(gan, placeholders,flag=False, initial=True):
     eptime = time.time()
     diter = 5

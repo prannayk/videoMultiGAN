@@ -4,8 +4,8 @@ import os
 import sys
 import scipy.misc
 rname = sys.argv[-1]
-inputimgs = np.load("%sinputimg.npy"%(rname))
-outputimgs = np.load("%soutputimg.npy"%(rname))
+inputimgs = np.load("%sinpimg.npy"%(rname))
+outputimgs = np.load("%soutpimg.npy"%(rname))
 def save_visualization(X, nh_nw=(128,5), save_path='.'):
 	print(X.shape)
 	X = morph(X)
@@ -36,8 +36,8 @@ def morph(X):
 	return img
 
 i=0
-if (not os.path.exists("../imgs/%s"%(rname))):
-    os.makedirs("../imgs/%s"%(rname))
+if (not os.path.exists("/extra_data/prannay/output/imgs/%s"%(rname))):
+    os.makedirs("/extra_data/prannay/output/imgs/%s"%(rname))
 filelist = []
 while i < inputimgs.shape[0]:
     t = (i / 128) + 1

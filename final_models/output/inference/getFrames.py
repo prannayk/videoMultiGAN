@@ -37,14 +37,14 @@ def morph(X):
 	return img
 
 i=0
-if (not os.path.exists("../imgs/%s"%(rname))):
-    os.makedirs("../imgs/%s"%(rname))
+if (not os.path.exists("/extra_data/prannay/output/imgs/%s"%(rname))):
+    os.makedirs("/extra_data/prannay/output/imgs/%s"%(rname))
 filelist = []
 while i < inputimgs.shape[0]:
     t = (i / 256) + 1
     if t % 10 == 0:
         print(t)
-    save_visualization(outputimgs[i:i+256,:,:,:4],save_path="/extra_data/prannay/output_mnist/imgs/%s/gen_%04d.jpg"%(rname, t))
-    save_visualization(outputimgs[i:i+256,:,:,1:5],save_path="/extra_data/prannay/output_mnist/imgs/%s/gen_1_%04d.jpg"%(rname, t))
-    save_visualization(outputimgs[i:i+256,:,:,2:6],save_path="/extra_data/prannay/output_mnist/imgs/%s/gen_2_%04d.jpg"%(rname, t))
+    save_visualization(outputimgs[i:i+256,:,:,:4],save_path="/extra_data/prannay/output/imgs/%s/gen_%04d.jpg"%(rname, t))
+    save_visualization(outputimgs[i:i+256,:,:,1:5],save_path="/extra_data/prannay/output/imgs/%s/gen_1_%04d.jpg"%(rname, t))
+    save_visualization(outputimgs[i:i+256,:,:,2:6],save_path="/extra_data/prannay/output/imgs/%s/gen_2_%04d.jpg"%(rname, t))
     i+=256

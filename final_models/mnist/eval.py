@@ -555,7 +555,7 @@ print("Running code: ")
 diter = 5
 num_examples = 8000
 img_in, img_create, labels = train_epoch(gan, placeholders)
-np.save("../output/%s/%sinpimg.npy"%(sys.argv[-2],sys.argv[-1]), img_in)
-np.save("../output/%s/%soutpimg.npy"%(sys.argv[-2],sys.argv[-1]), img_create)
-np.save("../output/%s/%sinplabels.npy"%(sys.argv[-2],sys.argv[-1]), labels)
+np.save("/extra_data/prannay/output/%s/%sinpimg.npy"%(sys.argv[-2],sys.argv[-1]), img_in)
+np.save("/extra_data/prannay/output/%s/%soutpimg.npy"%(sys.argv[-2],sys.argv[-1]), img_create)
+np.save("/extra_data/prannay/output/%s/%sinplabels.npy"%(sys.argv[-2],sys.argv[-1]), labels)
 print("Completed running code")
