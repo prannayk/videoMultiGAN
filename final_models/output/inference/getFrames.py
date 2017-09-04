@@ -4,8 +4,8 @@ import os
 import sys
 import scipy.misc
 rname = sys.argv[-1]
-inputimgs = np.load("%sinputimg.npy"%(rname))
-outputimgs = np.load("%soutputimg.npy"%(rname))
+inputimgs = np.load("%sinpimg.npy"%(rname))
+outputimgs = np.load("%soutpimg.npy"%(rname))
 def save_visualization(X, nh_nw=(256,4), save_path='.'):
 	print(X.shape)
 	X = morph(X)
