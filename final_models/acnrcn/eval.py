@@ -487,18 +487,14 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
     start_time = time.time()
     assert num_examples % batch_size == 0
     rimages_old = np.zeros([batch_size,32,40,16])
-    while run < num_examples:
-        feed_dict, feed_list = get_feed_dict(gan, placeholders)
-        feed_dict, feed_list = get_feed_dict(gan, placeholders)
-				rimages_old[:,:,:,]
-				run += batch_size
-        count += 1
-        if count % 10 == 0 or flag:
-            print(time.time() - start_time)
-            start_time = time.time() 
+    feed_dict, feed_list = get_feed_dict(gan, placeholders)
+    feed_dict, feed_list2 = get_feed_dict(gan, placeholders)
+    rimages_old[:,:,:,:3] = feed_list[0]
+    rimages_old[:,:,:,3:8] = feed_list[1]
+    rimages_old[:,:,:,8:11] = feed_list2[0]
+    rimages_old[:,:,:,11:] = feed_list2[1]
     print("Total time: " + str(time.time() - eptime))
-    return rimages_old, rimages_create, rimages_labels
-
+    return rimages_old
 image_sample, image_old,image_gen,image_labels, text_labels, _ = generate(batch_size, frames, frames_input)
 save_visualization(np.concatenate([image_sample,image_gen],axis=3), save_path='../../results/acrcn/32/%s/sample.jpg'%(sys.argv[-2]))
 gan = VAEGAN(batch_size=batch_size, embedding_size=embedding_size, image_shape=[32,40,1], motion_size=motion_size,  
@@ -517,8 +513,6 @@ print("Running code: ")
 
 diter = 5
 num_examples = 16000
-img_in, img_create, labels = train_epoch(gan, placeholders)
+img_in = train_epoch(gan, placeholders)
 np.save("../output/%s/%sinputimg.npy"%(sys.argv[-2],sys.argv[-1]), img_in)
-np.save("../output/%s/%soutputimg.npy"%(sys.argv[-2],sys.argv[-1]), img_create)
-np.save("../output/%s/%sinputlabels.npy"%(sys.argv[-2],sys.argv[-1]), labels)
 print("Completed running code")
