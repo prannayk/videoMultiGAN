@@ -486,19 +486,12 @@ def train_epoch(gan, placeholders,flag=False, initial=True):
     run=0
     start_time = time.time()
     assert num_examples % batch_size == 0
-    rimages_old = np.zeros([num_examples,32,40,5])
-    rimages_create = np.zeros([num_examples,32,40,10])
-    rimages_labels = np.zeros([num_examples,num_class_image])
+    rimages_old = np.zeros([batch_size,32,40,16])
     while run < num_examples:
         feed_dict, feed_list = get_feed_dict(gan, placeholders)
-        images = session.run(x_hat, feed_dict=feed_dict)
-        feed_dict[placeholders["image_input"]] = images[:,:,:,2:]
-        images_new = session.run(x_hat, feed_dict=feed_dict)
-        rimages_labels[run:run+batch_size] = feed_list[3]
-        rimages_old[run:run+batch_size] = feed_list[1]
-        rimages_create[run:run+batch_size,:,:,:5] = images
-        rimages_create[run:run+batch_size,:,:,5:] = images_new
-        run += batch_size
+        feed_dict, feed_list = get_feed_dict(gan, placeholders)
+				rimages_old[:,:,:,]
+				run += batch_size
         count += 1
         if count % 10 == 0 or flag:
             print(time.time() - start_time)
@@ -519,7 +512,7 @@ saver = tf.train.Saver()
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter("../logs/%s/"%(sys.argv[-2]))
 tf.global_variables_initializer().run()
-saver.restore(session,"/extra_data/prannay/trained_models/%s.ckpt"%(sys.argv[-1]))
+saver.restore(session,"/extra_data/prannay/models/%s.ckpt"%(sys.argv[-1]))
 print("Running code: ")
 
 diter = 5
