@@ -1,6 +1,13 @@
 # Video Multi GAN
 Video Generation from Text using Tree like decision using GANs. The text annotation or statement is encoded using the LM into a embedding, which then is combined with random vector to generate relevant videos and images. 
 
+## Video Generation models
+1. VAEGAN
+2. VAEGAN with Latent Variable optimization
+3. VAEGAN with anti reconstruction loss
+4. VAEGAN + Anti reconstruction loss + Latent variable models
+5. variants of above models with different Hyper parameters
+
 ## Model structure
 * LSTM based model for next frame creation
 * Wasserstein GAN setting discriminator 
@@ -9,14 +16,10 @@ Video Generation from Text using Tree like decision using GANs. The text annotat
 
 ## Training model
 * The relevant models are in ``` Tensorflow >= v1.2 ```
+* Experimentation with above mentioned models
 * The training is done over self generated Bouncing MNIST with sentence based annotation
 * The gensim pre trained fastText wikipedia work embeddings are used for embedding tokens as vectors
 * Non attention based models are used initially to generate starting frames. 
-* The trained version of the GAN is then used to generate all frames
-* The embeddings for the next frame, from a given frame is also derived from the discriminator network's intermediate convolution layer and one extra (trained) max pooling layer
-* The embeddings generated are then put into the LSTM network (of small dimension) to generate the next frame 
-* LSTM models then give the input embedding to the generator of the next frame
-* We alternatively train the LSTM model and the generator model using a GANTree 
 * The GAN tree trains to look for discriminative features (unverified)
 
 ## Datasets

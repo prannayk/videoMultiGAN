@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>VideoGAN</title>
+	<style type="text/css">
+		#container {
+			margin: 0 auto;
+			width: 960px;
+			display: block;
+			vertical-align: top;
+		}
+		#left {
+			/*width : 400px;*/
+		}
+		.model {
+			vertical-align: top;
+			padding: 10px;
+			display: inline-block;
+			width : 40%;
+			margin: 0 auto;
+		}
+		img {
+			width: 100%;
+		}
+		#right img {
+			width: 48%;
+		}
+		#frames {
+			text-align: center;
+		}
+	</style>
+</head>
+<body>
+<div id="container">
+	<center><h1>LVOGAN</h1></center>
+	<p>We show that our model not just generalizes better, but produces better looking videos. There are no features in the videos that are inconsistent with the real frames and even though ours perform poorer in resolution, our videos look more real since they capture the features of the videos well.</p>
+	<div id="frames">
+		<div id="left" class="model">
+			<h1> Our model </h1>
+			<CENTER>We are able to generate rate, content and style controlled repeating video textures from noise. The samples are conditioned using the input latent variables. </CENTER>
+			<h2> Random rate and content </h2>
+			<img src="./ing2.gif" id="img1">
+			<h2>Slowed down version</h2>
+			<img src="./ing3.gif" id="img1">
+			<h2>Sped up version</h2>
+			<img src="./ing4.gif" id="img1">
+
+		</div>
+		<div id="right" class="model">
+			<h1>Baseline</h1>
+			<center>The generated content is not repetitive, and can not be scaled recurrently. Even though the resolution is higher the frames have anomalies</center>
+			<h2>Random rate and content</h2>
+			<img src="./genout2.gif" id="img1">
+			<img src="./genout.gif" id="img1">
+			<!-- <img src="./gen02.gif" id="img1"> -->
+		</div>
+	</div>
+</div>
+</body>
+</html>
